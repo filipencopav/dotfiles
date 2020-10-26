@@ -18,6 +18,7 @@ alias profile="$EDITOR $HOME/.profile"
 alias kakrc="$EDITOR $HOME/.config/kak/kakrc"
 alias visrc="$EDITOR $HOME/.config/vis/visrc.lua"
 alias vimrc="$EDITOR $HOME/.vimrc"
+alias nvimrc="$EDITOR $HOME/.config/nvim/init.vim"
 
 alias config="/usr/bin/git --git-dir=$HOME/dotfiles/ --work-tree=$HOME"
 
