@@ -1,0 +1,301 @@
+* Gruvbox
+#+begin_src emacs-lisp
+  (use-package gruvbox-theme
+    :ensure t
+    :config
+    (load-theme 'gruvbox t))
+#+END_SRC
+* Evil
+#+begin_src emacs-lisp
+  (use-package evil
+	:ensure t
+	:config
+	(evil-mode 1)
+	(with-eval-after-load 'evil-maps
+	  (define-key evil-normal-state-map (kbd "K") 'evil-scroll-up)
+	  (define-key evil-normal-state-map (kbd "J") 'evil-scroll-down)
+	  (define-key evil-normal-state-map (kbd "L") 'evil-end-of-line)
+	  (define-key evil-normal-state-map (kbd "H") 'evil-first-non-blank)
+
+	  (define-key evil-motion-state-map (kbd "K") 'evil-scroll-up)
+	  (define-key evil-motion-state-map (kbd "J") 'evil-scroll-down)
+	  (define-key evil-motion-state-map (kbd "L") 'evil-end-of-line)
+	  (define-key evil-motion-state-map (kbd "H") 'evil-first-non-blank)))
+#+END_SRC
+** Key bindings
+#+begin_src emacs-lisp
+
+#+end_src
+* Org
+** basic config
+#+begin_src emacs-lisp
+  (setq org-src-window-setup 'current-window)
+  (setq org-adapt-indentation nil)
+  (add-to-list 'org-structure-template-alist
+    '("el" . "src emacs-lisp"))
+#+end_src
+** Get the shortcuts back
+#+begin_src emacs-lisp
+  (require 'org-tempo)
+#+END_SRC
+* Menus
+** Smex
+#+begin_src emacs-lisp
+  (use-package smex
+	:ensure t
+	:init (smex-initialize)
+	:bind
+	("M-x" . smex))
+#+END_SRC
+** IDO
+*** enable ido mode
+#+begin_src emacs-lisp
+(setq ido-enable-flex-matching nil)
+(setq ido-create-new-buffer 'always)
+(setq ido-everywhere t)
+(ido-mode 1)
+#+END_SRC
+*** ido-vertical
+#+begin_src emacs-lisp
+  (use-package ido-vertical-mode
+    :ensure t
+    :init
+    (ido-vertical-mode 1)
+    :config
+    (setq ido-vertical-define-keys 'C-n-and-C-p-only))
+#+END_SRC
+*** switch buffers
+#+begin_src emacs-lisp
+  (global-set-key (kbd "C-x C-b") 'ido-switch-buffer)
+#+END_SRC
+* Dashboard
+#+begin_src emacs-lisp
+  (use-package dashboard
+    :ensure t
+    :config
+    (dashboard-setup-startup-hook)
+    (setq dashboard-items '((recents . 10))))
+#+end_src
+* Modeline
+** spaceline
+#+begin_src emacs-lisp
+  (use-package spaceline
+    :ensure t
+    :config
+    (require 'spaceline-config)
+    (setq powerline-default-separator 'arrow)
+    (spaceline-spacemacs-theme))
+#+end_src
+** diminish
+#+begin_src emacs-lisp
+  (use-package diminish
+    :ensure t
+    :init
+    (diminish 'subword-mode)
+    (diminish 'undo-tree-mode)
+    (diminish 'rainbow-mode)
+    (diminish 'global-whitespace-mode))
+#+end_src
+* Terminal
+** Setting default shell to bash
+#+begin_src emacs-lisp
+  (defvar term-shell "/bin/bash")
+  (defadvice ansi-term (before force-bash)
+    (interactive (list term-shell)))
+  (ad-activate 'ansi-term)
+#+END_SRC
+** Invoke the terminal quickly with <s-return>
+#+begin_src emacs-lisp
+(global-set-key (kbd "<s-return>") 'ansi-term)
+#+END_SRC
+** Exit buffer after closing terminal
+#+begin_src emacs-lisp
+(defun oleh-term-exec-hook ()
+  (let* ((buff (current-buffer))
+         (proc (get-buffer-process buff)))
+    (set-process-sentinel
+     proc
+     `(lambda (process event)
+        (if (string= event "finished\n")
+            (kill-buffer ,buff))))))
+
+(add-hook 'term-exec-hook 'oleh-term-exec-hook)
+#+end_src
+** Pasting
+#+begin_src emacs-lisp
+(eval-after-load "term"
+  '(define-key term-raw-map (kbd "C-c C-y") 'term-paste))
+#+end_src
+* Config edit/reload
+** edit
+#+begin_src emacs-lisp
+  (defun config-visit ()
+    (interactive)
+    (find-file "~/.emacs.d/config.org"))
+  (global-set-key (kbd "C-c e") 'config-visit)
+#+end_src
+** reload
+#+begin_src emacs-lisp
+  (defun config-reload ()
+    (interactive)
+    (org-babel-load-file (expand-file-name "~/.emacs.d/config.org")))
+  (global-set-key (kbd "C-c r") 'config-reload)
+#+end_src
+* Quality of life
+** Avy
+Use =(avy-goto-char ...)= as the default action for evil mode =C-f=
+#+begin_src emacs-lisp
+  (use-package avy
+	:requires evil
+	:ensure t
+	:init
+	(define-key evil-normal-state-map (kbd "C-f") 'avy-goto-char)
+	(define-key evil-motion-state-map (kbd "C-f") 'avy-goto-char))
+#+end_src
+** Super-edit
+#+begin_src emacs-lisp
+  (use-package sudo-edit
+    :ensure t)
+#+end_src
+** Clock
+#+begin_src emacs-lisp
+  (setq display-time-24hr-format t)
+  (display-time-mode 1)
+#+end_src
+** Show columns and line numbers
+#+begin_src emacs-lisp
+  (line-number-mode 1)
+  (column-number-mode 1)
+#+end_src
+** No backup files
+#+begin_src emacs-lisp
+(setq make-backup-files nil)
+(setq auto-save-default nil)
+#+END_SRC
+** y or n instead of yes or no
+#+begin_src emacs-lisp
+(defalias 'yes-or-no-p 'y-or-n-p)
+#+END_SRC
+** Line numbers.
+I still haven't figured these out. Help.
+#+begin_src emacs-lisp
+  (setq display-line-numbers-type 'relative)
+  (global-display-line-numbers-mode)
+#+END_SRC
+** Font
+#+begin_src emacs-lisp
+(set-frame-font "Terminus-9" nil t)
+#+END_SRC
+** Disable menubar, toolbar and scrollbar
+#+begin_src emacs-lisp
+(menu-bar-mode -1)
+(tool-bar-mode -1)
+(scroll-bar-mode -1)
+#+END_SRC
+** No startup message
+#+begin_src emacs-lisp
+(setq inhibit-startup-message t)
+#+END_SRC
+** subword
+#+begin_src emacs-lisp
+  (global-subword-mode 1)
+#+end_src
+** Matching parens/brackets/quotes
+#+begin_src emacs-lisp
+  (setq electric-pair-pairs '(
+    (?\` . ?\`)
+    (?\" . ?\")
+    (?\( . ?\))
+    (?\< . ?\>)
+    (?\[ . ?\])))
+
+  (electric-pair-mode nil)
+#+end_src
+* Whitespace
+** Highlighting
+#+begin_src emacs-lisp
+  (setq whitespace-style '(face tabs trailing))
+  (global-whitespace-mode)
+#+end_src
+** smart tabs
+#+begin_src emacs-lisp
+  (use-package smart-tabs-mode
+	:ensure t
+	:config
+	(smart-tabs-insinuate 'c 'javascript))
+#+end_src
+** Tabwidth, spaces per tab, etc.
+#+begin_src emacs-lisp
+  (setq-default tab-width 4)
+  (setq-default indent-tabs-mode t)
+  (add-hook 'lisp-mode
+			(lambda ()
+			  (setq indent-tabs-mode nil)
+			  (setq tab-width 2)))
+#+end_src
+* Buffers
+** kill current buffer when pressing <C-x k>
+#+begin_src emacs-lisp
+  (global-set-key (kbd "C-x k") 'kill-this-buffer)
+#+end_src
+** enable ibuffer
+#+begin_src emacs-lisp
+  (global-set-key (kbd "C-x b") 'ibuffer)
+#+end_src
+** vim movement keys
+#+begin_src emacs-lisp
+  (with-eval-after-load 'ibuffer
+    (define-key ibuffer-mode-map (kbd "k") 'previous-line)
+    (define-key ibuffer-mode-map (kbd "j") 'next-line))
+#+end_src
+** expert mode
+#+begin_src emacs-lisp
+  (setq ibuffer-expert t)
+#+end_src
+* rainbow
+** colors highlighting
+#+begin_src emacs-lisp
+  (use-package rainbow-mode
+    :commands rainbow-mode
+    :ensure t
+    :init (add-hook 'css-mode-hook 'rainbow-mode))
+#+end_src
+** parens highlighting
+#+begin_src emacs-lisp
+  (use-package rainbow-delimiters
+    :ensure t
+    :init
+    (define-globalized-minor-mode global-rainbow-delimiters-mode
+      rainbow-delimiters-mode
+      (lambda ()
+	(rainbow-delimiters-mode 1)))
+    (global-rainbow-delimiters-mode 1))
+#+end_src
+* window spilitting
+This will create a window and immediately follow it.
+#+begin_src emacs-lisp
+  (defun split-and-follow-horizontally ()
+    "Split a window horizontally and follow into it"
+    (interactive)
+    (split-window-below)
+    (balance-windows)
+    (other-window 1))
+
+  (defun split-and-follow-vertically ()
+    "Split a window vertically and follow into it"
+    (interactive)
+    (split-window-right)
+    (balance-windows)
+    (other-window 1))
+
+  (global-set-key (kbd "C-x 2") 'split-and-follow-horizontally)
+  (global-set-key (kbd "C-x 3") 'split-and-follow-vertically)
+#+end_src
+* Auto completion
+** Company - basic autocompletion
+#+begin_src emacs-lisp
+  (use-package company
+    :ensure t
+    :init
+    (add-hook 'after-init-hook 'global-company-mode))
+#+end_src
