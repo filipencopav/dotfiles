@@ -29,6 +29,12 @@ export TERMINFO="$XDG_DATA_HOME"/terminfo
 export WINEPREFIX="$HOME"/games/dummy
 export QT_STYLE_OVERRIDE="kvantum"
 
+echo
+echo "+-----------------+"
+echo "| Welcome back <3 |"
+echo "+-----------------+"
+echo
+
 if [ "$(tty)" = "/dev/tty1" ] ; then
 	pgrep -x Xorg || exec startx 2> /dev/null
 fi

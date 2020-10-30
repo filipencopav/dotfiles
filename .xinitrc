@@ -15,6 +15,7 @@ usermodmap="$HOME/.Xmodmap"
 # Set default cursor.
 xsetroot -cursor_name left_ptr
 
+# Root window time setting
 while [ 1 -eq 1 ]
 do
 	xsetroot -name "$(gettime)"
@@ -23,12 +24,14 @@ done &
 
 # Some custom configurations :3
 setxkbmap -option caps:escape
-remaps &
+xset r rate 300 50 &
+
 xset s off &
 xset -dpms &
 xscreensaver -no-splash > /dev/null &
-dunst > /dev/null&
-picom > /dev/null&
-feh --bg-max "$HOME"/.local/share/backgrounds/wall
+
+dunst > /dev/null &
+picom > /dev/null &
+feh --bg-max "$HOME"/.local/share/backgrounds/wall &
 
 exec dwm > /dev/null 2> /dev/null
