@@ -1,0 +1,30 @@
+#!/bin/sh
+
+SYMBOL_GIT_BRANCH='⑂'
+SYMBOL_GIT_MODIFIED='*'
+SYMBOL_GIT_PUSH='↑'
+SYMBOL_GIT_PULL='↓'
+
+# Fully POSIX-compliant and bashism-less
+git_eng="env LANG=C git"
+ref="$($git_eng symbolic-ref --short HEAD 2>/dev/null)"
+[ -n "$ref" ] && ref="$SYMBOL_GIT_BRANCH$ref" || ref="$($git_eng describe --tags --always 2>/dev/null)"
+[ -n "$ref" ] || exit;
+
+git status --porcelain --branch 2>/dev/null | {
+	marks=''
+	while IFS= read -r line
+	do
+		if echo "$line" | grep -E -q '^##'
+		then
+			echo "$line" | grep -E -q 'ahead' &&
+				marks="$marks $SYMBOL_GIT_PUSH$(echo "$line" | sed 's/.*\[ahead \([1-9][1-9]*\)\].*/\1/g')"
+			echo "$line" | grep -E -q 'behind' &&
+				marks="$marks $SYMBOL_GIT_PULL$(echo "$line" | sed 's/.*\[behind \([1-9][1-9]*\)\].*/\1/g')"
+		else
+			marks="$SYMBOL_GIT_MODIFIED$marks"
+			break
+		fi
+	done
+	printf ' %s%s' "$ref" "$marks"
+}

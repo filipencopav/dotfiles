@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# For updating dotfiles
+DOTFILES="$HOME/devel/git/dotfiles"
+
+rsync -aqu --existing "$HOME/.config/" "$DOTFILES/config/"
+rsync -aqu --existing "$HOME/build/st/" "$DOTFILES/st/"
+
+rsync -qu --existing "$HOME/.local/bin/" "$DOTFILES/scripts/"
+
+rsync -qu "$HOME/.bashrc" "$DOTFILES/"
+rsync -qu "$HOME/.profile" "$DOTFILES/"
