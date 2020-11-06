@@ -34,6 +34,12 @@ alias ls='ls -hN --color=auto --group-directories-first'
 alias ll='ls --color=auto -l -a'
 alias 'update-grub'='grub-mkconfig -o /boot/grub/grub.cfg'
 
+# devour aliases
+alias mupdf='devour mupdf'
+alias zathura='devour zathura'
+alias feh='devour feh'
+alias sxiv='devour sxiv'
+
 # coding
 PROJECT_PATH="$HOME"/devel/rust/physac
 alias proj="cd $PROJECT_PATH"
