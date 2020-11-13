@@ -1,5 +1,5 @@
-colorscheme base16-gruvbox-dark-medium
-add-highlighter global/ number-lines -relative -hlcursor -min-digits 3
+colorscheme base16-gruvbox-dark-hard
+add-highlighter global/ number-lines -relative -hlcursor -min-digits 2
 add-highlighter global/ show-matching
 add-highlighter global/ show-whitespaces -tab '›' -lf ' ' -spc ' '
 add-highlighter global/ wrap -width 80
@@ -11,7 +11,3 @@ map global user y '<a-|>xsel -b <ret>' -docstring 'copy to system clipboard'
 map global user p '|xsel -b <ret>' -docstring 'paste from system clipboard'
 map global user | '<a-|>' -docstring 'pipe to'
 map global normal '#' ': comment-line <ret>'
-
-hook global WinCreate .*\.html %{
-	define-command lorem %{ execute-keys { iLorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce quis laoreet ipsum. Donec mattis convallis tellus in fermentum. Fusce gravida odio ac nibh tincidunt, at mollis nunc porttitor. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Vestibulum bibendum nunc at odio elementum dapibus. Aliquam maximus ipsum sem, quis sollicitudin elit imperdiet sed. Duis condimentum bibendum odio, scelerisque tincidunt orci sollicitudin quis. Maecenas mollis elit quis lorem fringilla, at egestas erat vestibulum. Nullam non odio sit amet turpis iaculis molestie ac sit amet sapien. Maecenas orci odio, imperdiet eu convallis ultricies, posuere vel arcu. Phasellus auctor hendrerit purus at semper. Fusce ultricies malesuada magna, sit amet fringilla nisl aliquet ut. Vestibulum ac sollicitudin sapien, et lobortis tellus.<esc> } }
-}

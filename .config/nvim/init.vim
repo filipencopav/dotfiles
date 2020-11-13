@@ -1,10 +1,15 @@
+set exrc
+set secure
+
 set nocompatible
 filetype plugin on
 
 syntax on
-if &t_Co > 255
+if has('termguicolors')
 	set termguicolors
-	colorscheme base16-gruvbox-dark-medium
+	colorscheme base16-gruvbox-dark-hard
+else
+	colorscheme delek
 endif
 
 " Completion
@@ -15,6 +20,7 @@ command Maketags !ctags -R .
 
 " Navigation {{{
 set relativenumber
+set number
 if &t_Co >  255
 	set cursorline
 endif
@@ -42,7 +48,7 @@ function Tabs(num)
 	setlocal autoindent
 	setlocal smartindent
 endfunction
-call Tabs(4)
+call Spaces(4)
 
 " DelimitMate
 let delimitMate_expand_cr = 1
@@ -142,15 +148,16 @@ nnoremap // :noh<return>
 augroup filetype_lisp
 	autocmd!
 	autocmd FileType lisp,scheme call Spaces(2)
+	autocmd FileType lisp,scheme let b:delimitMate_quotes = "\""
 augroup end
 " }}}
 
 " HTML FileType {{{
 augroup filetype_html
 	autocmd!
-	autocmd FileType html call SetTabOptions()
-	autocmd FileType html nnoremap <buffer> <leader>html :-1read $HOME/.vim/skeleton.html<cr>4jwf>a
-	autocmd FileType html iabbrev <buffer> lorem Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce quis laoreet ipsum. Donec mattis convallis tellus in fermentum. Fusce gravida odio ac nibh tincidunt, at mollis nunc porttitor. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Vestibulum bibendum nunc at odio elementum dapibus. Aliquam maximus ipsum sem, quis sollicitudin elit imperdiet sed. Duis condimentum bibendum odio, scelerisque tincidunt orci sollicitudin quis. Maecenas mollis elit quis lorem fringilla, at egestas erat vestibulum. Nullam non odio sit amet turpis iaculis molestie ac sit amet sapien. Maecenas orci odio, imperdiet eu convallis ultricies, posuere vel arcu. Phasellus auctor hendrerit purus at semper. Fusce ultricies malesuada magna, sit amet fringilla nisl aliquet ut. Vestibulum ac sollicitudin sapien, et lobortis tellus.
+	autocmd FileType html call Spaces(2)
+	autocmd FileType html nnoremap <buffer> <leader>html :-1read $HOME/.config/nvim/skeleton.html<cr>4jwf>a
+	autocmd FileType html iabbrev <buffer> lorem <esc>:read $HOME/.config/nvim/lorem<cr>A
 augroup END
 " }}}
 
@@ -162,30 +169,16 @@ augroup filetype_vim
 augroup END
 " }}}
 
-" Rust filetype settings {{{
-augroup rust_filetype
-	autocmd!
-	autocmd FileType rust call Tabs(4)
-augroup END
-" }}}
-
-" Pascal filetype settings {{{
-augroup pascal_filetype
+" Pascal {{{
+augroup filetype_pascal
 	autocmd!
 	autocmd FileType pascal call Spaces(2)
 augroup END
 " }}}
 
-" C filetype {{{
-augroup c_filetype
+" C++ {{{
+augroup filetype_cpp
 	autocmd!
-	autocmd FileType c call Tabs(4)
-augroup END
-" }}}
-
-" Fennel {{{
-augroup fennel_filetype
-	autocmd!
-	autocmd FileType fennel call Spaces(2)
+	autocmd FileType cpp setlocal equalprg=clang-format\ --style=file
 augroup END
 " }}}

@@ -32,6 +32,6 @@ xscreensaver -no-splash > /dev/null &
 
 dunst > /dev/null &
 picom > /dev/null &
-feh --bg-max "$HOME"/.local/share/backgrounds/wall &
+feh --bg-fill "$HOME"/.local/share/backgrounds/wall &
 
 exec dwm > /dev/null 2> /dev/null
