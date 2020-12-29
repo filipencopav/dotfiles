@@ -113,7 +113,7 @@ set foldlevel=99
 " Sourcing and editing vimrc
 let mapleader = ','
 nnoremap <leader>sv :source $HOME/.vimrc<cr>
-nnoremap <leader>ev :edit $HOME/.vimrc<cr>
+nnoremap <leader>ev :edit $HOME/.config/vimrc<cr>
 
 " Split navigation
 nnoremap <C-J> <C-W><C-J>

@@ -29,6 +29,8 @@ export TERMINFO="$XDG_DATA_HOME"/terminfo
 export WINEPREFIX="$HOME"/games/dummy
 export QT_STYLE_OVERRIDE="kvantum"
 
+date
+
 echo
 echo "+-----------------+"
 echo "| Welcome back <3 |"

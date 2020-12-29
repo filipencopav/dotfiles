@@ -46,11 +46,24 @@
 #+begin_src emacs-lisp
   (setq org-latex-title-command nil)
 #+end_src
-** Latex packages
-*** Babel
+** Babel
 #+begin_src emacs-lisp
   (add-to-list 'org-latex-packages-alist
 			   '("AUTO" "babel" t ("pdflatex")))
+#+end_src
+** Listings
+#+begin_src emacs-lisp
+  (setq org-latex-listings 'minted
+		org-latex-pdf-process
+		'("pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+		  "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+		  "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"))
+
+  (add-to-list 'org-latex-packages-alist
+			   '("" "minted"))
+
+  (setq org-latex-minted-options '(("breaklines" "true")
+								   ("breakanywhere" "true")))
 #+end_src
 * Menus
 ** Smex
@@ -220,7 +233,6 @@ I still haven't figured these out. Help.
     (?\` . ?\`)
     (?\" . ?\")
     (?\( . ?\))
-    (?\< . ?\>)
     (?\[ . ?\])))
 
   (electric-pair-mode)
@@ -270,20 +282,15 @@ I still haven't figured these out. Help.
 ** colors highlighting
 #+begin_src emacs-lisp
   (use-package rainbow-mode
-    :commands rainbow-mode
     :ensure t
-    :init (add-hook 'css-mode-hook 'rainbow-mode))
+    :config (add-hook 'css-mode-hook 'rainbow-mode))
 #+end_src
 ** parens highlighting
 #+begin_src emacs-lisp
   (use-package rainbow-delimiters
-    :ensure t
-    :init
-    (define-globalized-minor-mode global-rainbow-delimiters-mode
-      rainbow-delimiters-mode
-      (lambda ()
-	(rainbow-delimiters-mode 1)))
-    (global-rainbow-delimiters-mode 1))
+	:ensure t
+	:config
+	(add-hook 'prog-mode-hook rainbow-delimiters-mode))
 #+end_src
 * window spilitting
 This will create a window and immediately follow it.

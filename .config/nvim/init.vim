@@ -119,8 +119,8 @@ set foldlevel=99
 
 " Sourcing and editing vimrc
 let mapleader = ','
-nnoremap <leader>sv :source $HOME/.vimrc<cr>
-nnoremap <leader>ev :edit $HOME/.vimrc<cr>
+nnoremap <leader>sv :source $HOME/.config/nvim/init.vim<cr>
+nnoremap <leader>ev :edit $HOME/.config/nvim/init.vim<cr>
 
 " Split navigation
 nnoremap <C-J> <C-W><C-J>
@@ -180,5 +180,12 @@ augroup END
 augroup filetype_cpp
 	autocmd!
 	autocmd FileType cpp setlocal equalprg=clang-format\ --style=file
+augroup END
+" }}}
+
+" C {{{
+augroup filteype_c
+	autocmd!
+	autocmd FileType c,hpp call Tabs(4)
 augroup END
 " }}}
