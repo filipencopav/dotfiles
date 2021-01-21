@@ -22,13 +22,17 @@ do
 	sleep 1m
 done &
 
+urxvtd &
+
 # Some custom configurations :3
-setxkbmap -option caps:escape
+setxkbmap \
+    -layout us,ru\
+    -option grp:alt_shift_toggle\
+    -option caps:escape
 xset r rate 300 50 &
 
 xset s off &
 xset -dpms &
-xscreensaver -no-splash > /dev/null &
 
 dunst > /dev/null &
 picom > /dev/null &
