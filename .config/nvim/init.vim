@@ -5,9 +5,12 @@ set nocompatible
 filetype plugin on
 
 syntax on
-if has('termguicolors')
+set background=dark
+
+if &t_Co > 255
 	set termguicolors
-	colorscheme base16-gruvbox-dark-hard
+	let g:gruvbox_contrast_dark = 'hard'
+	colorscheme gruvbox
 else
 	colorscheme delek
 endif
@@ -27,9 +30,9 @@ endif
 " }}}
 
 " Cursor
-let &t_SI = "\<Esc>[6 q"
-let &t_SR = "\<Esc>[4 q"
-let &t_EI = "\<Esc>[2 q"
+let &t_SI = "\<Esc>[5 q"
+let &t_SR = "\<Esc>[3 q"
+let &t_EI = "\<Esc>[1 q"
 
 " Space indentation
 function Spaces(num)
@@ -82,6 +85,9 @@ let g:rainbow_conf = {
 \		},
 \		'stylus': {
 \			'parentheses': ['start=/{/ end=/}/ fold contains=@colorableGroup'],
+\		},
+\		'pascal': {
+\			'parentheses': ['start=/\[/ end=/\]/ fold', 'start=/(/ end=/)/ fold'],
 \		},
 \		'css': 0,
 \	}
@@ -186,6 +192,6 @@ augroup END
 " C {{{
 augroup filteype_c
 	autocmd!
-	autocmd FileType c,hpp call Tabs(4)
+	autocmd BufEnter *.c,*.h call Tabs(4)
 augroup END
 " }}}

@@ -2,9 +2,7 @@ set nocompatible
 filetype plugin on
 
 syntax on
-if &t_Co > 255
-	colorscheme base16-gruvbox-dark-medium
-endif
+set background=dark
 
 " Completion
 set path+=**
@@ -16,13 +14,19 @@ command Maketags !ctags -R .
 set relativenumber
 if &t_Co >  255
 	set cursorline
+	set termguicolors
+	let g:gruvbox_contrast_dark = 'hard'
+	autocmd vimenter * ++nested colorscheme gruvbox
+	colorscheme gruvbox
+else
+	colorscheme delek
 endif
 " }}}
 
 " Cursor
-let &t_SI = "\<Esc>[6 q"
-let &t_SR = "\<Esc>[4 q"
-let &t_EI = "\<Esc>[2 q"
+let &t_SI = "\<Esc>[5 q"
+let &t_SR = "\<Esc>[3 q"
+let &t_EI = "\<Esc>[1 q"
 
 " Space indentation
 function Spaces(num)
