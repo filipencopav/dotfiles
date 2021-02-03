@@ -8,11 +8,12 @@
  ibuffer-expert t
  make-backup-files nil
  auto-save-default nil
- indent-tabs-mode nil
- tab-width 4
  inferior-lisp-program "sbcl"
- inhibit-startup-message t
- )
+ inhibit-startup-message t)
+
+(setq-default
+ indent-tabs-mode nil
+ tab-width 4)
 
 (ido-mode 1)
 (scroll-bar-mode -1)
