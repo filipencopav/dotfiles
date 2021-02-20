@@ -27,8 +27,10 @@
   (package-install pkg))
 
 (require 'slime)
+(require 'geiser)
+
+(setq geiser-active-implementations '(guile))
 
 (yas-global-mode 1)
-
 
 (provide 'packages)
