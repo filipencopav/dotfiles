@@ -23,12 +23,13 @@ do
 done &
 
 urxvtd &
+emacs --daemon &
 
 # Some custom configurations :3
 setxkbmap \
-    -layout us,ru\
-    -option grp:alt_shift_toggle\
-    -option caps:escape
+	-layout us,ru\
+	-option grp:alt_caps_toggle\
+	-option caps:escape
 xset r rate 300 50 &
 
 xset s off &
@@ -36,6 +37,6 @@ xset -dpms &
 
 dunst > /dev/null &
 picom > /dev/null &
-feh --bg-fill "$HOME"/.local/share/backgrounds/wall &
+feh --no-fehbg --bg-fill "$HOME"/.local/share/backgrounds/wall &
 
 exec dwm > /dev/null 2> /dev/null

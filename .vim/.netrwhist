@@ -1,5 +1,6 @@
 let g:netrw_dirhistmax  =10
-let g:netrw_dirhistcnt =8
+let g:netrw_dirhistcnt =9
+let g:netrw_dirhist_9='/home/pavel/.config/nvim'
 let g:netrw_dirhist_8='/home/pavel/.vim/pack/plugins/start/fennel/ftplugin'
 let g:netrw_dirhist_7='/home/pavel/devel/gradle-test/build'
 let g:netrw_dirhist_6='/home/pavel/.emacs.d/auto-save-list'

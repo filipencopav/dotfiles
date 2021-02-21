@@ -7,14 +7,6 @@ filetype plugin on
 syntax on
 set background=dark
 
-if &t_Co > 255
-	set termguicolors
-	let g:gruvbox_contrast_dark = 'hard'
-	colorscheme gruvbox
-else
-	colorscheme delek
-endif
-
 " Completion
 set path+=**
 set wildmenu
@@ -24,8 +16,15 @@ command Maketags !ctags -R .
 " Navigation {{{
 set relativenumber
 set number
-if &t_Co >  255
+
+if &t_Co > 255
 	set cursorline
+	set termguicolors
+	let g:gruvbox_contrast_dark = 'hard'
+	autocmd vimenter * ++nested colorscheme gruvbox
+	colorscheme gruvbox
+else
+	colorscheme delek
 endif
 " }}}
 

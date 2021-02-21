@@ -3,7 +3,7 @@
 
 
 export CC='gcc'
-export EDITOR='nvim'
+export EDITOR='mg'
 export TERMINAL='st'
 export BROWSER='firefox'
 
@@ -27,11 +27,19 @@ export LESSHISTFILE="-"
 export MPLAYER_HOME="$XDG_CONFIG_HOME"/mplayer
 export TERMINFO="$XDG_DATA_HOME"/terminfo
 export WINEPREFIX="$HOME"/games/dummy
-export QT_STYLE_OVERRIDE="kvantum"
+export WEECHAT_HOME="$XDG_CONFIG_HOME"/weechat
 
 date
 
-echo
+# COLORS
+if [ "$TERM" = "linux" ]; then
+    _SEDCMD='s/.*\*color\([0-9]\{1,\}\).*#\([0-9a-fA-F]\{6\}\).*/\1 \2/p'
+    for i in $(sed -n "$_SEDCMD" $HOME/.Xresources | awk '$1 < 16 {printf "\\e]P%X%s", $1, $2}'); do
+        echo -en "$i"
+    done
+    clear
+fi
+
 echo "+-----------------+"
 echo "| Welcome back <3 |"
 echo "+-----------------+"
