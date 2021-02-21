@@ -11,23 +11,36 @@
  auto-save-default nil
  inferior-lisp-program "sbcl"
  inhibit-startup-message t
- column-number-mode t)
+ column-number-mode t
+ show-paren-delay 0)
+
+(defvaralias 'c-basic-offset 'tab-width)
+(defvaralias 'cperl-indent-level 'tab-width)
 
 (setq-default
  indent-tabs-mode nil
- tab-width 4)
-
+ tab-width 4
+ truncate-lines 1)
 
 (defmacro enable-modes (&rest modes)
   `(progn
-     ,@ (cl-loop for mode in modes collect `(,mode 1))))
+     ,@ (mapcar (lambda (mode) `(,mode 1)) modes)))
 (defmacro disable-modes (&rest modes)
   `(progn
-     ,@ (cl-loop for mode in modes collect `(,mode -1))))
+     ,@ (mapcar (lambda (mode) `(,mode -1)) modes)))
 
-(enable-modes ido-mode)
+(enable-modes ido-mode
+              show-paren-mode)
 (disable-modes scroll-bar-mode
                menu-bar-mode
                tool-bar-mode)
+
+(setq whitespace-style '(face tabs tab-mark))
+(setq whitespace-display-mappings
+      '((tab-mark 9 [8250 9] [92 9])))
+(global-whitespace-mode)
+
+(add-to-list 'default-frame-alist
+             '(font . "xos4 Terminus 9"))
 
 (provide 'globals)

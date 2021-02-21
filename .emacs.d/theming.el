@@ -1,6 +1,8 @@
 (when (window-system)
-  (set-frame-font "xos4 Terminus 9" t)
-  (load-theme 'gruvbox-dark-hard t)
   (toggle-frame-maximized))
+
+(add-hook 'after-init-hook
+          (lambda ()
+            (load-theme 'gruvbox-dark-hard t)))
 
 (provide 'theming)

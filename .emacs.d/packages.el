@@ -10,14 +10,15 @@
     (add-to-list 'package-archives '("gnu" . (concat proto "://elpa.gnu.org/packages/"))))
     (package-initialize))
 
-(defvar *my-packages*
+(defvar *my-packages* '() "List of packages which need to be installed.")
+(setq *my-packages*
       '(slime
         company
         paredit
         avy
         yasnippet
-        geiser)
-      "List of packages which need to be installed.")
+        geiser
+        frames-only-mode))
 
 (defun get-missing-packages (package-list)
   (cl-loop for pkg in package-list
@@ -30,7 +31,7 @@
 (require 'geiser)
 
 (setq geiser-active-implementations '(guile))
-
 (yas-global-mode 1)
+(frames-only-mode)
 
 (provide 'packages)
