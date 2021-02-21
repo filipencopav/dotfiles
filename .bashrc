@@ -1,7 +1,4 @@
 #!/bin/bash
-set -o vi
-bind "\C-l":"clear-screen"
-
 # idk
 alias e="$EDITOR"
 
@@ -17,14 +14,15 @@ alias profile="$EDITOR $HOME/.profile"
 
 alias kakrc="kak $HOME/.config/kak/kakrc"
 alias visrc="vis $HOME/.config/vis/visrc.lua"
-alias vimrc="vim $HOME/.vimrc"
-alias nvimrc="$EDITOR $HOME/.config/nvim/init.vim"
+alias vimrc="vim $HOME/.vim/vimrc"
+alias nvimrc="nvim $HOME/.config/nvim/init.vim"
 
 alias config="/usr/bin/git --git-dir=$HOME/dotfiles/ --work-tree=$HOME"
 
 # youtube downloader alias
 alias flac-dl='youtube-dl -ic -x --audio-format flac -o'
 alias mp3-dl='youtube-dl -ic -x --audio-format mp3 -o'
+alias audio-dl='youtube-dl -ic -x -f bestaudio/best'
 
 # QOL basic system navigation commands
 alias rm='rm -Iv'
@@ -40,13 +38,15 @@ alias zathura='devour zathura'
 alias feh='devour feh'
 alias sxiv='devour sxiv'
 
-# coding
-PROJECT_PATH="$HOME"/devel/rust/physac
+# programming
+PROJECT_PATH="$HOME"/devel/aerosmith
 alias proj="cd $PROJECT_PATH"
-alias thinkdast="cd $HOME"/devel/java/ThinkDataStructures
+alias thinkdast="cd $HOME"/devel/thinkdast
 
 # source sh-powerline script
 source "$HOME/.bash-powerline.sh"
 
 export HISTCONTROL=erasedups
 export HISTIGNORE="clear:ls:history"
+
+complete -cf doas
