@@ -5,10 +5,10 @@
 (let* ((no-ssl (and (memq system-type '(windows-nt ms-dos))
                     (not (gnutls-available-p))))
        (proto (if no-ssl "http" "https")))
-  (add-to-list 'package-archives (cons "melpa" (concat proto "://melpa.org/packages/")) t)
-  (when (< emacs-major-version 24)
-    (add-to-list 'package-archives '("gnu" . (concat proto "://elpa.gnu.org/packages/"))))
-    (package-initialize))
+  (add-to-list 'package-archives
+               (cons "melpa" (concat proto "://melpa.org/packages/")) t)
+  (package-initialize))
+(add-to-list 'load-path (expand-file-name "~/.emacs.d/elisp"))
 
 (defvar *my-packages* '() "List of packages which need to be installed.")
 (setq *my-packages*
@@ -18,20 +18,24 @@
         avy
         yasnippet
         geiser
-        frames-only-mode))
+        highlight-parentheses
+        dashboard))
 
 (defun get-missing-packages (package-list)
   (cl-loop for pkg in package-list
-           unless (package-installed-p pkg) collect pkg))
+              unless (package-installed-p pkg) collect pkg))
 
 (dolist (pkg (get-missing-packages *my-packages*))
   (package-install pkg))
 
-(require 'slime)
-(require 'geiser)
-
 (setq geiser-active-implementations '(guile))
 (yas-global-mode 1)
-(frames-only-mode)
+
+;; Dashboard
+(require 'dashboard)
+(dashboard-setup-startup-hook)
+(setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
+(setq dashboard-banner-logo-title "Welcome, traveler!")
+(setq dashboard-startup-banner "/usr/share/icons/Faenza/apps/96/emacs.png")
 
 (provide 'packages)
