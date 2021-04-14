@@ -1,5 +1,5 @@
 (add-to-list 'auto-mode-alist '("\\.cl\\'" . lisp-mode))
-(add-to-list 'custom-theme-load-path "~/.emacs.d/themes")
+(add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
 
 (setq org-src-window-setup 'current-window
       ido-enable-flex-matching nil
@@ -14,14 +14,13 @@
       show-paren-delay 0
       c-eldoc-buffer-regenerate-time 20)
 
-(defvaralias 'c-basic-offset 'tab-width)
-(defvaralias 'cperl-indent-level 'tab-width)
-
 (setq-default indent-tabs-mode nil
               tab-width 4
               truncate-lines 1
               fill-column 80
-              c-default-style '((c-mode . "bsd")))
+              c-default-style '((c-mode . "bsd"))
+              c-basic-offset tab-width
+              cperl-indent-level tab-width)
 
 (ido-mode 1)
 (show-paren-mode 1)
