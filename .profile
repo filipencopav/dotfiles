@@ -28,7 +28,6 @@ export MPLAYER_HOME="$XDG_CONFIG_HOME"/mplayer
 export TERMINFO="$XDG_DATA_HOME"/terminfo
 export WINEPREFIX="$HOME"/games/dummy
 export WEECHAT_HOME="$XDG_CONFIG_HOME"/weechat
-export QT_QPA_PLATFORMTHEME=qt5ct
 
 date
 
