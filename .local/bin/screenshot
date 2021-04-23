@@ -1,3 +1,8 @@
 #!/bin/sh
 
-scrot -e 'mv $f ~/pix/screenshots/' > /dev/null 2> /dev/null
+if [ ! -z "$1" ] && [ "$1" == "-a" ];
+then
+    maim -sf png "$HOME"/pix/screenshots/"$(date +%Y-%m-%d-%M%S.png)"
+else
+    scrot -e 'mv $f ~/pix/screenshots/' > /dev/null 2> /dev/null
+fi
