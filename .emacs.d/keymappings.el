@@ -15,7 +15,6 @@
 (global-set-key (kbd "C-x C-b") 'ido-switch-buffer)
 (global-set-key (kbd "C-x k") 'kill-this-buffer)
 (global-set-key (kbd "C-x b") 'ibuffer)
-(global-set-key (kbd "C-;") 'avy-goto-char-2)
-
+(global-set-key (kbd "C-;") 'avy-goto-char-1)
 
 (provide 'keymappings)

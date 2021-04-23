@@ -12,7 +12,8 @@
       inhibit-startup-message t
       column-number-mode t
       show-paren-delay 0
-      c-eldoc-buffer-regenerate-time 20)
+      c-eldoc-buffer-regenerate-time 20
+      custom-file "~/.emacs.d/custom.el")
 
 (setq-default indent-tabs-mode nil
               tab-width 4

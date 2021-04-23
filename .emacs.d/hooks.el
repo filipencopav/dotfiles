@@ -1,17 +1,17 @@
 (require 'c-eldoc)
 
 (defun make-combos (pair)
-  (let ((car (car pair))
-        (cdr (cdr pair)))
-    (if (listp car)
-        `(progn
-           ,@ (mapcar
-               (lambda (hook)
-                 (list 'add-hook
-                       `',hook
-                       `(lambda () ,@cdr)))
-               car))
-      `(add-hook ',car (lambda () ,@cdr)))))
+                (let ((car (car pair))
+                      (cdr (cdr pair)))
+                  (if (listp car)
+                      `(progn
+                         ,@ (mapcar
+                             (lambda (hook)
+                               (list 'add-hook
+                                     `',hook
+                                     `(lambda () ,@cdr)))
+                             car))
+                    `(add-hook ',car (lambda () ,@cdr)))))
 
 (defmacro add-hooks (&rest pairs)
   `(progn

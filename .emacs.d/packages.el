@@ -19,7 +19,6 @@
         paredit
         avy
         yasnippet
-        geiser
         highlight-parentheses
         dashboard
         meghanada
@@ -32,8 +31,6 @@
 (dolist (pkg (get-missing-packages *my-packages*))
   (package-install pkg))
 
-(setq geiser-active-implementations '(guile))
-
 ;; Yasnippet
 (setq yas-snippet-dirs
       '("~/.emacs.d/snippets"))
@@ -43,7 +40,10 @@
 (dashboard-setup-startup-hook)
 (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
 (setq dashboard-banner-logo-title "Welcome, traveler!")
-(setq dashboard-startup-banner "/usr/share/icons/Faenza/apps/96/emacs.png")
+(setq dashboard-startup-banner 1)
+(setq dashboard-items '((recents . 10)
+                        (agenda . 7)
+                        (registers 5)))
 
 ;; Paren-face
 (require 'paren-face)
