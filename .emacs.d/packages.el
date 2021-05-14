@@ -42,7 +42,7 @@
 (setq dashboard-banner-logo-title "Welcome, traveler!")
 (setq dashboard-startup-banner 1)
 (setq dashboard-items '((recents . 10)
-                        (agenda . 7)
+                        (agenda . 18)
                         (registers 5)))
 
 ;; Paren-face

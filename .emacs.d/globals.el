@@ -13,7 +13,8 @@
       column-number-mode t
       show-paren-delay 0
       c-eldoc-buffer-regenerate-time 20
-      custom-file "~/.emacs.d/custom.el")
+      custom-file "~/.emacs.d/custom.el"
+      mode-require-final-newline t)
 
 (setq-default indent-tabs-mode nil
               tab-width 4
@@ -25,8 +26,6 @@
 
 (ido-mode 1)
 (show-paren-mode 1)
-(global-display-line-numbers-mode)
-(global-display-fill-column-indicator-mode)
 
 (scroll-bar-mode -1)
 (menu-bar-mode -1)

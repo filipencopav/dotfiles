@@ -24,18 +24,19 @@
   (setq tab-width 2
         indent-tabs-mode nil)
   (paredit-mode 1)
-  (prettify-symbols-mode 1)
   (highlight-parentheses-mode)
   (paren-face-mode))
- ((help-mode-hook ibuffer-mode-hook dashboard-mode-hook)
-  (display-fill-column-indicator-mode -1))
+ ((help-mode-hook ibuffer-mode-hook dashboard-mode-hook))
  (prog-mode-hook
+  (display-line-numbers-mode)
   (company-mode)
   (yas-minor-mode))
-
  (before-save-hook (delete-trailing-whitespace))
  (focus-out-hook (garbage-collect))
  (org-mode-hook (auto-fill-mode))
+ ((text-mode-hook org-mode-hook
+                  prog-mode-hook)
+  (display-fill-column-indicator-mode))
  ((c-mode-hook c++-mode-hook) (c-turn-on-eldoc-mode)))
 
 (provide 'hooks)

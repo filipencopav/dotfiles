@@ -9,7 +9,7 @@
                                  ("breakanywhere" "true")))
 
 (setq
- org-adapt-indentation nil
+ org-adapt-indentation t
  org-latex-title-command nil
  org-latex-listings 'minted
  org-latex-pdf-process
@@ -18,5 +18,8 @@
    "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f")
  org-latex-minted-options '(("breaklines" "true") ("breakanywhere" "true"))
  )
+
+;; org agenda
+(setq org-agenda-files (file-expand-wildcards "~/.emacs.d/agenda/*.org"))
 
 (provide 'org-config.el)
