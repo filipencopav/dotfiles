@@ -1,8 +1,11 @@
 #!/bin/sh
 
-if [ ! -z "$1" ] && [ "$1" == "-a" ];
-then
-    maim -sf png "$HOME"/pix/screenshots/"$(date +%Y-%m-%d-%M%S.png)"
+if [ ! -z "$1" ]; then
+    if [ "$1" == "-a" ]; then
+        maim -u -sf png "$HOME"/pix/screenshots/"$(date +%Y-%m-%d-%M%S)".png
+    elif [ "$1" == "-f" ]; then
+        scrot '%Y-%m-%d-%M%S.png' -u -e 'mv $f ~/pix/screenshots/' > /dev/null 2> /dev/null
+    fi
 else
-    scrot -e 'mv $f ~/pix/screenshots/' > /dev/null 2> /dev/null
+    scrot '%Y-%m-%d-%M%S.png' -e 'mv $f ~/pix/screenshots/' > /dev/null 2> /dev/null
 fi
