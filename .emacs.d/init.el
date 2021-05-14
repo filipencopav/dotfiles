@@ -1,14 +1,25 @@
-;; Fast startup
 (setq startup/gc-cons-threshold gc-cons-threshold)
 (setq gc-cons-threshold most-positive-fixnum)
 (defun startup/reset-gc () (setq gc-cons-threshold startup/gc-cons-threshold))
 (add-hook 'emacs-startup-hook 'startup/reset-gc)
 
-(load "~/.emacs.d/packages.el")
-(load "~/.emacs.d/globals.el")
-(load "~/.emacs.d/hooks.el")
-(load "~/.emacs.d/org-config.el")
-(load "~/.emacs.d/theming.el")
-(load "~/.emacs.d/keymappings.el")
+;; straight.el bootstrap
+(defvar bootstrap-version)
+(let ((bootstrap-file
+       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+      (bootstrap-version 5))
+  (unless (file-exists-p bootstrap-file)
+    (with-current-buffer
+        (url-retrieve-synchronously
+         "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+         'silent 'inhibit-cookies)
+      (goto-char (point-max))
+      (eval-print-last-sexp)))
+  (load bootstrap-file nil 'nomessage))
 
-(load "~/.emacs.d/meghanada-conf.el")
+(eval-when-compile
+  (add-to-list 'load-path (expand-file-name "~/.emacs.d/elisp/")))
+
+(with-eval-after-load 'straight
+  (straight-use-package 'use-package)
+  (org-babel-load-file "~/.emacs.d/config.org" t))

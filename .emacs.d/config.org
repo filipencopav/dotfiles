@@ -1,0 +1,239 @@
+#+STARTUP: overview
+
+* Requires (for local files)
+  #+begin_src emacs-lisp
+    (require 'cl-lib)
+    (require 'org)
+    (require 'c-eldoc)
+    (require 'paren-face)
+  #+end_src
+
+* Themes
+  #+begin_src emacs-lisp
+    (use-package gruvbox-theme
+      :straight t
+      :ensure t
+      :config
+      (add-hook 'after-init-hook
+                (lambda ()
+                  (load-theme 'gruvbox-dark-hard t))))
+  #+end_src
+
+* Packages
+** Parentheses
+   Paredit
+   #+begin_src emacs-lisp
+     (use-package paredit
+       :straight t
+       :ensure t)
+   #+end_src
+   Highlight-parentheses
+   #+begin_src emacs-lisp
+     (use-package highlight-parentheses
+       :straight t
+       :ensure t)
+   #+end_src
+** Company
+   #+begin_src emacs-lisp
+     (use-package company
+       :straight t
+       :ensure t)
+   #+end_src
+** Yasnippet
+   #+begin_src emacs-lisp
+     (use-package yasnippet
+       :straight t
+       :ensure t
+       :config
+       (setq yas-snippet-dirs '("~/.emacs.d/snippets")))
+   #+end_src
+** Dashboard
+   #+begin_src emacs-lisp
+     (use-package dashboard
+       :straight t
+       :ensure t
+       :config
+       (dashboard-setup-startup-hook)
+       (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
+       (setq dashboard-banner-logo-title "HAL: Good day, gentlemen")
+       (setq dashboard-startup-banner 1)
+       (setq dashboard-items '((recents . 10)
+                               (agenda . 18)
+                               (registers 5))))
+   #+end_src
+** Avy
+   #+begin_src emacs-lisp
+     (use-package avy
+       :straight t
+       :ensure t
+       :bind (("C-;" . avy-goto-word-1)))
+   #+end_src
+** Slime
+   #+begin_src emacs-lisp
+     (use-package slime
+       :straight t
+       :ensure t
+       :config
+       (setq inferior-lisp-program "sbcl"))
+   #+end_src
+* Hooks
+** Stairway to heaven (or hell idk)
+   #+begin_src emacs-lisp
+     (defmacro add-hooks (&rest pairs)
+       `(progn
+          ,@ (mapcar
+                #'(lambda (pair)
+                    (let ((car (car pair))
+                          (cdr (cdr pair)))
+                      (if (listp car)
+                          `(progn
+                               ,@ (mapcar
+                                     (lambda (hook)
+                                       (list 'add-hook
+                                               `',hook
+                                               `(lambda () ,@cdr)))
+                                     car))
+                          `(add-hook ',car (lambda () ,@cdr)))))
+                pairs)))
+   #+end_src
+** Using the macro (i'm very proud)
+   #+begin_src emacs-lisp
+     (add-hooks
+      ((lisp-mode-hook scheme-mode-hook emacs-lisp-mode-hook)
+       (setq tab-width 2
+             indent-tabs-mode nil)
+       (paredit-mode 1)
+       (highlight-parentheses-mode)
+       (paren-face-mode))
+      ((help-mode-hook ibuffer-mode-hook dashboard-mode-hook))
+      (prog-mode-hook
+       (display-line-numbers-mode)
+       (company-mode)
+       (yas-minor-mode))
+      (before-save-hook (delete-trailing-whitespace))
+      (org-mode-hook (auto-fill-mode))
+      ((text-mode-hook org-mode-hook
+                       prog-mode-hook)
+       (display-fill-column-indicator-mode))
+      ((c-mode-hook c++-mode-hook) (c-turn-on-eldoc-mode)))
+   #+end_src
+
+* Org mode
+** For latex export
+   #+begin_src emacs-lisp
+     (add-to-list 'org-modules 'org-tempo)
+     (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
+     (add-to-list 'org-latex-packages-alist '("" "babel" t ("pdflatex")))
+     (add-to-list 'org-latex-packages-alist '("" "minted" t ("pdflatex")))
+
+     (setq org-latex-minted-options '(("breaklines" "true")
+                                      ("breakanywhere" "true")))
+
+     (setq org-latex-minted-options '(("breaklines" "true")
+                                      ("breakanywhere" "true")))
+
+     (setq
+      org-adapt-indentation t
+      org-latex-title-command nil
+      org-latex-listings 'minted
+      org-latex-pdf-process
+      '("pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+        "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+        "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f")
+      org-latex-minted-options '(("breaklines" "true") ("breakanywhere" "true"))
+      )
+   #+end_src
+** Agenda
+   #+begin_src emacs-lisp
+     (setq org-agenda-files (file-expand-wildcards "~/.emacs.d/agenda/*.org"))
+   #+end_src
+** Org bullets
+   #+begin_src emacs-lisp
+     (use-package org-bullets
+       :straight t
+       :ensure t
+       :config
+       ;; Default: '("◉" "○" "✸" "✿")
+       ;; ♥ ● ◇ ✚ ✜ ☯ ◆ ♠ ♣ ♦ ☢ ❀ ◆ ◖ ▶
+       ;; ► • ★ ▸
+       (setq org-bullets-bullet-list
+             '("*"
+               "●"
+               "○"
+               "·"))
+       (add-hook 'org-mode-hook
+                 #'org-bullets-mode))
+   #+end_src
+* Prefs
+  #+begin_src emacs-lisp
+    (add-to-list 'auto-mode-alist '("\\.cl\\'" . lisp-mode))
+    (add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
+
+    (setq org-src-window-setup 'current-window
+          make-backup-files nil
+          auto-save-default nil
+          inhibit-startup-message t
+          ibuffer-expert t
+          column-number-mode t
+          show-paren-delay 0
+          c-eldoc-buffer-regenerate-time 20
+          custom-file "~/.emacs.d/custom.el"
+          mode-require-final-newline t
+          after-focus-change-function #'garbage-collect)
+
+    (setq-default indent-tabs-mode nil
+                  tab-width 4
+                  truncate-lines 1
+                  fill-column 80
+                  c-default-style '((c-mode . "bsd"))
+                  c-basic-offset tab-width
+                  cperl-indent-level tab-width)
+  #+end_src
+** Ido
+   #+begin_src emacs-lisp
+     (setq ido-enable-flex-matching nil
+           ido-create-new-buffer 'always
+           ido-everywhere t)
+
+     (ido-mode 1)
+   #+end_src
+** Various modes
+   #+begin_src emacs-lisp
+     (show-paren-mode 1)
+     (scroll-bar-mode -1)
+     (menu-bar-mode -1)
+     (tool-bar-mode -1)
+   #+end_src
+** Whitespace
+   #+begin_src emacs-lisp
+     (setq whitespace-style '(face tabs tab-mark)
+           whitespace-display-mappings '((tab-mark 9 [8250 9] [92 9])))
+     (global-whitespace-mode)
+   #+end_src
+** Font
+   #+begin_src emacs-lisp
+     (add-to-list 'default-frame-alist
+                  '(font . "xos4 Terminus 9"))
+   #+end_src
+* Key mappings
+  #+begin_src emacs-lisp
+    (global-set-key (kbd "C-x b") 'ibuffer)
+    (global-set-key (kbd "C-x C-b") 'ido-switch-buffer)
+    (global-set-key (kbd "C-x k") 'kill-current-buffer)
+    (global-set-key (kbd "C-c a") 'org-agenda)
+    (global-set-key (kbd "C-;") 'avy-goto-word-1)
+  #+end_src
+** Config visit/reload
+  #+begin_src emacs-lisp
+    (defun config-visit ()
+      "Find config.org"
+      (interactive)
+      (find-file "~/.emacs.d/config.org"))
+
+    (defun config-reload ()
+      "Reload the configuration file"
+      (interactive)
+      (org-babel-load-file (expand-file-name "~/.emacs.d/config.org")))
+    (global-set-key (kbd "C-c r") 'config-reload)
+    (global-set-key (kbd "C-c e") 'config-visit)
+  #+end_src
