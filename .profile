@@ -45,6 +45,6 @@ echo "| Welcome back <3 |"
 echo "+-----------------+"
 echo
 
-if [ "$(tty)" = "/dev/tty1" ] ; then
+if [ "$(tty)" = "/dev/tty2" ] ; then
     pgrep -x Xorg || exec startx 2> /dev/null
 fi
