@@ -1,8 +1,0 @@
-#!/bin/sh
-IFS='
-'''
-
-for var in "$@"
-do
-	mv -i --verbose "$var" "$(echo "$var" | sed 's/ /_/g' | sed 's/_\(\W\)_/\1/g' | tr '[:upper:]' '[:lower:]')"
-done

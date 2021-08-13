@@ -1,228 +1,351 @@
-#+STARTUP: overview
+#+STARTUP: CONTENT
 
-* Requires (for local files)
+* Requires
+** Load path
+   #+begin_src emacs-lisp
+     (eval-when-compile
+       (add-to-list 'load-path (expand-file-name "~/.emacs.d/elisp/")))
+   #+end_src
+
+** Requires themselves
   #+begin_src emacs-lisp
-    (require 'cl-lib)
-    (require 'org)
-    (require 'c-eldoc)
-    (require 'paren-face)
+            (require 'cl-lib)
+            (require 'org)
+            (require 'paren-face)
   #+end_src
+
+** Always ensure packages are installed
+   #+begin_src emacs-lisp
+     (setq straight-use-package-by-default t
+           use-package-always-ensure t)
+   #+end_src
+
+* Macros
+** Lisp indent function
+    #+begin_src emacs-lisp
+      (setq lisp-indent-function 'lisp-indent-function)
+    #+end_src
+
+** Define indent function
+   #+begin_src emacs-lisp
+     (defun my/lisp-indent-function-arglist (indent-point state)
+       (if (eq lisp-indent-function 'common-lisp-indent-function)
+           `(_ ,state ,indent-point _ _)
+           `(,indent-point ,state)))
+
+     (defmacro defindent (name arglist &rest body)
+       "Define an indent function.
+
+     Automatically decides to use different argument lists, depending on which
+     indent function is used. ARGLIST is a list of two elements:
+     (INDENT-POINT-VAR STATE). INDENT-POINT-VAR is the name of the variable that
+     holds the point at which the indentation function is called, and STATE-VAR
+     is the name of the variable which holds the `parse-partial-sexp' state at
+     that position."
+       (declare (indent defun))
+       `(defun ,name ,(my/lisp-indent-function-arglist (car arglist) (cadr arglist))
+          ,@body))
+   #+end_src
+
+** Multiple call macro
+   #+begin_src emacs-lisp
+     (defmacro my/multiple-call (form-name &rest params)
+       (declare (indent 1))
+       `(progn ,@ (mapcar #'(lambda (params) (cons form-name params) params))))
+   #+end_src
+
+** Hook combination macro
+   #+begin_src emacs-lisp
+     (defun mklist (x) (if (listp x) x (list x)))
+
+     (defun hook->add-hook-form (hook rest)
+       `(add-hook ',hook (lambda () ,@rest)))
+
+     (defun pair->add-hook-forms (pair)
+       (let* ((first (mklist (car pair)))
+              (rest (cdr pair)))
+         (mapcar (lambda (x) (hook->add-hook-form x rest)) first)))
+
+     (defindent my/add-hooks-indent-function (indent-point state)
+       (let ((depth (elt state 0))
+             (inside-a-string-p (elt state 3)))
+         (cond
+           (inside-a-string-p 0)
+           ((< depth 2) (list 2))
+           ((< depth 3) (list 5))
+           (t nil))))
+
+     (defmacro my/add-hooks (&rest pairs)
+       "Add hooks to the specified modes.
+     TODO: write documentation"
+       (declare (indent my/add-hooks-indent-function))
+       `(progn ,@(mapcan #'pair->add-hook-forms pairs)))
+   #+end_src
+
+** Global set keys macro
+   #+begin_src emacs-lisp
+     (defindent my/global-set-keys-indent-function (indent-point state)
+       (if (< (elt state 0) 2)
+           (list 2)
+           nil))
+
+     (defun my/pair->global-set-key-form (pair)
+       `(global-set-key (kbd ,(car pair)) ,(cadr pair)))
+
+     (defmacro my/global-set-keys (&rest pairs)
+       (declare (indent my/global-set-keys-indent-function))
+       `(progn
+          ,@ (mapcar #'my/pair->global-set-key-form pairs)))
+   #+end_src
 
 * Themes
+** Theme load path
+   #+begin_src emacs-lisp
+     (add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
+   #+end_src
+
+** Theme loading function
+   #+begin_src emacs-lisp
+     (defvar my/after-theme-load-hook '()
+       "List of functions to run after a theme has been loaded.")
+     (defun my/load-theme (theme &optional no-confirm no-enable)
+       "Load THEME using LOAD-THEME, afterwards running the MY-AFTER-THEME-LOAD-HOOK"
+       (interactive
+        (list (intern
+               (completing-read "Load custom theme: " (mapcar #'symbol-name (custom-available-themes))))
+              nil
+              nil))
+       (load-theme theme no-confirm no-enable)
+       (run-hook-with-args 'my/after-theme-load-hook))
+   #+end_src
+
+** Gruvbox
   #+begin_src emacs-lisp
     (use-package gruvbox-theme
-      :straight t
-      :ensure t
-      :config
-      (add-hook 'after-init-hook
-                (lambda ()
-                  (load-theme 'gruvbox-dark-hard t))))
+      :straight t)
+
+    (defvar my/theme 'gruvbox-dark-medium)
   #+end_src
 
+** Faces
+   #+begin_src emacs-lisp
+     (defun my/custom-face-config ()
+       (let ((default-bg (face-attribute 'default :background)))
+         (set-face-attribute 'mode-line nil :background default-bg)
+         (set-face-attribute 'mode-line-inactive nil :background default-bg)
+         (set-face-attribute 'line-number nil :background default-bg)
+         (set-face-attribute 'selectrum-current-candidate nil
+                             :background default-bg
+                             :underline t)
+         (set-face-attribute 'marginalia-documentation nil :slant 'normal)))
+
+     (add-hook 'my/after-theme-load-hook 'my/custom-face-config)
+
+     (set-face-attribute 'default nil :font "xos4 Terminus 9")
+     (set-face-attribute 'font-lock-comment-face nil :font "xos4 Terminus 9")
+     (set-face-attribute 'fixed-pitch nil :font "xos4 Terminus 9")
+   #+end_src
+
+** Theme setting function
+   #+begin_src emacs-lisp
+     (defun my/frame-behaviors (&optional frame)
+       "Make frame- and/or terminal-local changes."
+       (with-selected-frame (or frame (selected-frame))
+         (when window-system
+           (my/load-theme my/theme t))))
+
+     (add-hook 'after-make-frame-functions 'my/frame-behaviors)
+     (add-hook 'after-init-hook (lambda () (my/load-theme my/theme t)))
+   #+end_src
+
+** Mode Line
+   #+begin_src emacs-lisp
+     (defvar my/right-side-mode-line-format "line %l, col %C")
+
+     (defun my/length-mode-line (mode-line)
+       (length (format-mode-line mode-line)))
+
+     (defun simple-mode-line-render (left right)
+       "Return a string of `window-width' length.
+     Containing LEFT, and RIGHT aligned respectively."
+       (let* ((window-width (window-total-width))
+              (mode-line-lengths (apply #'+ (mapcar #'my/length-mode-line (list left right))))
+              (available-width (- window-width mode-line-lengths))
+              (format-string (format "%%%ds" available-width)))
+         (append left (list (format format-string "")) right)))
+
+     (simple-mode-line-render '("test") '("another"))
+
+     (defun my/buffer-modified-flag ()
+       (when (buffer-modified-p)
+         "[+]"))
+
+     (defun my/buffer-readonly-flag ()
+       (when buffer-read-only
+         "[RO]"))
+
+     (setq-default
+      mode-line-format
+      '((:eval
+         (simple-mode-line-render
+          ;; Left
+          '(" %b » "
+            (:eval (my/buffer-modified-flag))
+            (:eval (my/buffer-readonly-flag)))
+          ;; Right
+          '("line %l, col %C")))))
+   #+end_src
+
 * Packages
+** Lsp-mode
+   #+begin_src emacs-lisp
+     (use-package lsp-mode
+       :straight t
+       :commands lsp
+       :custom
+       (lsp-ui-sideline-enable nil)
+       (lsp-rust-analyzer-cargo-watch-command "clippy")
+       (lsp-eldoc-render-all nil)
+       (lsp-idle-delay 0.3)
+       (lsp-rust-analyzer-server-display-inlay-hints t)
+       :config
+       (add-hook 'lsp-mode-hook 'lsp-ui-mode))
+
+     (use-package lsp-ui
+       :straight t
+       :commands lsp-ui-mode
+       :custom
+       (lsp-ui-peek-always-show t)
+       (lsp-ui-sideline-show-hover t)
+       (lsp-ui-doc-enable nil))
+   #+end_src
+
+** Rust
+*** Rustic
+   #+begin_src emacs-lisp
+     (use-package rustic
+       :straight t
+       :bind (:map rustic-mode-map
+                   ("M-j" . lsp-ui-imenu)
+                   ("M-?" . lsp-find-references)
+                   ("C-c C-c l" . flycheck-list-errors)
+                   ("C-c C-c a" . lsp-execute-code-action)
+                   ("C-c C-c r" . lsp-rename)
+                   ("C-c C-c q" . lsp-workspace-restart)
+                   ("C-c C-c Q" . lsp-workspace-shutdown)
+                   ("C-c C-c s" . lsp-rust-analyzer-status))
+       :config
+       (setq rustic-format-on-save t))
+   #+end_src
+
+** Lua mode
+   #+begin_src emacs-lisp
+     (use-package lua-mode
+       :straight t)
+   #+end_src
+
+** Flycheck
+   #+begin_src emacs-lisp
+     (use-package flycheck
+       :straight t)
+   #+end_src
+
 ** Parentheses
-   Paredit
+*** Paredit
    #+begin_src emacs-lisp
      (use-package paredit
-       :straight t
-       :ensure t)
+       :straight t)
    #+end_src
-   Highlight-parentheses
+
+*** Highlight-parentheses
    #+begin_src emacs-lisp
      (use-package highlight-parentheses
-       :straight t
-       :ensure t)
+       :straight t)
    #+end_src
+
 ** Company
    #+begin_src emacs-lisp
      (use-package company
        :straight t
-       :ensure t)
+       :custom
+       (company-idle-delay 0)
+       :bind
+       (:map company-active-map
+             ("C-n". company-select-next)
+             ("C-p". company-select-previous)
+             ("M-<". company-select-first)
+             ("M->". company-select-last)))
    #+end_src
+
 ** Yasnippet
    #+begin_src emacs-lisp
      (use-package yasnippet
        :straight t
-       :ensure t
+       :custom
+       (yas-snippet-dirs '("~/.emacs.d/snippets"))
        :config
-       (setq yas-snippet-dirs '("~/.emacs.d/snippets")))
+       (yas-reload-all))
    #+end_src
-** Dashboard
+
+** Dashboard (deprecated in favor of initial scratch messages)
    #+begin_src emacs-lisp
-     (use-package dashboard
-       :straight t
-       :ensure t
-       :config
-       (dashboard-setup-startup-hook)
-       (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
-       (setq dashboard-banner-logo-title "HAL: Good day, gentlemen")
-       (setq dashboard-startup-banner 1)
-       (setq dashboard-items '((recents . 10)
-                               (agenda . 18)
-                               (registers 5))))
+     (setq initial-scratch-message
+           ";; USAGE GUIDE
+     ;; 1) Open files with File->Visit File
+     ;; 2) Standard editor movement keys up down left right, etc. advanced commands
+     ;;    in the menu bar
+     ;; 3) Control + Y to paste and Alt + W to copy. Select an area and use Control +
+     ;;    W to cut it.
+
+     ")
    #+end_src
+
 ** Avy
    #+begin_src emacs-lisp
      (use-package avy
        :straight t
-       :ensure t
        :bind (("C-;" . avy-goto-word-1)))
    #+end_src
+
 ** Slime
    #+begin_src emacs-lisp
      (use-package slime
        :straight t
-       :ensure t
        :config
-       (setq inferior-lisp-program "sbcl"))
-   #+end_src
-* Hooks
-** Stairway to heaven (or hell idk)
-   #+begin_src emacs-lisp
-     (defmacro add-hooks (&rest pairs)
-       `(progn
-          ,@ (mapcar
-                #'(lambda (pair)
-                    (let ((car (car pair))
-                          (cdr (cdr pair)))
-                      (if (listp car)
-                          `(progn
-                               ,@ (mapcar
-                                     (lambda (hook)
-                                       (list 'add-hook
-                                               `',hook
-                                               `(lambda () ,@cdr)))
-                                     car))
-                          `(add-hook ',car (lambda () ,@cdr)))))
-                pairs)))
-   #+end_src
-** Using the macro (i'm very proud)
-   #+begin_src emacs-lisp
-     (add-hooks
-      ((lisp-mode-hook scheme-mode-hook emacs-lisp-mode-hook)
-       (setq tab-width 2
-             indent-tabs-mode nil)
-       (paredit-mode 1)
-       (highlight-parentheses-mode)
-       (paren-face-mode))
-      ((help-mode-hook ibuffer-mode-hook dashboard-mode-hook))
-      (prog-mode-hook
-       (display-line-numbers-mode)
-       (company-mode)
-       (yas-minor-mode))
-      (before-save-hook (delete-trailing-whitespace))
-      (org-mode-hook (auto-fill-mode))
-      ((text-mode-hook org-mode-hook
-                       prog-mode-hook)
-       (display-fill-column-indicator-mode))
-      ((c-mode-hook c++-mode-hook) (c-turn-on-eldoc-mode)))
+       (setq inferior-lisp-program "ccl"
+             slime-truncate-lines 100))
    #+end_src
 
-* Org mode
-** For latex export
+** Editor configuration (=editorconfig=)
    #+begin_src emacs-lisp
-     (add-to-list 'org-modules 'org-tempo)
-     (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
-     (add-to-list 'org-latex-packages-alist '("" "babel" t ("pdflatex")))
-     (add-to-list 'org-latex-packages-alist '("" "minted" t ("pdflatex")))
-
-     (setq org-latex-minted-options '(("breaklines" "true")
-                                      ("breakanywhere" "true")))
-
-     (setq org-latex-minted-options '(("breaklines" "true")
-                                      ("breakanywhere" "true")))
-
-     (setq
-      org-adapt-indentation t
-      org-latex-title-command nil
-      org-latex-listings 'minted
-      org-latex-pdf-process
-      '("pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
-        "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
-        "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f")
-      org-latex-minted-options '(("breaklines" "true") ("breakanywhere" "true"))
-      )
-   #+end_src
-** Agenda
-   #+begin_src emacs-lisp
-     (setq org-agenda-files (file-expand-wildcards "~/.emacs.d/agenda/*.org"))
-   #+end_src
-** Org bullets
-   #+begin_src emacs-lisp
-     (use-package org-bullets
+     (use-package editorconfig
        :straight t
-       :ensure t
        :config
-       ;; Default: '("◉" "○" "✸" "✿")
-       ;; ♥ ● ◇ ✚ ✜ ☯ ◆ ♠ ♣ ♦ ☢ ❀ ◆ ◖ ▶
-       ;; ► • ★ ▸
-       (setq org-bullets-bullet-list
-             '("*"
-               "●"
-               "○"
-               "·"))
-       (add-hook 'org-mode-hook
-                 #'org-bullets-mode))
+       (editorconfig-mode 1))
    #+end_src
-* Prefs
-  #+begin_src emacs-lisp
-    (add-to-list 'auto-mode-alist '("\\.cl\\'" . lisp-mode))
-    (add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
 
-    (setq org-src-window-setup 'current-window
-          make-backup-files nil
-          auto-save-default nil
-          inhibit-startup-message t
-          ibuffer-expert t
-          column-number-mode t
-          show-paren-delay 0
-          c-eldoc-buffer-regenerate-time 20
-          custom-file "~/.emacs.d/custom.el"
-          mode-require-final-newline t
-          after-focus-change-function #'garbage-collect)
-
-    (setq-default indent-tabs-mode nil
-                  tab-width 4
-                  truncate-lines 1
-                  fill-column 80
-                  c-default-style '((c-mode . "bsd"))
-                  c-basic-offset tab-width
-                  cperl-indent-level tab-width)
-  #+end_src
-** Ido
-   #+begin_src emacs-lisp
-     (setq ido-enable-flex-matching nil
-           ido-create-new-buffer 'always
-           ido-everywhere t)
-
-     (ido-mode 1)
-   #+end_src
-** Various modes
-   #+begin_src emacs-lisp
-     (show-paren-mode 1)
-     (scroll-bar-mode -1)
-     (menu-bar-mode -1)
-     (tool-bar-mode -1)
-   #+end_src
-** Whitespace
-   #+begin_src emacs-lisp
-     (setq whitespace-style '(face tabs tab-mark)
-           whitespace-display-mappings '((tab-mark 9 [8250 9] [92 9])))
-     (global-whitespace-mode)
-   #+end_src
-** Font
-   #+begin_src emacs-lisp
-     (add-to-list 'default-frame-alist
-                  '(font . "xos4 Terminus 9"))
-   #+end_src
 * Key mappings
   #+begin_src emacs-lisp
-    (global-set-key (kbd "C-x b") 'ibuffer)
-    (global-set-key (kbd "C-x C-b") 'ido-switch-buffer)
-    (global-set-key (kbd "C-x k") 'kill-current-buffer)
-    (global-set-key (kbd "C-c a") 'org-agenda)
-    (global-set-key (kbd "C-;") 'avy-goto-word-1)
+    (defvar my/avy-colon-command 'avy-goto-word-1)
+
+    (defalias 'yes-or-no-p 'y-or-n-p)
+
+    (defun my/tab-insert-command ()
+      (interactive)
+      (insert "	"))
+
+    (defun my/nop () (interactive) nil)
+
+    (my/global-set-keys
+      ("C-x b" 'ibuffer)
+      ("C-x C-b" 'ido-switch-buffer)
+      ("C-x k" 'kill-current-buffer)
+      ("C-c a" 'org-agenda)
+      ("C-;" my/avy-colon-command)
+      ("C-<tab>" 'my/tab-insert-command)
+      ("M-ESC" 'my/nop))
   #+end_src
+
 ** Config visit/reload
   #+begin_src emacs-lisp
     (defun config-visit ()
@@ -237,3 +360,298 @@
     (global-set-key (kbd "C-c r") 'config-reload)
     (global-set-key (kbd "C-c e") 'config-visit)
   #+end_src
+
+* Hooks
+  #+begin_src emacs-lisp
+    (my/add-hooks
+      ((lisp-mode-hook scheme-mode-hook emacs-lisp-mode-hook)
+         (setq tab-width 2 indent-tabs-mode nil fill-column 100)
+         (paredit-mode 1)
+         (highlight-parentheses-mode)
+         (paren-face-mode))
+      (prog-mode-hook
+         (display-line-numbers-mode)
+         (company-mode)
+         (yas-minor-mode))
+      (before-save-hook
+         (delete-trailing-whitespace))
+      (org-mode-hook
+         (auto-fill-mode)
+         (flyspell-mode))
+      ((text-mode-hook org-mode-hook prog-mode-hook)
+         (display-fill-column-indicator-mode)
+         (whitespace-mode))
+      (flyspell-mode-hook
+         (define-key flyspell-mode-map (kbd "C-;") my/avy-colon-command))
+      (rustic-mode-hook
+         (setq-local buffer-save-without-query t))
+      (ibuffer-mode-hook
+         (ibuffer-switch-to-saved-filter-groups "default")))
+   #+end_src
+
+* Org mode
+** Emacs lisp code blocks with <el TAB
+   #+begin_src emacs-lisp
+     (add-to-list 'org-modules 'org-tempo)
+     (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
+   #+end_src
+
+** For latex export
+   #+begin_src emacs-lisp
+     (add-to-list 'org-latex-packages-alist '("AUTO" "babel" t ("pdflatex")))
+     (add-to-list 'org-latex-packages-alist '("" "minted" t ("pdflatex")))
+
+     (setq
+      org-latex-title-command nil
+      org-latex-listings 'minted
+      org-latex-pdf-process
+      '("pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+        "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+        "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f")
+      org-latex-minted-options '(("breaklines" "true") ("breakanywhere" "true"))
+      )
+   #+end_src
+
+** Adapt indentation to outline node level
+   #+begin_src emacs-lisp
+     (setq org-adapt-indentation t)
+   #+end_src
+
+** Agenda
+   #+begin_src emacs-lisp
+     (setq org-agenda-files (file-expand-wildcards "~/.emacs.d/org/agenda/*.org"))
+   #+end_src
+
+** Org bullets
+   #+begin_src emacs-lisp
+     (use-package org-bullets
+       :straight t
+       :config
+       ;; Default: '("◉" "○" "✸" "✿")
+       ;; ♥ ● ◇ ✚ ✜ ☯ ◆ ♠ ♣ ♦ ☢ ❀ ◆ ◖ ▶
+       ;; ► • ★ ▸
+       (setq org-bullets-bullet-list
+             '("*"
+               "●"
+               "○"
+               "·"))
+       (add-hook 'org-mode-hook
+                 #'org-bullets-mode))
+   #+end_src
+
+** Auto save buffers
+   #+begin_src emacs-lisp
+     (advice-add 'org-agenda-quit :before 'org-save-all-org-buffers)
+   #+end_src
+
+** Org src should appear in the same window instead of splitting
+    #+begin_src emacs-lisp
+      (setq org-src-window-setup 'current-window)
+    #+end_src
+
+** Org roam
+   #+begin_src emacs-lisp
+     (use-package org-roam
+       :straight t
+       :ensure t
+       :init
+       (setq org-roam-v2-ack t)
+       :custom
+       (org-roam-directory (file-truename "~/.emacs.d/org/roam/"))
+       (org-roam-complete-everywhere t)
+       :bind (("C-c n l" . org-roam-buffer-toggle)
+              ("C-c n f" . org-roam-node-find)
+              ("C-c n i" . org-roam-node-insert)
+              ("C-c n g" . org-roam-graph)
+              ("C-c n c" . org-roam-capture)
+              ;; Dailies
+              ("C-c n j" . org-roam-dailies-capture-today)
+              :map org-mode-map
+              ("C-M-i"   . completion-at-point))
+       :config
+       (org-roam-setup)
+       ;; If using org-roam-protocol
+       ;(require 'org-roam-protocol)
+       )
+   #+end_src
+
+* Preferences
+** Font
+   #+begin_src emacs-lisp
+     (add-to-list 'default-frame-alist
+                  '(font . "Terminus 9"))
+   #+end_src
+
+** Backup files and auto saving
+    #+begin_src emacs-lisp
+      (setq make-backup-files nil
+            auto-save-default nil)
+    #+end_src
+
+** Hide startup screen
+    #+begin_src emacs-lisp
+      (setq inhibit-startup-screen t)
+    #+end_src
+
+** Show matching parentheses
+    #+begin_src emacs-lisp
+      (show-paren-mode 1)
+      (setq show-paren-delay 0)
+    #+end_src
+
+** Add newline at the end of file
+    #+begin_src emacs-lisp
+      (setq require-final-newline t)
+    #+end_src
+
+** Display column numbers
+    #+begin_src emacs-lisp
+      (setq column-number-mode t)
+    #+end_src
+
+** Make all windows split vertically (need a better mechanism)
+    #+begin_src emacs-lisp
+      (setq split-width-threshold 80
+            split-height-threshold nil)
+    #+end_src
+
+** Don't confirm killing processes
+    #+begin_src emacs-lisp
+      (setq confirm-kill-process nil)
+    #+end_src
+
+** Scroll conservatively (line by line)
+    #+begin_src emacs-lisp
+      (setq scroll-conservatively 10)
+    #+end_src
+
+** Disable tab indentation
+    #+begin_src emacs-lisp
+      (setq-default indent-tabs-mode nil)
+    #+end_src
+
+** Tab width
+    #+begin_src emacs-lisp
+      (setq-default tab-width 4)
+    #+end_src
+
+** Don't wrap lines
+    #+begin_src emacs-lisp
+      (setq-default truncate-lines t)
+    #+end_src
+
+** Fill column
+    #+begin_src emacs-lisp
+      (setq-default fill-column 80)
+    #+end_src
+
+** C language indentation
+    #+begin_src emacs-lisp
+      (setq-default c-default-style '((c-mode . "bsd"))
+                    c-basic-offset tab-width
+                    cperl-indent-level tab-width)
+    #+end_src
+
+** Reserve space for line numbers
+    #+begin_src emacs-lisp
+    (setq-default display-line-numbers-width 3)
+    #+end_src
+
+** Open =.cl= files as lisp files
+  #+begin_src emacs-lisp
+    (add-to-list 'auto-mode-alist '("\\.cl\\'" . lisp-mode))
+  #+end_src
+
+** Fringes
+   #+begin_src emacs-lisp
+     (fringe-mode '(2 . 0))
+   #+end_src
+
+** Selectrum
+*** Install
+   #+begin_src emacs-lisp
+     (use-package selectrum
+       :straight t
+       :ensure t
+       :config
+       (selectrum-mode +1))
+   #+end_src
+
+*** Prescient
+    #+begin_src emacs-lisp
+      (use-package selectrum-prescient
+        :straight t
+        :ensure t
+        :config
+        ;; to make sorting and filtering more intelligent
+        (selectrum-prescient-mode +1)
+
+        ;; to save your command history on disk, so the sorting gets more
+        ;; intelligent over time
+        (prescient-persist-mode +1))
+    #+end_src
+
+*** Marginalia (information in completion annotations)
+    #+begin_src emacs-lisp
+      (use-package marginalia
+        :straight t
+        :ensure t
+        :bind (("M-A" . marginalia-cycle)
+               :map minibuffer-local-map
+               ("M-A" . marginalia-cycle))
+        :init
+        ;; Must be in the :init section of use-package such that the mode gets
+        ;; enabled right away. Note that this forces loading the package.
+        (marginalia-mode))
+    #+end_src
+
+** Ibuffer
+*** Expert mode (no confirmations)
+    #+begin_src emacs-lisp
+      (setq ibuffer-expert t)
+    #+end_src
+
+*** Filter groups
+   #+begin_src emacs-lisp
+     (setq ibuffer-saved-filter-groups
+           '(("default"
+              ("lisp" (or
+                       (mode . lisp-mode)
+                       (mode . scheme-mode)
+                       (mode . emacs-lisp-mode)))
+              ("org" (or (mode . org-mode)
+                         (name . "\\*Org Src.*\\*")))
+              ("emacs" (or
+                        (name . "^\\*scratch\\*$")
+                        (name . "^\\*Messages\\*$")))
+              ("trashcan" (or
+                           (name . "^\\*straight-process\\*$")
+                           (name . "^\\*Compile-Log\\*$")
+                           (name . "^\\*inferior-lisp\\*$")
+                           (name . "^\\*slime-events\\*$"))))))
+   #+end_src
+
+** Disable the scroll bar, menu bar and the tool bar
+   #+begin_src emacs-lisp
+     (scroll-bar-mode -1)
+     (menu-bar-mode -1)
+     (tool-bar-mode -1)
+   #+end_src
+
+** Cursor blinking
+   #+begin_src emacs-lisp
+     (blink-cursor-mode)
+   #+end_src
+
+** Whitespace
+   #+begin_src emacs-lisp
+     (setq whitespace-style '(face tabs tab-mark)
+           whitespace-display-mappings '((tab-mark 9 [8250 9] [92 9])
+                                         (space-mark 32 [183] [46])))
+   #+end_src
+
+** Have custom in a separate file (=.emacs.d/custom.el=)
+   #+begin_src emacs-lisp
+     (setq custom-file "~/.emacs.d/custom.el")
+     (load "~/.emacs.d/custom.el")
+   #+end_src

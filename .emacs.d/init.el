@@ -3,7 +3,6 @@
 (defun startup/reset-gc () (setq gc-cons-threshold startup/gc-cons-threshold))
 (add-hook 'emacs-startup-hook 'startup/reset-gc)
 
-;; straight.el bootstrap
 (defvar bootstrap-version)
 (let ((bootstrap-file
        (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
@@ -17,9 +16,7 @@
       (eval-print-last-sexp)))
   (load bootstrap-file nil 'nomessage))
 
-(eval-when-compile
-  (add-to-list 'load-path (expand-file-name "~/.emacs.d/elisp/")))
-
 (with-eval-after-load 'straight
-  (straight-use-package 'use-package)
-  (org-babel-load-file "~/.emacs.d/config.org" t))
+  (straight-use-package 'use-package))
+
+(org-babel-load-file "~/.emacs.d/config.org" nil)

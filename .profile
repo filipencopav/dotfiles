@@ -7,6 +7,8 @@ export EDITOR='mg'
 export TERMINAL='st'
 export BROWSER='firefox'
 
+export MPC_FORMAT='[%artist%[ "%album%"][ ##%track%] - ]%title%'
+
 
 # shellcheck source=/dev/null
 [ "$SHELL" = "/bin/bash" ] && . "$HOME/.bashrc"
@@ -21,6 +23,10 @@ export BROWSER='firefox'
 [ -d "$HOME/.cache" ]     && export XDG_CACHE_HOME="$HOME/.cache"
 [ -d "$HOME/.config" ]    && export XDG_CONFIG_HOME="$HOME/.config"
 
+[ -d "$HOME/.local/share/info" ] &&
+    export INFOPATH="$HOME/.local/share/info:$INFOPATH"
+
+
 
 export GNUPGHOME="$XDG_CONFIG_HOME/gnupg"
 export LESSHISTFILE="-"
@@ -30,20 +36,6 @@ export WINEPREFIX="$HOME"/games/dummy
 export WEECHAT_HOME="$XDG_CONFIG_HOME"/weechat
 
 date
-
-# COLORS
-if [ "$TERM" = "linux" ]; then
-    _SEDCMD='s/.*\*color\([0-9]\{1,\}\).*#\([0-9a-fA-F]\{6\}\).*/\1 \2/p'
-    for i in $(sed -n "$_SEDCMD" $HOME/.Xresources | awk '$1 < 16 {printf "\\e]P%X%s", $1, $2}'); do
-        echo -en "$i"
-    done
-    clear
-fi
-
-echo "+-----------------+"
-echo "| Welcome back <3 |"
-echo "+-----------------+"
-echo
 
 if [ "$(tty)" = "/dev/tty2" ] ; then
     pgrep -x Xorg || exec startx 2> /dev/null

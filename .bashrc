@@ -20,8 +20,7 @@ alias nvimrc="nvim $HOME/.config/nvim/init.vim"
 alias config="/usr/bin/git --git-dir=$HOME/dotfiles/ --work-tree=$HOME"
 
 # youtube downloader alias
-alias flac-dl='youtube-dl -ic -x --audio-format flac -o'
-alias mp3-dl='youtube-dl -ic -x --audio-format mp3 -o'
+alias youtube-dl="/usr/bin/youtube-dl -o '%(title)s.%(ext)s'"
 alias audio-dl='youtube-dl -ic -x -f bestaudio/best'
 
 # QOL basic system navigation commands

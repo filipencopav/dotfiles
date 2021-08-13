@@ -78,6 +78,7 @@ tr:nth-child(even) {
 
 img {
     max-width: 100%;
+    box-shadow: 0 0 20px 0 #000a;
 }
 
 button, input[type="button"], input[type="submit"], input[type="reset"] {
