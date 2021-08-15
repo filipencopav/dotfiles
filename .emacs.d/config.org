@@ -7,11 +7,20 @@
        (add-to-list 'load-path (expand-file-name "~/.emacs.d/elisp/")))
    #+end_src
 
-** Requires themselves
+** Common Lisp library
+   #+begin_src emacs-lisp
+     (require 'cl-lib)
+   #+end_src
+
+** Org mode
+   #+begin_src emacs-lisp
+     (require 'org)
+     (require 'org-tempo)
+   #+end_src
+
+** Paren face
   #+begin_src emacs-lisp
-            (require 'cl-lib)
-            (require 'org)
-            (require 'paren-face)
+    (require 'paren-face)
   #+end_src
 
 ** Always ensure packages are installed
@@ -23,7 +32,7 @@
 * Macros
 ** Lisp indent function
     #+begin_src emacs-lisp
-      (setq lisp-indent-function 'lisp-indent-function)
+      (setq lisp-indent-function 'common-lisp-indent-function)
     #+end_src
 
 ** Define indent function
@@ -122,7 +131,8 @@
 ** Gruvbox
   #+begin_src emacs-lisp
     (use-package gruvbox-theme
-      :straight t)
+      :straight t
+      :ensure t)
 
     (defvar my/theme 'gruvbox-dark-medium)
   #+end_src
@@ -137,7 +147,9 @@
          (set-face-attribute 'selectrum-current-candidate nil
                              :background default-bg
                              :underline t)
-         (set-face-attribute 'marginalia-documentation nil :slant 'normal)))
+
+         ;; gruvbox specific
+         (set-face-attribute 'default nil :foreground "#ebdbb2")))
 
      (add-hook 'my/after-theme-load-hook 'my/custom-face-config)
 
@@ -260,7 +272,10 @@
 *** Highlight-parentheses
    #+begin_src emacs-lisp
      (use-package highlight-parentheses
-       :straight t)
+       :straight t
+       :ensure t
+       :custom
+       (highlight-parentheses-delay 0))
    #+end_src
 
 ** Company
@@ -271,10 +286,10 @@
        (company-idle-delay 0)
        :bind
        (:map company-active-map
-             ("C-n". company-select-next)
-             ("C-p". company-select-previous)
-             ("M-<". company-select-first)
-             ("M->". company-select-last)))
+             ("M-n" . company-select-next)
+             ("M-p" . company-select-previous)
+             ("M-<" . company-select-first)
+             ("M->" . company-select-last)))
    #+end_src
 
 ** Yasnippet
@@ -307,13 +322,18 @@
        :bind (("C-;" . avy-goto-word-1)))
    #+end_src
 
-** Slime
+** Sly
    #+begin_src emacs-lisp
-     (use-package slime
+     (defun set-sly-mrepl-faces ()
+       (let ((comment-fg (face-attribute 'font-lock-comment-face :foreground)))
+         (set-face-attribute 'sly-mrepl-note-face nil :foreground comment-fg)))
+
+     (use-package sly
        :straight t
+       :ensure t
        :config
-       (setq inferior-lisp-program "ccl"
-             slime-truncate-lines 100))
+       (setq inferior-lisp-program "ccl")
+       (add-hook 'sly-mrepl-mode-hook #'set-sly-mrepl-faces))
    #+end_src
 
 ** Editor configuration (=editorconfig=)
@@ -340,6 +360,7 @@
       ("C-x b" 'ibuffer)
       ("C-x C-b" 'ido-switch-buffer)
       ("C-x k" 'kill-current-buffer)
+      ("C-c q" 'delete-window)
       ("C-c a" 'org-agenda)
       ("C-;" my/avy-colon-command)
       ("C-<tab>" 'my/tab-insert-command)
@@ -360,34 +381,6 @@
     (global-set-key (kbd "C-c r") 'config-reload)
     (global-set-key (kbd "C-c e") 'config-visit)
   #+end_src
-
-* Hooks
-  #+begin_src emacs-lisp
-    (my/add-hooks
-      ((lisp-mode-hook scheme-mode-hook emacs-lisp-mode-hook)
-         (setq tab-width 2 indent-tabs-mode nil fill-column 100)
-         (paredit-mode 1)
-         (highlight-parentheses-mode)
-         (paren-face-mode))
-      (prog-mode-hook
-         (display-line-numbers-mode)
-         (company-mode)
-         (yas-minor-mode))
-      (before-save-hook
-         (delete-trailing-whitespace))
-      (org-mode-hook
-         (auto-fill-mode)
-         (flyspell-mode))
-      ((text-mode-hook org-mode-hook prog-mode-hook)
-         (display-fill-column-indicator-mode)
-         (whitespace-mode))
-      (flyspell-mode-hook
-         (define-key flyspell-mode-map (kbd "C-;") my/avy-colon-command))
-      (rustic-mode-hook
-         (setq-local buffer-save-without-query t))
-      (ibuffer-mode-hook
-         (ibuffer-switch-to-saved-filter-groups "default")))
-   #+end_src
 
 * Org mode
 ** Emacs lisp code blocks with <el TAB
@@ -476,6 +469,11 @@
    #+end_src
 
 * Preferences
+** Select the help window when opening it
+   #+begin_src emacs-lisp
+     (setq help-window-select t)
+   #+end_src
+
 ** Font
    #+begin_src emacs-lisp
      (add-to-list 'default-frame-alist
@@ -509,10 +507,73 @@
       (setq column-number-mode t)
     #+end_src
 
-** Make all windows split vertically (need a better mechanism)
+** Window splitting config
+   Redefined =split-window-sensibly= to prefer splitting windows vertically
     #+begin_src emacs-lisp
-      (setq split-width-threshold 80
-            split-height-threshold nil)
+      (defun split-window-sensibly (&optional window)
+        "Modified by >>ME<< to prefer splitting windows vertically
+
+      Split WINDOW in a way suitable for `display-buffer'.
+      WINDOW defaults to the currently selected window.
+      If `split-width-threshold' specifies an integer, WINDOW is at
+      least `split-width-threshold' columns wide and can be split
+      horizontally, split WINDOW into two windows side by side and
+      return the lower window.  Otherwise, if `split-height-threshold'
+      specifies an integer, WINDOW is at least `split-height-threshold'
+      lines tall and can be split vertically, split WINDOW into two
+      windows side by side and return the window on the right.  If this
+      can't be done either and WINDOW is the only window on its frame,
+      try to split WINDOW vertically disregarding any value specified
+      by `split-height-threshold'.  If that succeeds, return the lower
+      window.  Return nil otherwise.
+
+      By default `display-buffer' routines call this function to split
+      the largest or least recently used window.  To change the default
+      customize the option `split-window-preferred-function'.
+
+      You can enforce this function to not split WINDOW horizontally,
+      by setting (or binding) the variable `split-width-threshold' to
+      nil.  If, in addition, you set `split-height-threshold' to zero,
+      chances increase that this function does split WINDOW vertically.
+
+      In order to not split WINDOW vertically, set (or bind) the
+      variable `split-height-threshold' to nil.  Additionally, you can
+      set `split-width-threshold' to zero to make a horizontal split
+      more likely to occur.
+
+      Have a look at the function `window-splittable-p' if you want to
+      know how `split-window-sensibly' determines whether WINDOW can be
+      split."
+        (let ((window (or window (selected-window))))
+          (or (and (window-splittable-p window t)
+                   (with-selected-window window
+                     (split-window-right)))
+              (and (window-splittable-p window)
+                   (with-selected-window window
+                     (split-window-below)))
+              (and
+               ;; If WINDOW is the only usable window on its frame (it is
+               ;; the only one or, not being the only one, all the other
+               ;; ones are dedicated) and is not the minibuffer window, try
+               ;; to split it vertically disregarding the value of
+               ;; `split-height-threshold'.
+               (let ((frame (window-frame window)))
+                 (or
+                  (eq window (frame-root-window frame))
+                  (catch 'done
+                    (walk-window-tree (lambda (w)
+                                        (unless (or (eq w window)
+                                                    (window-dedicated-p w))
+                                          (throw 'done nil)))
+                                      frame nil 'nomini)
+                    t)))
+               (not (window-minibuffer-p window))
+               (let ((split-height-threshold 0))
+                 (when (window-splittable-p window)
+                   (with-selected-window window
+                     (split-window-below))))))))
+
+      (setq split-width-threshold 120)
     #+end_src
 
 ** Don't confirm killing processes
@@ -593,6 +654,9 @@
 
 *** Marginalia (information in completion annotations)
     #+begin_src emacs-lisp
+      (defun set-marginalia-faces ()
+        (set-face-attribute 'marginalia-documentation nil :slant 'normal))
+
       (use-package marginalia
         :straight t
         :ensure t
@@ -602,7 +666,50 @@
         :init
         ;; Must be in the :init section of use-package such that the mode gets
         ;; enabled right away. Note that this forces loading the package.
-        (marginalia-mode))
+        (marginalia-mode)
+        :config
+        (add-hook 'my/after-theme-load-hook #'set-marginalia-faces))
+    #+end_src
+
+*** Ido file behavior
+    #+begin_src emacs-lisp
+      (defun selectrum-fido-backward-updir ()
+        "Delete char before or go up directory, like `ido-mode'."
+        (interactive)
+        (if (and (eq (char-before) ?/)
+                 (eq (selectrum--get-meta 'category) 'file))
+            (save-excursion
+              (goto-char (1- (point)))
+              (when (search-backward "/" (point-min) t)
+                (delete-region (1+ (point)) (point-max))))
+          (call-interactively 'backward-delete-char)))
+
+      (defun selectrum-fido-delete-char ()
+        "Delete char or maybe call `dired', like `ido-mode'."
+        (interactive)
+        (let ((end (point-max)))
+          (if (or (< (point) end) (not (eq (selectrum--get-meta 'category) 'file)))
+              (call-interactively 'delete-char)
+            (dired (file-name-directory (minibuffer-contents)))
+            (exit-minibuffer))))
+
+      (defun selectrum-fido-ret ()
+        "Exit minibuffer or enter directory, like `ido-mode'."
+        (interactive)
+        (let* ((dir (and (eq (selectrum--get-meta 'category) 'file)
+                         (file-name-directory (minibuffer-contents))))
+               (current (selectrum-get-current-candidate))
+               (probe (and dir current
+                           (expand-file-name (directory-file-name current) dir))))
+          (cond ((and probe (file-directory-p probe) (not (string= current "./")))
+                 (selectrum-insert-current-candidate))
+                (t
+                 (selectrum-select-current-candidate)))))
+
+
+      (define-key selectrum-minibuffer-map (kbd "RET") 'selectrum-fido-ret)
+      (define-key selectrum-minibuffer-map (kbd "DEL") 'selectrum-fido-backward-updir)
+      (define-key selectrum-minibuffer-map (kbd "C-d") 'selectrum-fido-delete-char)
     #+end_src
 
 ** Ibuffer
@@ -638,9 +745,28 @@
      (tool-bar-mode -1)
    #+end_src
 
-** Cursor blinking
+** Cursor
+   Blinking box.
    #+begin_src emacs-lisp
      (blink-cursor-mode)
+     (setq-default cursor-type t)
+   #+end_src
+
+** Beacon mode
+   Highlights the cursor when the window scrolls
+   #+begin_src emacs-lisp
+     (use-package beacon
+       :straight t
+       :ensure t
+       :config
+       (beacon-mode 1)
+       (when (not window-system)
+         (beacon-mode -1))
+       (setq beacon-blink-when-focused t)
+       (setq beacon-blink-when-point-moves-vertically 10)
+       (setq beacon-blink-duration 0.4)
+       (setq beacon-blink-delay 0.3)
+       (push 'ibuffer-mode beacon-dont-blink-major-modes))
    #+end_src
 
 ** Whitespace
@@ -654,4 +780,49 @@
    #+begin_src emacs-lisp
      (setq custom-file "~/.emacs.d/custom.el")
      (load "~/.emacs.d/custom.el")
+   #+end_src
+
+** Completion buffer popping up
+   #+begin_src emacs-lisp
+     (setq completion-auto-help 'lazy)
+   #+end_src
+
+** Frames only mode
+   #+begin_src emacs-lisp
+     (use-package frames-only-mode
+       :straight t
+       :ensure t
+       :config
+       (frames-only-mode -1))
+   #+end_src
+
+* Hooks
+  #+begin_src emacs-lisp
+    (my/add-hooks
+      ((lisp-mode-hook scheme-mode-hook emacs-lisp-mode-hook)
+         (setq tab-width 2 indent-tabs-mode nil fill-column 100)
+         (paredit-mode 1)
+         (highlight-parentheses-mode)
+         (paren-face-mode))
+      (prog-mode-hook
+         (company-mode)
+         (yas-minor-mode))
+      (before-save-hook
+         (delete-trailing-whitespace))
+      (org-mode-hook
+         (auto-fill-mode)
+         (flyspell-mode))
+      ((text-mode-hook org-mode-hook prog-mode-hook)
+         (display-fill-column-indicator-mode)
+         (whitespace-mode))
+      (flyspell-mode-hook
+         (define-key flyspell-mode-map (kbd "C-;") my/avy-colon-command))
+      (rustic-mode-hook
+         (setq-local buffer-save-without-query t))
+      (ibuffer-mode-hook
+         (ibuffer-switch-to-saved-filter-groups "default"))
+      (sly-mode-hook
+         (company-mode)
+         (paren-face-mode)
+         (highlight-parentheses-mode)))
    #+end_src
