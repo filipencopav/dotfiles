@@ -1,4 +1,4 @@
-colorscheme base16-gruvbox-dark-hard
+colorscheme base16-gruvbox-dark-medium
 add-highlighter global/ number-lines -relative -hlcursor -min-digits 2
 add-highlighter global/ show-matching
 add-highlighter global/ show-whitespaces -tab '›' -lf ' ' -spc ' '
