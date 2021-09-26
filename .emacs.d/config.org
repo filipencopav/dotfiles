@@ -118,7 +118,7 @@
      (defvar my/after-theme-load-hook '()
        "List of functions to run after a theme has been loaded.")
      (defun my/load-theme (theme &optional no-confirm no-enable)
-       "Load THEME using LOAD-THEME, afterwards running the MY-AFTER-THEME-LOAD-HOOK"
+       "Load `theme' using LOAD-THEME, afterwards running the MY-AFTER-THEME-LOAD-HOOK"
        (interactive
         (list (intern
                (completing-read "Load custom theme: " (mapcar #'symbol-name (custom-available-themes))))
@@ -128,45 +128,57 @@
        (run-hook-with-args 'my/after-theme-load-hook))
    #+end_src
 
-** Gruvbox
+** Current theme
   #+begin_src emacs-lisp
-    (use-package gruvbox-theme
+    (use-package tao-theme
       :straight t
-      :ensure t)
+      :custom
+      (tao-theme-use-boxes . nil)
+      (tao-theme-use-sepia . nil))
 
-    (defvar my/theme 'gruvbox-dark-medium)
+    (defvar my/theme 'tao-yin)
   #+end_src
+
+** Font
+   #+begin_src emacs-lisp
+     (defvar main-font "xos4 Terminus 12")
+   #+end_src
+   #+begin_src emacs-lisp
+     (add-to-list 'default-frame-alist
+                  `(font . ,main-font))
+   #+end_src
 
 ** Faces
    #+begin_src emacs-lisp
      (defun my/custom-face-config ()
-       (let ((default-bg (face-attribute 'default :background)))
+       (let ((default-bg (face-attribute 'default :background))
+             (mode-line-inactive-bg (face-attribute 'mode-line-inactive :background))
+             (mode-line-bg (face-attribute 'mode-line :background))
+             (highlight-bg (face-attribute 'isearch :background)))
+         (set-face-attribute 'show-paren-match nil :background highlight-bg)
          (set-face-attribute 'mode-line nil :background default-bg)
          (set-face-attribute 'mode-line-inactive nil :background default-bg)
          (set-face-attribute 'line-number nil :background default-bg)
          (set-face-attribute 'selectrum-current-candidate nil
                              :background default-bg
                              :underline t)
+         (set-face-attribute 'font-lock-comment-face nil :slant 'normal)
+         (set-face-attribute 'font-lock-builtin-face nil :slant 'normal)
+         (set-face-attribute 'font-lock-doc-face nil :slant 'normal)
 
          ;; gruvbox specific
-         (set-face-attribute 'default nil :foreground "#ebdbb2")))
+         ;(set-face-attribute 'default nil :foreground "#ebdbb2")
+         ))
 
      (add-hook 'my/after-theme-load-hook 'my/custom-face-config)
 
-     (set-face-attribute 'default nil :font "xos4 Terminus 9")
-     (set-face-attribute 'font-lock-comment-face nil :font "xos4 Terminus 9")
-     (set-face-attribute 'fixed-pitch nil :font "xos4 Terminus 9")
+     (set-face-attribute 'default nil :font main-font)
+     (set-face-attribute 'font-lock-comment-face nil :font main-font)
+     (set-face-attribute 'fixed-pitch nil :font main-font)
    #+end_src
 
 ** Theme setting function
    #+begin_src emacs-lisp
-     (defun my/frame-behaviors (&optional frame)
-       "Make frame- and/or terminal-local changes."
-       (with-selected-frame (or frame (selected-frame))
-         (when window-system
-           (my/load-theme my/theme t))))
-
-     (add-hook 'after-make-frame-functions 'my/frame-behaviors)
      (add-hook 'after-init-hook (lambda () (my/load-theme my/theme t)))
    #+end_src
 
@@ -201,7 +213,7 @@
       '((:eval
          (simple-mode-line-render
           ;; Left
-          '(" %b » "
+          '(" %m » %b "
             (:eval (my/buffer-modified-flag))
             (:eval (my/buffer-readonly-flag)))
           ;; Right
@@ -273,7 +285,6 @@
    #+begin_src emacs-lisp
      (use-package highlight-parentheses
        :straight t
-       :ensure t
        :custom
        (highlight-parentheses-delay 0))
    #+end_src
@@ -283,7 +294,7 @@
      (use-package company
        :straight t
        :custom
-       (company-idle-delay 0)
+       (company-idle-delay 0.2)
        :bind
        (:map company-active-map
              ("M-n" . company-select-next)
@@ -325,12 +336,13 @@
 ** Sly
    #+begin_src emacs-lisp
      (defun set-sly-mrepl-faces ()
-       (let ((comment-fg (face-attribute 'font-lock-comment-face :foreground)))
-         (set-face-attribute 'sly-mrepl-note-face nil :foreground comment-fg)))
+       (let ((string-fg (face-attribute 'font-lock-string-face :foreground))
+             (comment-fg (face-attribute 'font-lock-comment-face :foreground)))
+         (set-face-attribute 'sly-mrepl-note-face nil :foreground comment-fg)
+         (set-face-attribute 'sly-mrepl-output-face nil :foreground string-fg)))
 
      (use-package sly
        :straight t
-       :ensure t
        :config
        (setq inferior-lisp-program "ccl")
        (add-hook 'sly-mrepl-mode-hook #'set-sly-mrepl-faces))
@@ -437,6 +449,11 @@
      (advice-add 'org-agenda-quit :before 'org-save-all-org-buffers)
    #+end_src
 
+** Org capture disable the dumb bookmark
+   #+begin_src emacs-lisp
+     (setq org-capture-bookmark nil)
+   #+end_src
+
 ** Org src should appear in the same window instead of splitting
     #+begin_src emacs-lisp
       (setq org-src-window-setup 'current-window)
@@ -446,7 +463,6 @@
    #+begin_src emacs-lisp
      (use-package org-roam
        :straight t
-       :ensure t
        :init
        (setq org-roam-v2-ack t)
        :custom
@@ -474,12 +490,6 @@
      (setq help-window-select t)
    #+end_src
 
-** Font
-   #+begin_src emacs-lisp
-     (add-to-list 'default-frame-alist
-                  '(font . "Terminus 9"))
-   #+end_src
-
 ** Backup files and auto saving
     #+begin_src emacs-lisp
       (setq make-backup-files nil
@@ -493,8 +503,8 @@
 
 ** Show matching parentheses
     #+begin_src emacs-lisp
-      (show-paren-mode 1)
       (setq show-paren-delay 0)
+      (show-paren-mode 1)
     #+end_src
 
 ** Add newline at the end of file
@@ -633,7 +643,6 @@
    #+begin_src emacs-lisp
      (use-package selectrum
        :straight t
-       :ensure t
        :config
        (selectrum-mode +1))
    #+end_src
@@ -642,7 +651,6 @@
     #+begin_src emacs-lisp
       (use-package selectrum-prescient
         :straight t
-        :ensure t
         :config
         ;; to make sorting and filtering more intelligent
         (selectrum-prescient-mode +1)
@@ -659,7 +667,6 @@
 
       (use-package marginalia
         :straight t
-        :ensure t
         :bind (("M-A" . marginalia-cycle)
                :map minibuffer-local-map
                ("M-A" . marginalia-cycle))
@@ -757,15 +764,13 @@
    #+begin_src emacs-lisp
      (use-package beacon
        :straight t
-       :ensure t
        :config
        (beacon-mode 1)
-       (when (not window-system)
-         (beacon-mode -1))
        (setq beacon-blink-when-focused t)
        (setq beacon-blink-when-point-moves-vertically 10)
        (setq beacon-blink-duration 0.4)
        (setq beacon-blink-delay 0.3)
+       (setq beacon-size 20)
        (push 'ibuffer-mode beacon-dont-blink-major-modes))
    #+end_src
 
@@ -787,42 +792,39 @@
      (setq completion-auto-help 'lazy)
    #+end_src
 
-** Frames only mode
-   #+begin_src emacs-lisp
-     (use-package frames-only-mode
-       :straight t
-       :ensure t
-       :config
-       (frames-only-mode -1))
-   #+end_src
-
 * Hooks
   #+begin_src emacs-lisp
     (my/add-hooks
       ((lisp-mode-hook scheme-mode-hook emacs-lisp-mode-hook)
          (setq tab-width 2 indent-tabs-mode nil fill-column 100)
          (paredit-mode 1)
-         (highlight-parentheses-mode)
          (paren-face-mode))
       (prog-mode-hook
          (company-mode)
          (yas-minor-mode))
+      (c-mode-hook
+         (company-mode -1))
       (before-save-hook
          (delete-trailing-whitespace))
       (org-mode-hook
-         (auto-fill-mode)
-         (flyspell-mode))
+         (auto-fill-mode))
       ((text-mode-hook org-mode-hook prog-mode-hook)
          (display-fill-column-indicator-mode)
          (whitespace-mode))
-      (flyspell-mode-hook
-         (define-key flyspell-mode-map (kbd "C-;") my/avy-colon-command))
       (rustic-mode-hook
          (setq-local buffer-save-without-query t))
       (ibuffer-mode-hook
          (ibuffer-switch-to-saved-filter-groups "default"))
       (sly-mode-hook
          (company-mode)
-         (paren-face-mode)
-         (highlight-parentheses-mode)))
+         (paren-face-mode))
+      (sly-mrepl-mode-hook
+         (delete-other-windows)
+         (visual-line-mode))
+      ((help-mode-hook sly-db-mode-hook)
+         (visual-line-mode))
+      (whitespace-mode-hook
+         (set-face-attribute 'whitespace-tab nil :background (face-attribute 'default :background)))
+      (css-mode-hook
+         (electric-pair-local-mode)))
    #+end_src

@@ -35,6 +35,8 @@ export TERMINFO="$XDG_DATA_HOME"/terminfo
 export WINEPREFIX="$HOME"/games/dummy
 export WEECHAT_HOME="$XDG_CONFIG_HOME"/weechat
 
+emacs --fg-daemon &
+
 date
 
 if [ "$(tty)" = "/dev/tty2" ] ; then
