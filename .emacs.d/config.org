@@ -107,6 +107,17 @@
           ,@ (mapcar #'my/pair->global-set-key-form pairs)))
    #+end_src
 
+* Vars
+** Indent offset
+   #+begin_src emacs-lisp
+     (defvar my/indent-offset 2)
+   #+end_src
+
+** Font
+   #+begin_src emacs-lisp
+     (defvar main-font "Fantasque Sans Mono")
+   #+end_src
+
 * Themes
 ** Theme load path
    #+begin_src emacs-lisp
@@ -139,10 +150,7 @@
     (defvar my/theme 'tao-yin)
   #+end_src
 
-** Font
-   #+begin_src emacs-lisp
-     (defvar main-font "xos4 Terminus 12")
-   #+end_src
+** Default font
    #+begin_src emacs-lisp
      (add-to-list 'default-frame-alist
                   `(font . ,main-font))
@@ -356,6 +364,15 @@
        (editorconfig-mode 1))
    #+end_src
 
+** Web Mode
+   #+begin_src emacs-lisp
+     (use-package web-mode
+         :ensure t
+         :config
+         (add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
+         (setq web-mode-markup-indent-offset my/indent-offset))
+   #+end_src
+
 * Key mappings
   #+begin_src emacs-lisp
     (defvar my/avy-colon-command 'avy-goto-word-1)
@@ -433,13 +450,10 @@
        :straight t
        :config
        ;; Default: '("◉" "○" "✸" "✿")
+       ;; Second:  '("*" "●" "○" "·")
        ;; ♥ ● ◇ ✚ ✜ ☯ ◆ ♠ ♣ ♦ ☢ ❀ ◆ ◖ ▶
        ;; ► • ★ ▸
-       (setq org-bullets-bullet-list
-             '("*"
-               "●"
-               "○"
-               "·"))
+       (setq org-bullets-bullet-list '("◉" "○" "✸" "✿"))
        (add-hook 'org-mode-hook
                  #'org-bullets-mode))
    #+end_src
@@ -796,7 +810,7 @@
   #+begin_src emacs-lisp
     (my/add-hooks
       ((lisp-mode-hook scheme-mode-hook emacs-lisp-mode-hook)
-         (setq tab-width 2 indent-tabs-mode nil fill-column 100)
+         (setq tab-width indent-offset indent-tabs-mode nil fill-column 100)
          (paredit-mode 1)
          (paren-face-mode))
       (prog-mode-hook
