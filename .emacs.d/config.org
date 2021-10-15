@@ -25,8 +25,7 @@
 
 ** Always ensure packages are installed
    #+begin_src emacs-lisp
-     (setq straight-use-package-by-default t
-           use-package-always-ensure t)
+     (setq straight-use-package-by-default t)
    #+end_src
 
 * Macros
@@ -115,7 +114,7 @@
 
 ** Font
    #+begin_src emacs-lisp
-     (defvar main-font "Fantasque Sans Mono")
+     (defvar main-font "Fantasque Sans Mono 12")
    #+end_src
 
 * Themes
@@ -141,19 +140,22 @@
 
 ** Current theme
   #+begin_src emacs-lisp
-    (use-package tao-theme
+    (use-package gruvbox-theme
       :straight t
       :custom
       (tao-theme-use-boxes . nil)
       (tao-theme-use-sepia . nil))
 
-    (defvar my/theme 'tao-yin)
+    (defvar my/theme 'gruvbox-dark-medium)
   #+end_src
 
 ** Default font
    #+begin_src emacs-lisp
      (add-to-list 'default-frame-alist
                   `(font . ,main-font))
+
+     (set-face-attribute 'default nil :font main-font)
+     (set-face-attribute 'font-lock-comment-face nil :font main-font)
    #+end_src
 
 ** Faces
@@ -175,18 +177,20 @@
          (set-face-attribute 'font-lock-doc-face nil :slant 'normal)
 
          ;; gruvbox specific
-         ;(set-face-attribute 'default nil :foreground "#ebdbb2")
+         ;; (set-face-attribute 'default nil :foreground "#ebdbb2")
          ))
 
      (add-hook 'my/after-theme-load-hook 'my/custom-face-config)
-
-     (set-face-attribute 'default nil :font main-font)
-     (set-face-attribute 'font-lock-comment-face nil :font main-font)
-     (set-face-attribute 'fixed-pitch nil :font main-font)
    #+end_src
 
 ** Theme setting function
    #+begin_src emacs-lisp
+     (defun my/frame-behaviors (&optional frame)
+       "Make frame- and/or terminal-local changes."
+       (set-face-attribute 'fixed-pitch nil :font main-font)
+       (set-face-attribute 'variable-pitch nil :font main-font))
+
+     (add-hook 'after-make-frame-functions 'my/frame-behaviors)
      (add-hook 'after-init-hook (lambda () (my/load-theme my/theme t)))
    #+end_src
 
@@ -321,7 +325,28 @@
        (yas-reload-all))
    #+end_src
 
-** Dashboard (deprecated in favor of initial scratch messages)
+** Dashboard
+   #+begin_src emacs-lisp
+     (defun my/choose-initial-buffer ()
+       (unless (get-buffer-window "*dashboard*" 0)
+         (get-buffer "*dashboard*")))
+
+     (use-package dashboard
+         :straight t
+         :custom
+         (initial-buffer-choice #'my/choose-initial-buffer)
+         (dashboard-banner-logo-title "O U R macs")
+         (dashboard-center-content t)
+         (dashboard-items '((recents  . 4)
+                            (bookmarks . 4)
+                            (agenda . 3)))
+         (dashboard-page-separator "\n")
+         (dashboard-startup-banner (expand-file-name "~/.emacs.d/emacs-splash.png"))
+         :config
+         (dashboard-setup-startup-hook))
+   #+end_src
+
+** Initial scratch message
    #+begin_src emacs-lisp
      (setq initial-scratch-message
            ";; USAGE GUIDE
@@ -367,10 +392,16 @@
 ** Web Mode
    #+begin_src emacs-lisp
      (use-package web-mode
-         :ensure t
+         :straight t
          :config
-         (add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
          (setq web-mode-markup-indent-offset my/indent-offset))
+   #+end_src
+
+** Scss mode
+   #+begin_src emacs-lisp
+     (use-package scss-mode
+         :straight t
+         :custom ((scss-compile-at-save t)))
    #+end_src
 
 * Key mappings
@@ -412,6 +443,12 @@
   #+end_src
 
 * Org mode
+** Org contrib
+   #+begin_src emacs-lisp
+     (use-package org-contrib
+         :straight (org-contrib :repo "https://git.sr.ht/~bzg/org-contrib"))
+   #+end_src
+
 ** Emacs lisp code blocks with <el TAB
    #+begin_src emacs-lisp
      (add-to-list 'org-modules 'org-tempo)
@@ -451,9 +488,10 @@
        :config
        ;; Default: '("◉" "○" "✸" "✿")
        ;; Second:  '("*" "●" "○" "·")
+       ;; Third:   '("●" "*" "•" "·")
        ;; ♥ ● ◇ ✚ ✜ ☯ ◆ ♠ ♣ ♦ ☢ ❀ ◆ ◖ ▶
-       ;; ► • ★ ▸
-       (setq org-bullets-bullet-list '("◉" "○" "✸" "✿"))
+       ;; ►  ★ ▸
+       (setq org-bullets-bullet-list '("●" "*" "•" "·"))
        (add-hook 'org-mode-hook
                  #'org-bullets-mode))
    #+end_src
@@ -499,6 +537,16 @@
    #+end_src
 
 * Preferences
+** Auto hide compilation buffer
+   #+begin_src emacs-lisp
+     (defun my/auto-hide-compilation-window (buf str)
+       (when (null (string-match ".*exited abnormally.*" str))
+         (let ((win (get-buffer-window buf 'visible)))
+           (when win (delete-window win)))))
+
+     (add-hook 'compilation-finish-functions 'my/auto-hide-compilation-window)
+   #+end_src
+
 ** Select the help window when opening it
    #+begin_src emacs-lisp
      (setq help-window-select t)
@@ -806,18 +854,23 @@
      (setq completion-auto-help 'lazy)
    #+end_src
 
+** Html auto tag closing
+   #+begin_src emacs-lisp
+     (setq sgml-quick-keys 'close)
+   #+end_src
+
 * Hooks
   #+begin_src emacs-lisp
     (my/add-hooks
       ((lisp-mode-hook scheme-mode-hook emacs-lisp-mode-hook)
-         (setq tab-width indent-offset indent-tabs-mode nil fill-column 100)
+         (setq tab-width my/indent-offset indent-tabs-mode nil fill-column 100)
          (paredit-mode 1)
          (paren-face-mode))
       (prog-mode-hook
          (company-mode)
          (yas-minor-mode))
       (c-mode-hook
-         (company-mode -1))
+         (font-lock-mode -1))
       (before-save-hook
          (delete-trailing-whitespace))
       (org-mode-hook
