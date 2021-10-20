@@ -3,20 +3,24 @@
 (defun startup/reset-gc () (setq gc-cons-threshold startup/gc-cons-threshold))
 (add-hook 'emacs-startup-hook 'startup/reset-gc)
 
-(defvar bootstrap-version)
-(let ((bootstrap-file
-       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
-      (bootstrap-version 5))
-  (unless (file-exists-p bootstrap-file)
-    (with-current-buffer
-        (url-retrieve-synchronously
-         "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
-         'silent 'inhibit-cookies)
-      (goto-char (point-max))
-      (eval-print-last-sexp)))
-  (load bootstrap-file nil 'nomessage))
+;;; leaf-install-code
+(require 'package)
+(eval-and-compile
+  (add-to-list 'package-archives '("org" . "https://orgmode.org/elpa/"))
+  (add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/"))
+  (add-to-list 'package-archives '("gnu" . "https://elpa.gnu.org/packages/"))
+  (package-initialize)
+  (unless (package-installed-p 'leaf)
+    (package-refresh-contents)
+    (package-install 'leaf))
 
-(with-eval-after-load 'straight
-  (straight-use-package 'use-package))
+  (setq leaf-defaults '(:require t :ensure t))
+
+  (leaf leaf-keywords
+    :init
+    (leaf el-get :ensure t)
+    :config
+    (leaf-keywords-init)))
+;;; leaf-install-code
 
 (org-babel-load-file "~/.emacs.d/config.org" nil)
