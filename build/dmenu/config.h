@@ -4,18 +4,17 @@
 static int topbar = 0;                      /* -b  option; if 0, dmenu appears at bottom     */
 /* -fn option overrides fonts[0]; default X11 font or font set */
 static const char *fonts[] = {
-	"Fantasque Sans Mono:size=12",
+	"Terminus:size=11",
 };
-
 static const char *prompt      = NULL;      /* -p  option; prompt to the left of input field */
 static const char *colors[SchemeLast][2] = {
 	               /*    fg         bg   */
-	[SchemeNorm] = { "#686868", "#030204" },
-	[SchemeSel]  = { "#dadada", "#030204" },
-	[SchemeOut]  = { "#000000", "#030204" },
+	[SchemeNorm] = { "#BDAE83", "#282828" },
+	[SchemeSel]  = { "#ebdbb2", "#32302F" },
+	[SchemeOut]  = { "#000000", "#000000" },
 };
 /* -l option; if nonzero, dmenu uses vertical list with given number of lines */
-static unsigned int lines = 0;
+static unsigned int lines      = 0;
 
 /*
  * Characters not considered part of a word while deleting words
