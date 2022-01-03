@@ -18,9 +18,9 @@ git status --porcelain --branch 2>/dev/null | {
 		if echo "$line" | grep -E -q '^##'
 		then
 			echo "$line" | grep -E -q 'ahead' &&
-				marks="$marks $SYMBOL_GIT_PUSH$(echo "$line" | sed 's/.*\[ahead \([1-9][1-9]*\)\].*/\1/g')"
+				marks="$marks $SYMBOL_GIT_PUSH$(echo "$line" | sed 's/.*ahead \([1-9][1-9]*\).*/\1/g')"
 			echo "$line" | grep -E -q 'behind' &&
-				marks="$marks $SYMBOL_GIT_PULL$(echo "$line" | sed 's/.*\[behind \([1-9][1-9]*\)\].*/\1/g')"
+				marks="$marks $SYMBOL_GIT_PULL$(echo "$line" | sed 's/.*behind \([1-9][1-9]*\).*/\1/g')"
 		else
 			marks="$SYMBOL_GIT_MODIFIED$marks"
 			break
