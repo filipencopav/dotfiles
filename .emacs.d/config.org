@@ -111,7 +111,7 @@
 
 ** Font
    #+begin_src emacs-lisp
-     (defvar main-font "Iosevka Fixed 12")
+     (defvar main-font "Terminus 12")
    #+end_src
 
 * Themes
@@ -180,8 +180,6 @@
 
 ** Mode Line
    #+begin_src emacs-lisp
-     (defvar my/right-side-mode-line-format "line %l, col %C")
-
      (defun my/length-mode-line (mode-line)
        (length (format-mode-line mode-line)))
 
@@ -193,8 +191,6 @@
               (available-width (- window-width mode-line-lengths))
               (format-string (format "%%%ds" available-width)))
          (append left (list (format format-string "")) right)))
-
-     (simple-mode-line-render '("test") '("another"))
 
      (defun my/buffer-modified-flag ()
        (when (buffer-modified-p)
@@ -213,7 +209,7 @@
             (:eval (my/buffer-modified-flag))
             (:eval (my/buffer-readonly-flag)))
           ;; Right
-          '("line %l, col %C")))))
+          '("line %l, col %2C")))))
    #+end_src
 
 * Packages
@@ -222,7 +218,7 @@
      (leaf eglot
        :config
        (add-hook 'eglot--managed-mode-hook (lambda () (flymake-mode -1)))
-       (add-to-list 'eglot-server-programs '(rustic-mode "rls")))
+       (setcdr (assq 'java-mode eglot-server-programs) '("/usr/share/java/java-language-server/lang_server_linux.sh")))
    #+end_src
 
 ** Flycheck
@@ -234,6 +230,7 @@
 *** Rustic
    #+begin_src emacs-lisp
      (leaf rustic
+       :after (flycheck eglot)
        :bind (:rustic-mode-map
               ("M-j" . eglot-imenu)
               ("M-?" . xref-find-references)
@@ -241,9 +238,12 @@
               ("C-c C-c r" . eglot-rename)
               ("C-c C-c q" . eglot-reconnect)
               ("C-c C-c Q" . eglot-shutdown)
-              ("C-c C-c o" . eglot-code-action-organize-imports))
+              ("C-c C-c o" . eglot-code-action-organize-imports)
+              ("C-c C-c b" . rustic-cargo-build)
+              ("C-c C-c c" . rustic-cargo-check))
        :init
        (setq rustic-lsp-server 'rls)
+       :hook (rustic-mode-hook . (lambda () (setq-local buffer-save-without-query t)))
        :config
        (setq rustic-lsp-client 'eglot)
        (setq rustic-format-on-save t))
@@ -257,7 +257,8 @@
 ** Parentheses
 *** Paredit
    #+begin_src emacs-lisp
-     (leaf paredit)
+     (leaf paredit
+       :hook ((lisp-mode-hook scheme-mode-hook emacs-lisp-mode-hook) . paredit-mode))
    #+end_src
 
 *** Highlight-parentheses
@@ -271,7 +272,7 @@
    #+begin_src emacs-lisp
      (leaf company
        :custom
-       (company-idle-delay . 0.2)
+       (company-idle-delay . 0.4)
        :bind
        (:company-active-map
         ("C-n" . nil)
@@ -279,7 +280,8 @@
         ("M-n" . company-select-next)
         ("M-p" . company-select-previous)
         ("M-<" . company-select-first)
-        ("M->" . company-select-last)))
+        ("M->" . company-select-last))
+       :hook ((sly-mode-hook prog-mode-hook) . company-mode))
    #+end_src
 
 ** Yasnippet
@@ -287,6 +289,7 @@
      (leaf yasnippet
        :custom
        (yas-snippet-dirs . '("~/.emacs.d/snippets"))
+       :hook (prog-mode-hook . yas-minor-mode)
        :config
        (yas-reload-all))
    #+end_src
@@ -304,8 +307,7 @@
        (dashboard-center-content    . t)
        (dashboard-page-separator    . "\n")
        (dashboard-items . '((recents . 4)
-                            (bookmarks . 4)
-                            (agenda . 3)))
+                            (bookmarks . 4)))
        :config
        (setq dashboard-startup-banner (expand-file-name "~/.emacs.d/emacs-splash.png"))
        (dashboard-setup-startup-hook))
@@ -339,7 +341,11 @@
          (set-face-attribute 'sly-mrepl-output-face nil :foreground string-fg)))
 
      (leaf sly
-       :custom (inferior-lisp-program . "ccl")
+       :custom
+       (inferior-lisp-program . "sbcl")
+       (sly-lisp-implementations . `((sbcl ("sbcl"
+                                            "--core"
+                                            ,(expand-file-name "~/.emacs.d/slynk/sbcl.core-for-sly")))))
        :config (add-hook 'sly-mrepl-mode-hook #'set-sly-mrepl-faces))
    #+end_src
 
@@ -350,23 +356,107 @@
        (editorconfig-mode 1))
    #+end_src
 
-** Web Mode
-   #+begin_src emacs-lisp
-     (leaf web-mode
-         :custom
-         (web-mode-markup-indent-offset . my/indent-offset))
-   #+end_src
-
 ** Scss mode
    #+begin_src emacs-lisp
      (leaf scss-mode
          :custom (scss-compile-at-save . t))
    #+end_src
 
+** C# mode
+   #+begin_src emacs-lisp
+     (leaf csharp-mode
+       :after eglot
+       :config
+       (add-to-list 'auto-mode-alist '("\\.cs\\'" . csharp-mode))
+       (add-to-list 'eglot-server-programs '(csharp-mode "omnisharp" "-lsp" "-stdio")))
+   #+end_src
+
+** Smooth scrolling
+    #+begin_src emacs-lisp
+      (leaf smooth-scrolling
+        :custom (smooth-scroll-margin . 5)
+        :config
+        (smooth-scrolling-mode 1))
+    #+end_src
+
+** Selectrum
+*** Ido file behavior
+    #+begin_src emacs-lisp
+      (defun selectrum-fido-backward-updir ()
+        "Delete char before or go up directory, like `ido-mode'."
+        (interactive)
+        (if (and (eq (char-before) ?/)
+                 (eq (selectrum--get-meta 'category) 'file))
+            (save-excursion
+              (goto-char (1- (point)))
+              (when (search-backward "/" (point-min) t)
+                (delete-region (1+ (point)) (point-max))))
+          (call-interactively 'backward-delete-char)))
+
+      (defun selectrum-fido-delete-char ()
+        "Delete char or maybe call `dired', like `ido-mode'."
+        (interactive)
+        (let ((end (point-max)))
+          (if (or (< (point) end) (not (eq (selectrum--get-meta 'category) 'file)))
+              (call-interactively 'delete-char)
+            (dired (file-name-directory (minibuffer-contents)))
+            (exit-minibuffer))))
+
+      (defun selectrum-fido-ret ()
+        "Exit minibuffer or enter directory, like `ido-mode'."
+        (interactive)
+        (let* ((dir (and (eq (selectrum--get-meta 'category) 'file)
+                         (file-name-directory (minibuffer-contents))))
+               (current (selectrum-get-current-candidate))
+               (probe (and dir current
+                           (expand-file-name (directory-file-name current) dir))))
+          (cond ((and probe (file-directory-p probe) (not (string= current "./")))
+                 (selectrum-insert-current-candidate))
+                (t
+                 (selectrum-select-current-candidate)))))
+    #+end_src
+
+*** Install
+   #+begin_src emacs-lisp
+     (leaf selectrum
+       :bind (:selectrum-minibuffer-map
+              ("RET" . selectrum-fido-ret)
+              ("DEL" . selectrum-fido-backward-updir)
+              ("C-d" . selectrum-fido-delete-char))
+       :config
+       (selectrum-mode +1)
+       (leaf selectrum-prescient
+         :config
+         (selectrum-prescient-mode +1)
+         (prescient-persist-mode +1)))
+   #+end_src
+
+*** Marginalia (information in completion annotations)
+    #+begin_src emacs-lisp
+      (leaf marginalia
+        :bind (:minibuffer-local-map
+               ("M-A" . marginalia-cycle))
+        :config
+        (marginalia-mode))
+    #+end_src
+
+** Beacon mode
+   Highlights the cursor when the window scrolls, on focus, etc.
+   #+begin_src emacs-lisp
+     (leaf beacon
+       :custom
+       ((beacon-blink-when-focused . t)
+        (beacon-blink-when-point-moves-vertically . 10)
+        (beacon-blink-duration . 0.4)
+        (beacon-blink-delay . 0.3)
+        (beacon-size . 20))
+       :config
+       (push 'ibuffer-mode beacon-dont-blink-major-modes)
+       (beacon-mode 1))
+   #+end_src
+
 * Key mappings
   #+begin_src emacs-lisp
-    (defvar my/avy-colon-command 'avy-goto-word-1)
-
     (defalias 'yes-or-no-p 'y-or-n-p)
 
     (defun my/tab-insert-command ()
@@ -381,7 +471,6 @@
       ("C-x k" 'kill-current-buffer)
       ("C-c q" 'delete-window)
       ("C-c a" 'org-agenda)
-      ("C-;" my/avy-colon-command)
       ("C-<tab>" 'my/tab-insert-command)
       ("M-ESC" 'my/nop))
   #+end_src
@@ -449,9 +538,7 @@
        ;; ♥ ● ◇ ✚ ✜ ☯ ◆ ♠ ♣ ♦ ☢ ❀ ◆ ◖ ▶
        ;; ►  ★ ▸
        (org-bullets-bullet-list . '("●" "*" "•" "·"))
-       :config
-       (add-hook 'org-mode-hook
-                 #'org-bullets-mode))
+       :hook (org-mode-hook . org-bullets-mode))
    #+end_src
 
 ** Auto save buffers
@@ -491,6 +578,11 @@
    #+end_src
 
 * Preferences
+** Indentation
+   #+begin_src emacs-lisp
+     (setq css-indent-offset 2)
+   #+end_src
+
 ** Font Lock support mode
    #+begin_src emacs-lisp
      (setq font-lock-support-mode #'jit-lock-mode)
@@ -511,10 +603,11 @@
      (setq help-window-select t)
    #+end_src
 
-** Backup files and auto saving
+** Backup files, lock files and auto saving
     #+begin_src emacs-lisp
       (setq make-backup-files nil
-            auto-save-default nil)
+            auto-save-default nil
+            create-lockfiles  nil)
     #+end_src
 
 ** Hide startup screen
@@ -612,11 +705,6 @@
       (setq confirm-kill-process nil)
     #+end_src
 
-** Scroll conservatively (line by line)
-    #+begin_src emacs-lisp
-      (setq scroll-conservatively 10)
-    #+end_src
-
 ** Disable tab indentation
     #+begin_src emacs-lisp
       (setq-default indent-tabs-mode nil)
@@ -659,67 +747,6 @@
      (fringe-mode '(2 . 0))
    #+end_src
 
-** Selectrum
-*** Ido file behavior
-    #+begin_src emacs-lisp
-      (defun selectrum-fido-backward-updir ()
-        "Delete char before or go up directory, like `ido-mode'."
-        (interactive)
-        (if (and (eq (char-before) ?/)
-                 (eq (selectrum--get-meta 'category) 'file))
-            (save-excursion
-              (goto-char (1- (point)))
-              (when (search-backward "/" (point-min) t)
-                (delete-region (1+ (point)) (point-max))))
-          (call-interactively 'backward-delete-char)))
-
-      (defun selectrum-fido-delete-char ()
-        "Delete char or maybe call `dired', like `ido-mode'."
-        (interactive)
-        (let ((end (point-max)))
-          (if (or (< (point) end) (not (eq (selectrum--get-meta 'category) 'file)))
-              (call-interactively 'delete-char)
-            (dired (file-name-directory (minibuffer-contents)))
-            (exit-minibuffer))))
-
-      (defun selectrum-fido-ret ()
-        "Exit minibuffer or enter directory, like `ido-mode'."
-        (interactive)
-        (let* ((dir (and (eq (selectrum--get-meta 'category) 'file)
-                         (file-name-directory (minibuffer-contents))))
-               (current (selectrum-get-current-candidate))
-               (probe (and dir current
-                           (expand-file-name (directory-file-name current) dir))))
-          (cond ((and probe (file-directory-p probe) (not (string= current "./")))
-                 (selectrum-insert-current-candidate))
-                (t
-                 (selectrum-select-current-candidate)))))
-    #+end_src
-
-*** Install
-   #+begin_src emacs-lisp
-     (leaf selectrum
-       :bind (:selectrum-minibuffer-map
-              ("RET" . selectrum-fido-ret)
-              ("DEL" . selectrum-fido-backward-updir)
-              ("C-d" . selectrum-fido-delete-char))
-       :config
-       (selectrum-mode +1)
-       (leaf selectrum-prescient
-         :config
-         (selectrum-prescient-mode +1)
-         (prescient-persist-mode +1)))
-   #+end_src
-
-*** Marginalia (information in completion annotations)
-    #+begin_src emacs-lisp
-      (leaf marginalia
-        :bind (:minibuffer-local-map
-               ("M-A" . marginalia-cycle))
-        :config
-        (marginalia-mode))
-    #+end_src
-
 ** Ibuffer
 *** Expert mode (no confirmations)
     #+begin_src emacs-lisp
@@ -760,21 +787,6 @@
      (setq-default cursor-type t)
    #+end_src
 
-** Beacon mode
-   Highlights the cursor when the window scrolls
-   #+begin_src emacs-lisp
-     (leaf beacon
-       :custom
-       ((beacon-blink-when-focused . t)
-        (beacon-blink-when-point-moves-vertically . 10)
-        (beacon-blink-duration . 0.4)
-        (beacon-blink-delay . 0.3)
-        (beacon-size . 20))
-       :config
-       (push 'ibuffer-mode beacon-dont-blink-major-modes)
-       (beacon-mode 1))
-   #+end_src
-
 ** Whitespace
    #+begin_src emacs-lisp
      (setq whitespace-style '(face tabs tab-mark)
@@ -793,22 +805,15 @@
      (setq completion-auto-help 'lazy)
    #+end_src
 
-** Html auto tag closing
-   #+begin_src emacs-lisp
-     (setq sgml-quick-keys 'close)
-   #+end_src
-
 * Hooks
   #+begin_src emacs-lisp
     (my/add-hooks
       ((lisp-mode-hook scheme-mode-hook emacs-lisp-mode-hook)
-         (setq tab-width my/indent-offset indent-tabs-mode nil fill-column 100)
-         (paredit-mode 1)
+         (setq tab-width         my/indent-offset
+               indent-tabs-mode  nil
+               fill-column       100)
          (paren-face-mode))
-      (prog-mode-hook
-         (company-mode)
-         (yas-minor-mode))
-      (c-mode-hook
+      (c-mode-common-hook
          (font-lock-mode -1))
       (before-save-hook
          (delete-trailing-whitespace))
@@ -817,12 +822,9 @@
       ((text-mode-hook org-mode-hook prog-mode-hook)
          (display-fill-column-indicator-mode)
          (whitespace-mode))
-      (rustic-mode-hook
-         (setq-local buffer-save-without-query t))
       (ibuffer-mode-hook
          (ibuffer-switch-to-saved-filter-groups "default"))
       (sly-mode-hook
-         (company-mode)
          (paren-face-mode))
       (sly-mrepl-mode-hook
          (delete-other-windows)
