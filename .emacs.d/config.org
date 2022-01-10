@@ -585,7 +585,7 @@
 * Preferences
 ** Emacs shouldn't open pdf files
    #+begin_src emacs-lisp
-     (customize-set-variable org-file-apps
+     (customize-set-variable 'org-file-apps
        '(("\\.pdf\\'" . "xdg-open %s")
          (auto-mode . emacs)
          (directory . default)
