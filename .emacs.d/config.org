@@ -145,13 +145,23 @@
     (defvar my/theme 'gruvbox-dark-medium)
   #+end_src
 
+** Theme setting function
+   #+begin_src emacs-lisp
+     (defun my/frame-behaviors (&optional frame)
+       "Make frame- and/or terminal-local changes."
+       (set-face-attribute 'default nil :font main-font)
+       (set-face-attribute 'font-lock-comment-face nil :font main-font)
+       (set-face-attribute 'fixed-pitch nil :font main-font)
+       (set-face-attribute 'variable-pitch nil :font main-font))
+
+     (add-hook 'server-after-make-frame-hook 'my/frame-behaviors)
+     (add-hook 'after-init-hook (lambda () (my/load-theme my/theme t)))
+   #+end_src
+
 ** Default font
    #+begin_src emacs-lisp
      (add-to-list 'default-frame-alist
                   `(font . ,main-font))
-
-     (set-face-attribute 'default nil :font main-font)
-     (set-face-attribute 'font-lock-comment-face nil :font main-font)
    #+end_src
 
 ** Faces
@@ -165,17 +175,6 @@
          (set-face-attribute 'line-number nil :background default-bg)))
 
      (add-hook 'my/after-theme-load-hook 'my/custom-face-config)
-   #+end_src
-
-** Theme setting function
-   #+begin_src emacs-lisp
-     (defun my/frame-behaviors (&optional frame)
-       "Make frame- and/or terminal-local changes."
-       (set-face-attribute 'fixed-pitch nil :font main-font)
-       (set-face-attribute 'variable-pitch nil :font main-font))
-
-     (add-hook 'after-make-frame-functions 'my/frame-behaviors)
-     (add-hook 'after-init-hook (lambda () (my/load-theme my/theme t)))
    #+end_src
 
 ** Mode Line
@@ -218,7 +217,8 @@
      (leaf eglot
        :config
        (add-hook 'eglot--managed-mode-hook (lambda () (flymake-mode -1)))
-       (setcdr (assq 'java-mode eglot-server-programs) '("/usr/share/java/java-language-server/lang_server_linux.sh")))
+       (setcdr (assq 'java-mode eglot-server-programs) '("/usr/share/java/java-language-server/lang_server_linux.sh"))
+       (add-to-list 'eglot-server-programs '(c-mode "ccls")))
    #+end_src
 
 ** Flycheck
@@ -440,6 +440,11 @@
         (marginalia-mode))
     #+end_src
 
+** Magit
+   #+begin_src emacs-lisp
+     (leaf magit)
+   #+end_src
+
 ** Beacon mode
    Highlights the cursor when the window scrolls, on focus, etc.
    #+begin_src emacs-lisp
@@ -578,6 +583,16 @@
    #+end_src
 
 * Preferences
+** Emacs shouldn't open pdf files
+   #+begin_src emacs-lisp
+     (customize-set-variable org-file-apps
+       '(("\\.pdf\\'" . "xdg-open %s")
+         (auto-mode . emacs)
+         (directory . default)
+         ("\\.mm\\'" . default)
+         ("\\.x?html?\\'" . default)))
+   #+end_src
+
 ** Indentation
    #+begin_src emacs-lisp
      (setq css-indent-offset 2)
@@ -805,6 +820,7 @@
      (setq completion-auto-help 'lazy)
    #+end_src
 
+** Emacs f
 * Hooks
   #+begin_src emacs-lisp
     (my/add-hooks
@@ -813,8 +829,6 @@
                indent-tabs-mode  nil
                fill-column       100)
          (paren-face-mode))
-      (c-mode-common-hook
-         (font-lock-mode -1))
       (before-save-hook
          (delete-trailing-whitespace))
       (org-mode-hook
