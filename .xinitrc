@@ -25,10 +25,6 @@ done &
 urxvtd &
 
 # Some custom configurations :3
-setxkbmap \
-	-layout us,ru\
-	-option grp:alt_caps_toggle\
-	-option caps:escape
 xset r rate 300 50 &
 
 xset s off &
