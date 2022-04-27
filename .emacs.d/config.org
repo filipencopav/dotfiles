@@ -269,24 +269,6 @@
        (highlight-parentheses-delay . 0))
    #+end_src
 
-** Company
-   #+begin_src emacs-lisp
-     (leaf company
-       :custom
-       (company-idle-delay . 0.4)
-       :bind
-       (:company-active-map
-        ("C-n" . nil)
-        ("C-p" . nil)
-        ("M-n" . company-select-next)
-        ("M-p" . company-select-previous)
-        ("M-<" . company-select-first)
-        ("M->" . company-select-last))
-       :hook ((sly-mode-hook prog-mode-hook) . company-mode)
-       :config
-       (setq company-clang-modes nil))
-   #+end_src
-
 ** Yasnippet
    #+begin_src emacs-lisp
      (leaf yasnippet
@@ -309,8 +291,9 @@
        (dashboard-banner-logo-title . "O U R macs")
        (dashboard-center-content    . t)
        (dashboard-page-separator    . "\n")
-       (dashboard-items . '((recents . 4)
-                            (bookmarks . 4)))
+       (dashboard-items . '((recents . 10)
+                            (bookmarks . 4)
+                            (agenda . 4)))
        :config
        (setq dashboard-startup-banner (expand-file-name "~/.emacs.d/emacs-splash.png"))
        (dashboard-setup-startup-hook))
@@ -382,57 +365,35 @@
         (smooth-scrolling-mode 1))
     #+end_src
 
-** Selectrum
-*** Ido file behavior
-    #+begin_src emacs-lisp
-      (defun selectrum-fido-backward-updir ()
-        "Delete char before or go up directory, like `ido-mode'."
-        (interactive)
-        (if (and (eq (char-before) ?/)
-                 (eq (selectrum--get-meta 'category) 'file))
-            (save-excursion
-              (goto-char (1- (point)))
-              (when (search-backward "/" (point-min) t)
-                (delete-region (1+ (point)) (point-max))))
-          (call-interactively 'backward-delete-char)))
-
-      (defun selectrum-fido-delete-char ()
-        "Delete char or maybe call `dired', like `ido-mode'."
-        (interactive)
-        (let ((end (point-max)))
-          (if (or (< (point) end) (not (eq (selectrum--get-meta 'category) 'file)))
-              (call-interactively 'delete-char)
-            (dired (file-name-directory (minibuffer-contents)))
-            (exit-minibuffer))))
-
-      (defun selectrum-fido-ret ()
-        "Exit minibuffer or enter directory, like `ido-mode'."
-        (interactive)
-        (let* ((dir (and (eq (selectrum--get-meta 'category) 'file)
-                         (file-name-directory (minibuffer-contents))))
-               (current (selectrum-get-current-candidate))
-               (probe (and dir current
-                           (expand-file-name (directory-file-name current) dir))))
-          (cond ((and probe (file-directory-p probe) (not (string= current "./")))
-                 (selectrum-insert-current-candidate))
-                (t
-                 (selectrum-select-current-candidate)))))
-    #+end_src
-
-*** Install
+** Completion
+*** Corfu
    #+begin_src emacs-lisp
-     (leaf selectrum
-       :bind (:selectrum-minibuffer-map
-              ("RET" . selectrum-fido-ret)
-              ("DEL" . selectrum-fido-backward-updir)
-              ("C-d" . selectrum-fido-delete-char))
+     (leaf corfu
+       :setq
+       (corfu-auto . t)
+       (corfu-quit-no-match . t)
        :config
-       (selectrum-mode +1)
-       (leaf selectrum-prescient
-         :config
-         (selectrum-prescient-mode +1)
-         (prescient-persist-mode +1)))
+       (global-corfu-mode))
    #+end_src
+
+*** Vertico
+    #+begin_src emacs-lisp
+      (leaf vertico
+        :require (t vertico-directory)
+        :bind
+        (:vertico-map
+         ("RET" . vertico-directory-enter)
+         ("DEL" . vertico-directory-delete-char))
+        :hook (rfn-eshadow-update-overlay-hook . vertico-directory-tidy)
+        :config
+        (vertico-mode))
+
+      (leaf orderless
+        :setq
+        (completion-styles . '(basic orderless))
+        (completion-category-defaults . nil)
+        (completion-category-overrides . '((file (styles partial-completion)))))
+    #+end_src
 
 *** Marginalia (information in completion annotations)
     #+begin_src emacs-lisp
@@ -530,9 +491,25 @@
    #+end_src
 
 ** For latex export
+   Packages for:
+   - different langauges;
+   - code snippets
+   - titling
+   - xelatex graphics
+   - spacing adjustment
+   - font choice
+   - geometry manipulation
+   - paragraph spacing
+
    #+begin_src emacs-lisp
-     (add-to-list 'org-latex-packages-alist '("AUTO" "babel" t ("xelatex")))
+     (add-to-list 'org-latex-packages-alist '("AUTO" "babel" t ("xelatex" "pdflatex")))
      (add-to-list 'org-latex-packages-alist '("" "minted" t ("xelatex")))
+     (add-to-list 'org-latex-packages-alist '("" "titling" t ("xelatex" "pdflatex")))
+     (add-to-list 'org-latex-packages-alist '("" "graphicx" t ("xelatex")))
+     (add-to-list 'org-latex-packages-alist '("" "setspace" t ("xelatex")))
+     (add-to-list 'org-latex-packages-alist '("" "fontspec" t ("xelatex")))
+     (add-to-list 'org-latex-packages-alist '("margin=2.5cm" "geometry" t ("xelatex")))
+     (add-to-list 'org-latex-packages-alist `("" "parskip" t ,org-latex-compilers))
 
      (setq
       org-latex-title-command nil
@@ -542,7 +519,8 @@
       '("xelatex -shell-escape -interaction nonstopmode -output-directory %o %f"
         "xelatex -shell-escape -interaction nonstopmode -output-directory %o %f"
         "xelatex -shell-escape -interaction nonstopmode -output-directory %o %f")
-      org-latex-minted-options '(("breaklines" "true") ("breakanywhere" "true"))
+      org-latex-minted-options '(("breaklines" "true") ("breakanywhere" "true")
+                                 ("breaksymbolleft" "\\null"))
       )
    #+end_src
 
@@ -606,6 +584,17 @@
    #+end_src
 
 * Preferences
+** Unfill region
+   #+begin_src emacs-lisp
+     (defun unfill-region (beg end)
+       "Unfill the region, joining text paragraphs into a single
+         logical line.  This is useful, e.g., for use with
+         `visual-line-mode'."
+       (interactive "*r")
+       (let ((fill-column (point-max)))
+         (fill-region beg end)))
+   #+end_src
+
 ** Common Lisp Hyperspec setup
    #+begin_src emacs-lisp
      (setq common-lisp-hyperspec-root (concat "file:///" (expand-file-name "~/.emacs.d/clhs/")))
@@ -853,6 +842,12 @@
      (setq completion-auto-help 'lazy)
    #+end_src
 
+** Scroll current line only
+   #+begin_src emacs-lisp
+     (setq truncate-lines t)
+     (setq-default auto-hscroll-mode 'current-line)
+   #+end_src
+
 * Hooks
   #+begin_src emacs-lisp
     (my/add-hooks
@@ -862,7 +857,8 @@
                fill-column       100)
          (paren-face-mode))
       (before-save-hook
-         (delete-trailing-whitespace))
+         (unless (eq major-mode 'markdown-mode)
+           (delete-trailing-whitespace)))
       (org-mode-hook
          (auto-fill-mode))
       ((text-mode-hook org-mode-hook prog-mode-hook)
