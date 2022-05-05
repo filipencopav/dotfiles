@@ -17,7 +17,8 @@
      (eval-when-compile
        (require 'org-element)
        (require 'org-tempo)
-       (require 'org))
+       (require 'org)
+       (require 'ox-latex))
    #+end_src
 
 ** Paren face
@@ -315,7 +316,7 @@
 ** Avy
    #+begin_src emacs-lisp
      (leaf avy
-       :bind (("C-;" . avy-goto-word-1)))
+       :bind (("C-;" . avy-goto-char-2)))
    #+end_src
 
 ** Sly
@@ -503,13 +504,13 @@
 
    #+begin_src emacs-lisp
      (add-to-list 'org-latex-packages-alist '("AUTO" "babel" t ("xelatex" "pdflatex")))
-     (add-to-list 'org-latex-packages-alist '("" "minted" t ("xelatex")))
+     (add-to-list 'org-latex-packages-alist '("cache=false" "minted" t ("xelatex")))
      (add-to-list 'org-latex-packages-alist '("" "titling" t ("xelatex" "pdflatex")))
      (add-to-list 'org-latex-packages-alist '("" "graphicx" t ("xelatex")))
      (add-to-list 'org-latex-packages-alist '("" "setspace" t ("xelatex")))
      (add-to-list 'org-latex-packages-alist '("" "fontspec" t ("xelatex")))
      (add-to-list 'org-latex-packages-alist '("margin=2.5cm" "geometry" t ("xelatex")))
-     (add-to-list 'org-latex-packages-alist `("" "parskip" t ,org-latex-compilers))
+     (add-to-list 'org-latex-packages-alist (list "" "parskip" t org-latex-compilers))
 
      (setq
       org-latex-title-command nil
@@ -520,7 +521,7 @@
         "xelatex -shell-escape -interaction nonstopmode -output-directory %o %f"
         "xelatex -shell-escape -interaction nonstopmode -output-directory %o %f")
       org-latex-minted-options '(("breaklines" "true") ("breakanywhere" "true")
-                                 ("breaksymbolleft" "\\null"))
+                 ("breaksymbolleft" "\\null"))
       )
    #+end_src
 
