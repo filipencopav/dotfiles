@@ -113,7 +113,7 @@
 ** Font
    #+begin_src emacs-lisp
      (defvar main-font nil "Font used everywhere")
-     (setq main-font "xos4 Terminus:pixelsize=13")
+     (setq main-font "Fantasque Sans Mono:pixelsize=14")
      (add-to-list 'default-frame-alist
                   `(font . ,main-font))
    #+end_src
@@ -195,7 +195,9 @@
 
      (defun my/buffer-modified-flag ()
        (when (buffer-modified-p)
-         "[+]"))
+         (if buffer-read-only
+             ""
+           "[+]")))
 
      (defun my/buffer-readonly-flag ()
        (when buffer-read-only
@@ -287,13 +289,12 @@
          (get-buffer "*dashboard*")))
 
      (leaf dashboard
-       :custom
+       :setq
        (initial-buffer-choice       . 'my/choose-initial-buffer)
        (dashboard-banner-logo-title . "O U R macs")
        (dashboard-center-content    . t)
        (dashboard-page-separator    . "\n")
-       (dashboard-items . '((recents . 10)
-                            (bookmarks . 4)
+       (dashboard-items . '((bookmarks . 4)
                             (agenda . 4)))
        :config
        (setq dashboard-startup-banner (expand-file-name "~/.emacs.d/emacs-splash.png"))
