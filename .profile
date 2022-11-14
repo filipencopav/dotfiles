@@ -36,6 +36,6 @@ export WEECHAT_HOME="$XDG_CONFIG_HOME"/weechat
 
 date
 
-if [ "$(tty)" = "/dev/tty2" ] ; then
+if [ "$(tty)" = "/dev/tty1" ] ; then
     pgrep -x Xorg || exec startx 2> /dev/null
 fi
