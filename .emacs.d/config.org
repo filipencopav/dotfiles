@@ -54,13 +54,6 @@
           ,@body))
    #+end_src
 
-** Multiple call macro
-   #+begin_src emacs-lisp
-     (defmacro my/multiple-call (form-name &rest params)
-       (declare (indent 1))
-       `(progn ,@ (mapcar #'(lambda (params) (cons form-name params) params))))
-   #+end_src
-
 ** Hook combination macro
    #+begin_src emacs-lisp
      (defun mklist (x) (if (listp x) x (list x)))
