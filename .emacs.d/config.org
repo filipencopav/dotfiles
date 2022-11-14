@@ -18,7 +18,8 @@
        (require 'org-element)
        (require 'org-tempo)
        (require 'org)
-       (require 'ox-latex))
+       (require 'ox-latex)
+       (require 'ox-md))
    #+end_src
 
 ** Paren face
@@ -321,6 +322,12 @@
    #+end_src
 
 ** Sly
+   To create sbcl core:
+   #+begin_src lisp
+     (mapc 'require '(sb-bsd-sockets sb-posix sb-introspect sb-cltl2 asdf))
+     (save-lisp-and-die "sbcl.core-for-sly")
+   #+end_src
+
    #+begin_src emacs-lisp
      (defun set-sly-mrepl-faces ()
        (let ((string-fg (face-attribute 'font-lock-string-face :foreground))
@@ -443,6 +450,23 @@
        (define-key global-map (kbd "C-c t") telega-prefix-map))
    #+end_src
 
+** Php mode
+   #+begin_src emacs-lisp
+     (leaf php-mode)
+   #+end_src
+
+** Emojify
+   #+begin_src emacs-lisp
+     (leaf emojify
+       :config
+       (setq emojify-display-style 'unicode
+             emojify-display-styles '(unicode)
+             use-default-font-for-symbols nil)
+       (defun my/apply-emoji-font ()
+         (set-fontset-font t 'emoji (font-spec :family "Apple Color Emoji" :size 13) nil 'prepend))
+       (add-hook 'server-after-make-frame-hook #'my/apply-emoji-font))
+   #+end_src
+
 * Key mappings
   #+begin_src emacs-lisp
     (defalias 'yes-or-no-p 'y-or-n-p)
@@ -492,6 +516,16 @@
      (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
    #+end_src
 
+** Export into exports directory
+   #+begin_src emacs-lisp
+     (defadvice org-export-output-file-name (before org-add-export-dir activate)
+       "Modifies org-export to place exported files in a different directory"
+       (when (not pub-dir)
+         (setq pub-dir "exported-org-files")
+         (when (not (file-directory-p pub-dir))
+           (make-directory pub-dir))))
+   #+end_src
+
 ** For latex export
    Packages for:
    - different langauges;
@@ -509,6 +543,7 @@
      (add-to-list 'org-latex-packages-alist '("" "titling" t ("xelatex" "pdflatex")))
      (add-to-list 'org-latex-packages-alist '("" "graphicx" t ("xelatex")))
      (add-to-list 'org-latex-packages-alist '("" "setspace" t ("xelatex")))
+     (add-to-list 'org-latex-packages-alist '("" "footmisc" t ("xelatex")))
      (add-to-list 'org-latex-packages-alist '("" "fontspec" t ("xelatex")))
      (add-to-list 'org-latex-packages-alist '("margin=2.5cm" "geometry" t ("xelatex")))
      (add-to-list 'org-latex-packages-alist (list "" "parskip" t org-latex-compilers))
