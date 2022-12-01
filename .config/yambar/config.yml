@@ -1,0 +1,39 @@
+bar:
+  height: 18
+  location: bottom
+  background: 282828ff
+  foreground: ebdbb2ff
+  layer: "top"
+
+  margin: 5
+  font: "Fantasque Sans Mono:pixelsize=14:antialias=true:autohint=true"
+
+  right:
+    - clock:
+        content:
+          - string: {text: "{date} {time}"}
+
+  left:
+    - river:
+        title: {string: { margin: 10, text: "{title}" }}
+        content:
+          map:
+            tag: focused
+            values:
+              false:
+                map:
+                  tag: occupied
+                  values:
+                    false: {empty: {}}
+                    true: 
+                      string:
+                        text: " {id} "
+              true: {string: {text: "[{id}]"}}
+                        
+#            tag: occupied
+#            values:
+#              false: {empty: {}}
+#              true:
+#                string:
+#                  margin: 5
+#                  text: "{id}: {state}"

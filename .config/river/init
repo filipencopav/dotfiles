@@ -1,0 +1,62 @@
+#!/bin/sh
+
+# programs to run
+riverctl spawn 'swaybg -m fill -i "$HOME"/.local/share/backgrounds/wall'
+riverctl spawn yambar
+riverctl spawn 'emacs --daemon'
+
+# rivertile
+riverctl spawn 'rivertile -main-ratio 0.67 -main-location right'
+riverctl default-layout rivertile
+
+# [config]
+riverctl map normal Mod4 s zoom
+
+riverctl map normal Mod4+Shift Space toggle-float
+
+riverctl focus-follows-cursor normal
+riverctl map-pointer normal Super BTN_LEFT move-view
+riverctl map-pointer normal Super BTN_RIGHT resize-view
+
+riverctl border-color-focused 0xD79921
+riverctl border-color-unfocused 0x282828
+riverctl border-width 1
+
+riverctl map normal Mod4 l focus-view previous
+riverctl map normal Mod4 h focus-view next
+
+riverctl set-repeat 50 300
+
+riverctl map normal Mod4+Shift q exit
+riverctl map normal Mod4+Shift c close
+
+riverctl map normal Mod4 Return spawn "foot"
+riverctl map normal Mod4+Shift e spawn "emacsclient -c"
+
+riverctl map normal Mod4 d spawn "bemenu-run"
+riverctl map normal Mod4 p spawn "bepassmenu"
+
+# mappings per tag
+for i in $(seq 1 9)
+do
+    tags=$((1 << ($i - 1)))
+
+    # Super+[1-9] to focus tag [0-8]
+    riverctl map normal Super $i set-focused-tags $tags
+
+    # Super+Shift+[1-9] to tag focused view with tag [0-8]
+    riverctl map normal Super+Shift $i set-view-tags $tags
+
+    # Super+Ctrl+[1-9] to toggle focus of tag [0-8]
+    riverctl map normal Super+Control $i toggle-focused-tags $tags
+
+    # Super+Shift+Ctrl+[1-9] to toggle tag [0-8] of focused view
+    riverctl map normal Super+Shift+Control $i toggle-view-tags $tags
+done
+
+# volume
+for mode in normal locked
+do
+    riverctl map $mode Super bracketleft spawn "amixer sset Master 2%-" 
+    riverctl map $mode Super bracketright spawn "amixer sset Master 2%+" 
+done
