@@ -34,8 +34,17 @@ export TERMINFO="$XDG_DATA_HOME"/terminfo
 export WINEPREFIX="$HOME"/games/dummy
 export WEECHAT_HOME="$XDG_CONFIG_HOME"/weechat
 
+# wayland stuff
+export MOZ_ENABLE_WAYLAND=1
+export QT_QPA_PLATFORM=wayland
+export XDG_SESSION_TYPE=wayland
+
+# river (wayland) keyboard stuff
+export XKB_DEFAULT_LAYOUT="ro,ru"
+export XKB_DEFAULT_OPTIONS="caps:escape,grp:alt_caps_toggle"
+
 date
 
 if [ "$(tty)" = "/dev/tty1" ] ; then
-    pgrep -x Xorg || exec startx 2> /dev/null
+    river
 fi
