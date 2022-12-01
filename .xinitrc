@@ -1,12 +1,10 @@
 #!/bin/sh
 
+# merge in defaults and keymaps
 sysresources=/etc/X11/xinit/.Xresources
 sysmodmap=/etc/X11/xinit/.Xmodmap
 userresources="$HOME/.Xresources"
-usermodmap="$HOME/.Xmodmap"
-
-# merge in defaults and keymaps
-
+usermodmap="$HOME/.xmodmap"
 [ -f "$userresources" ] && xrdb -merge "$userresources"
 [ -f "$sysresources" ] && xrdb -merge "$sysresources"
 [ -f "$usermodmap" ] && xmodmap "$usermodmap"
@@ -21,8 +19,6 @@ do
 	xsetroot -name "$(gettime)"
 	sleep 1m
 done &
-
-urxvtd &
 
 # Some custom configurations :3
 xset r rate 300 50 &
