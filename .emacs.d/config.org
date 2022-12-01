@@ -163,12 +163,11 @@
 ** Faces
    #+begin_src emacs-lisp
      (defun my/custom-face-config (&optional theme)
-       (let ((default-bg (face-attribute 'default :background))
-             (mode-line-inactive-bg (face-attribute 'mode-line-inactive :background)))
-         (when (cl-find theme '(gruvbox-dark-medium gruvbox-dark-hard gruvbox-dark-soft))
-           (set-face-attribute 'mode-line nil :background default-bg)
-           (set-face-attribute 'mode-line-inactive nil :background default-bg)
-           (set-face-attribute 'line-number nil :background default-bg))))
+       (when (cl-find theme '(gruvbox-dark-medium gruvbox-dark-hard gruvbox-dark-soft))
+	 (set-face-attribute 'mode-line nil :background "#32302F" :foreground "#FE8019")
+	 (set-face-attribute 'mode-line-inactive nil :background "#32302F")))
+
+     (my/custom-face-config 'gruvbox-dark-medium)
 
      (add-hook 'my/after-theme-load-hook 'my/custom-face-config)
    #+end_src
@@ -202,7 +201,7 @@
       '((:eval
          (simple-mode-line-render
           ;; Left
-          '(" %m » %b "
+          '(" %b "
             (:eval (my/buffer-modified-flag))
             (:eval (my/buffer-readonly-flag)))
           ;; Right
@@ -210,6 +209,17 @@
    #+end_src
 
 * Packages
+** Tree Sitter
+   #+begin_src emacs-lisp
+     (leaf tree-sitter
+       :init
+       (setq tsc-dyn-get-from '(:compilation))
+       :config
+       (global-tree-sitter-mode -1))
+
+     (leaf tree-sitter-langs)
+   #+end_src
+
 ** Eglot (LSP; Language Server Protocol)
    #+begin_src emacs-lisp
      (leaf eglot
@@ -316,9 +326,15 @@
 
 ** Sly
    To create sbcl core:
-   #+begin_src lisp
-     (mapc 'require '(sb-bsd-sockets sb-posix sb-introspect sb-cltl2 asdf))
-     (save-lisp-and-die "sbcl.core-for-sly")
+   #+begin_src emacs-lisp
+     (defun generate-sbcl-image ()
+       (shell-command
+        "sbcl -e \"(progn
+       (mapc 'require '(sb-bsd-sockets sb-posix sb-introspect sb-cltl2 asdf))
+       (save-lisp-and-die \"sbcl.core-for-sly\"))\"")
+       (rename-file (expand-file-name "sbcl.core-for-sly")
+                    (expand-file-name "~/.emacs.d/slynk/sbcl.core-for-sly")))
+
    #+end_src
 
    #+begin_src emacs-lisp
@@ -358,14 +374,6 @@
        (add-to-list 'auto-mode-alist '("\\.cs\\'" . csharp-mode))
        (add-to-list 'eglot-server-programs '(csharp-mode "omnisharp" "-lsp" "-stdio")))
    #+end_src
-
-** Smooth scrolling
-    #+begin_src emacs-lisp
-      (leaf smooth-scrolling
-        :custom (smooth-scroll-margin . 5)
-        :config
-        (smooth-scrolling-mode 1))
-    #+end_src
 
 ** Completion
 *** Corfu
@@ -411,23 +419,6 @@
      ; (leaf magit)
    #+end_src
 
-** Beacon mode
-   Highlights the cursor when the window scrolls, on focus, etc.
-   #+begin_src emacs-lisp
-     (leaf beacon
-       :custom
-       ((beacon-blink-when-focused . t)
-        (beacon-blink-when-point-moves-vertically . 10)
-        (beacon-blink-duration . 0.4)
-        (beacon-blink-delay . 0.3)
-        (beacon-size . 20)
-        (beacon-dont-blink-modes ))
-       :config
-       (push 'ibuffer-mode beacon-dont-blink-major-modes)
-       (push 'sly-mrepl-mode beacon-dont-blink-major-modes)
-       (beacon-mode 1))
-   #+end_src
-
 ** Telegram
    #+begin_src emacs-lisp
      (leaf telega
@@ -445,7 +436,9 @@
 
 ** Php mode
    #+begin_src emacs-lisp
-     (leaf php-mode)
+     (leaf php-mode
+       :init
+       (setq-default fill-column 80))
    #+end_src
 
 ** Emojify
@@ -684,7 +677,7 @@
 
 ** Show matching parentheses
     #+begin_src emacs-lisp
-      (setq show-paren-delay 0)
+      (setq show-paren-delay 0.125)
       (show-paren-mode 1)
     #+end_src
 
@@ -892,6 +885,7 @@
       (org-mode-hook
          (auto-fill-mode))
       ((text-mode-hook org-mode-hook prog-mode-hook)
+         (line-number-mode)
          (display-fill-column-indicator-mode)
          (whitespace-mode))
       (ibuffer-mode-hook

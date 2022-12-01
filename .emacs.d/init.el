@@ -14,6 +14,9 @@
     (package-refresh-contents)
     (package-install 'leaf))
 
+  (unless package-archive-contents
+    (package-refresh-contents))
+
   (setq leaf-defaults '(:require t :ensure t))
 
   (leaf leaf-keywords
