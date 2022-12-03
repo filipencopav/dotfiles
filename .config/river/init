@@ -10,7 +10,8 @@ riverctl spawn 'rivertile -main-ratio 0.67 -main-location right'
 riverctl default-layout rivertile
 
 # [config]
-riverctl map normal Mod4 s zoom
+riverctl map normal Mod4 Space spawn 'mpc toggle'
+riverctl map normal Mod4+Shift f toggle-fullscreen
 
 riverctl map normal Mod4+Shift Space toggle-float
 
@@ -24,6 +25,7 @@ riverctl border-width 1
 
 riverctl map normal Mod4 l focus-view previous
 riverctl map normal Mod4 h focus-view next
+riverctl map normal Mod4 s zoom
 
 riverctl set-repeat 50 300
 
