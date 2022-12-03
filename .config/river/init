@@ -4,10 +4,11 @@
 riverctl spawn 'swaybg -m fill -i "$HOME"/.local/share/backgrounds/wall'
 riverctl spawn yambar
 riverctl spawn 'emacs --daemon'
+riverctl spawn dunst
 
 # rivertile
-riverctl spawn 'rivertile -main-ratio 0.67 -main-location right'
-riverctl default-layout rivertile
+riverctl spawn 'rivercarro -main-ratio 0.67 -main-location right -inner-gaps 12 -outer-gaps 12'
+riverctl default-layout rivercarro
 
 # [config]
 riverctl map normal Mod4 Space spawn 'mpc toggle'

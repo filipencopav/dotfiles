@@ -112,6 +112,11 @@
                   `(font . ,main-font))
    #+end_src
 
+** No window decorations
+   #+begin_src emacs-lisp
+     (add-to-list 'default-frame-alist '(undecorated . t))
+   #+end_src
+
 * Themes
 ** Theme load path
    #+begin_src emacs-lisp
