@@ -10,8 +10,9 @@ bar:
 
   right:
     - clock:
+        date-format: "%a, %d %b %Y"
         content:
-          - string: {text: "{date} {time}"}
+          - string: {text: "{time} {date}"}
 
   left:
     - river:
@@ -29,11 +30,3 @@ bar:
                       string:
                         text: " {id} "
               true: {string: {text: "[{id}]"}}
-                        
-#            tag: occupied
-#            values:
-#              false: {empty: {}}
-#              true:
-#                string:
-#                  margin: 5
-#                  text: "{id}: {state}"

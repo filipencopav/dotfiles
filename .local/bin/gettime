@@ -1,6 +1,5 @@
 #!/bin/sh
 
-date=$(date '+%H:%M « %a, %d %b %Y')
-printf '%s' "$date"
+date '+%H:%M « %a, %d %b %Y'
 
 exit 0
