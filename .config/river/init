@@ -11,24 +11,34 @@ riverctl spawn 'rivercarro -main-ratio 0.67 -main-location right -inner-gaps 12 
 riverctl default-layout rivercarro
 
 # [config]
-riverctl map normal Mod4 Space spawn 'mpc toggle'
-riverctl map normal Mod4+Shift f toggle-fullscreen
-
-riverctl map normal Mod4+Shift Space toggle-float
-
 riverctl focus-follows-cursor normal
-riverctl map-pointer normal Super BTN_LEFT move-view
-riverctl map-pointer normal Super BTN_RIGHT resize-view
 
 riverctl border-color-focused 0xD79921
 riverctl border-color-unfocused 0x282828
 riverctl border-width 1
 
+riverctl set-repeat 50 300
+
+# [mappings]
+riverctl map-pointer normal Super BTN_LEFT move-view
+riverctl map-pointer normal Super BTN_RIGHT resize-view
+
+# printScrn = screenshot entire screen
+# shift+printScrn = screenshot selection
+# alt+printScrn = screenshot view (unsupported in river)
+# uses my custom screenshot script
+riverctl map normal None Print spawn 'screenshot'
+riverctl map normal Mod1 Print spawn 'screenshot -f'
+riverctl map normal Shift Print spawn 'screenshot -a'
+
+riverctl map normal Mod4 Space spawn 'mpc toggle'
+
+riverctl map normal Mod4+Shift f toggle-fullscreen
+riverctl map normal Mod4+Shift Space toggle-float
+
 riverctl map normal Mod4 l focus-view previous
 riverctl map normal Mod4 h focus-view next
 riverctl map normal Mod4 s zoom
-
-riverctl set-repeat 50 300
 
 riverctl map normal Mod4+Shift q exit
 riverctl map normal Mod4+Shift c close
@@ -60,6 +70,6 @@ done
 # volume
 for mode in normal locked
 do
-    riverctl map $mode Super bracketleft spawn "amixer sset Master 2%-" 
-    riverctl map $mode Super bracketright spawn "amixer sset Master 2%+" 
+    riverctl map $mode Super bracketleft spawn "amixer sset Master 2%-"
+    riverctl map $mode Super bracketright spawn "amixer sset Master 2%+"
 done
