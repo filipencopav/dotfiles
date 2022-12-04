@@ -112,11 +112,6 @@
                   `(font . ,main-font))
    #+end_src
 
-** No window decorations
-   #+begin_src emacs-lisp
-     (add-to-list 'default-frame-alist '(undecorated . t))
-   #+end_src
-
 * Themes
 ** Theme load path
    #+begin_src emacs-lisp
@@ -612,6 +607,16 @@
    #+end_src
 
 * Preferences
+** Frame name
+   #+begin_src emacs-lisp
+     (setq-default frame-title-format "%b - emacs")
+   #+end_src
+
+** No window decorations
+   #+begin_src emacs-lisp
+     (add-to-list 'default-frame-alist '(undecorated . t))
+   #+end_src
+
 ** Unfill region
    #+begin_src emacs-lisp
      (defun unfill-region (beg end)
