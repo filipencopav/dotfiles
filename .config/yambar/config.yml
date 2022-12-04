@@ -53,3 +53,15 @@ bar:
               fill: {string: {text: "#"}}
               empty: {string: {text: "-"}}
               indicator: {string: {text: "#"}}
+    - alsa:
+        card: "default"
+        mixer: "Master"
+        content:
+          - map:
+              tag: "online"
+              values:
+                false: {empty: {}}
+                true:
+                  string:
+                    margin: 5
+                    text: "{percent}%"
