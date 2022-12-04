@@ -9,7 +9,7 @@ bar:
 
   left:
     - river:
-        title: {string: {max: 40, margin: 10, text: "{title}" }}
+        title: {string: {max: 50, margin: 10, text: "{title}" }}
         content:
           map:
             tag: focused
