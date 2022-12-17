@@ -215,7 +215,8 @@
        :init
        (setq tsc-dyn-get-from '(:compilation))
        :config
-       (global-tree-sitter-mode -1))
+       (global-tree-sitter-mode)
+       (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
 
      (leaf tree-sitter-langs)
    #+end_src
@@ -328,13 +329,13 @@
    To create sbcl core:
    #+begin_src emacs-lisp
      (defun generate-sbcl-image ()
+       (interactive)
        (shell-command
         "sbcl -e \"(progn
        (mapc 'require '(sb-bsd-sockets sb-posix sb-introspect sb-cltl2 asdf))
        (save-lisp-and-die \"sbcl.core-for-sly\"))\"")
        (rename-file (expand-file-name "sbcl.core-for-sly")
                     (expand-file-name "~/.emacs.d/slynk/sbcl.core-for-sly")))
-
    #+end_src
 
    #+begin_src emacs-lisp
@@ -451,6 +452,20 @@
        (defun my/apply-emoji-font ()
          (set-fontset-font t 'emoji (font-spec :family "Apple Color Emoji" :size 13) nil 'prepend))
        (add-hook 'server-after-make-frame-hook #'my/apply-emoji-font))
+   #+end_src
+
+** Web mode
+   #+begin_src emacs-lisp
+     (defun my/replace-mhtml (cons)
+       (when (eq (cdr cons) 'mhtml-mode)
+         (setf (cdr cons) 'web-mode)))
+
+     (leaf web-mode
+       :setq
+       (web-mode-markup-indent-offset . 2)
+       (web-mode-css-indent-offset . 2)
+       :config
+       (mapc #'my/replace-mhtml auto-mode-alist))
    #+end_src
 
 * Key mappings
@@ -615,6 +630,12 @@
 ** No window decorations
    #+begin_src emacs-lisp
      (add-to-list 'default-frame-alist '(undecorated . t))
+   #+end_src
+
+** Cursor
+   #+begin_src emacs-lisp
+     (add-to-list 'default-frame-alist '(cursor-type . (bar . 2)))
+     (setq-default cursor-type '(bar . 2))
    #+end_src
 
 ** Unfill region
