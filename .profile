@@ -46,5 +46,5 @@ export XKB_DEFAULT_OPTIONS="caps:escape,grp:alt_caps_toggle"
 date
 
 if [ "$(tty)" = "/dev/tty1" ] ; then
-    exec river
+    exec startx
 fi

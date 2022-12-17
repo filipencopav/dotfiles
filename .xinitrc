@@ -27,7 +27,7 @@ xset s off &
 xset -dpms &
 
 dunst > /dev/null &
-picom > /dev/null &
+# picom > /dev/null &
 feh --no-fehbg --bg-fill "$HOME"/.local/share/backgrounds/wall &
 
 exec dwm > /dev/null 2> /dev/null
