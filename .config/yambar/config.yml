@@ -52,7 +52,7 @@ bar:
               end: {string: {text: "]"}}
               fill: {string: {text: "#"}}
               empty: {string: {text: "-"}}
-              indicator: {string: {text: "#"}}
+              indicator: {string: {text: ">"}}
     - alsa:
         card: "default"
         mixer: "Master"
