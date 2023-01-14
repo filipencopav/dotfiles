@@ -35,9 +35,9 @@ export WINEPREFIX="$HOME"/games/dummy
 export WEECHAT_HOME="$XDG_CONFIG_HOME"/weechat
 
 # wayland stuff
-export MOZ_ENABLE_WAYLAND=1
-export QT_QPA_PLATFORM=wayland
-export XDG_SESSION_TYPE=wayland
+# export MOZ_ENABLE_WAYLAND=1
+# export QT_QPA_PLATFORM=wayland
+# export XDG_SESSION_TYPE=wayland
 
 # river (wayland) keyboard stuff
 export XKB_DEFAULT_LAYOUT="ro,ru"
