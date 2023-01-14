@@ -5,7 +5,7 @@
 export CC='gcc'
 export EDITOR='mg'
 export TERMINAL='st'
-export BROWSER='firefox'
+export BROWSER='chromium'
 export MPC_FORMAT='[%artist%[ "%album%"][ ##%track%] - ]%title%'
 export DOTNET_CLI_TELEMETRY_OPTOUT=1
 
