@@ -11,7 +11,7 @@
 fname="$(date '+%Y-%m-%d_%H-%M-%S').png"
 screenshot_dir="$(xdg-user-dir PICTURES)/screenshots"
 
-if [ "$XDG_SESSION_TYPE" == wayland ]; then
+if [ "$XDG_SESSION_TYPE" == "wayland" ]; then
     if which slurp grim>/dev/null; then
         if [ ! -z "$1" ]; then
             if [ "$1" == "-a" ]; then
