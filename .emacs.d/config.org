@@ -364,7 +364,8 @@
 ** Scss mode
    #+begin_src emacs-lisp
      (leaf scss-mode
-         :init (setq scss-compile-at-save t))
+         :config
+       (setq scss-compile-at-save t))
    #+end_src
 
 ** C# mode
@@ -420,28 +421,6 @@
      ; (leaf magit)
    #+end_src
 
-** Telegram
-   #+begin_src emacs-lisp
-     (leaf telega
-       :init
-       (setq telega-directory (expand-file-name "~/.local/share/telega/"))
-       :pre-setq
-       (telega-use-images . t)
-       (telega-emoji-font-family . "Apple Color Emoji")
-       (telega-emoji-use-images . t)
-       :setq
-       (telega-animation-play-inline . 2)
-       :config
-       (define-key global-map (kbd "C-c t") telega-prefix-map))
-   #+end_src
-
-** Php mode
-   #+begin_src emacs-lisp
-     (leaf php-mode
-       :init
-       (setq-default fill-column 80))
-   #+end_src
-
 ** Emojify
    #+begin_src emacs-lisp
      (leaf emojify
@@ -465,7 +444,8 @@
        (web-mode-markup-indent-offset . 2)
        (web-mode-css-indent-offset . 2)
        :config
-       (mapc #'my/replace-mhtml auto-mode-alist))
+       (mapc #'my/replace-mhtml auto-mode-alist)
+       (add-to-list 'auto-mode-alist '("\\.php\\'" . web-mode)))
    #+end_src
 
 * Key mappings
@@ -525,6 +505,21 @@
          (setq pub-dir "exported-org-files")
          (when (not (file-directory-p pub-dir))
            (make-directory pub-dir))))
+   #+end_src
+
+** HTML export options
+   #+begin_src emacs-lisp
+     (setq
+      org-html-head-include-default-style nil
+      org-html-postamble t
+      org-html-postamble-format '(("en"
+                                   "<hr><footer id=\"footer\">%a | public domain</footer>"))
+      org-html-preamble t
+      org-html-preamble-format '(("en"
+                                  "<header id=\"main-header\">
+     <h1>Lisp is the most powerful programming language. The power of lisp macros.</h1>
+     </header><nav><ul class=\"menu\"><li><a href=\"/index.html\">Home</a></li>
+     <li><a href=\"/archive/index.html\">Archive</a></li></ul></nav><hr>")))
    #+end_src
 
 ** For latex export
