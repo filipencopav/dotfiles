@@ -4,7 +4,7 @@ echo "make sure the phone's connected for file transfer."
 read uselessvar
 
 MOUNT_DIR="$(mktemp -d)"
-jmtpfs "$MOUNT_DIR"
+jmtpfs "$MOUNT_DIR" || exit
 
 MUSIC_DIR="$MOUNT_DIR"/"Internal shared storage/Music/"
 
