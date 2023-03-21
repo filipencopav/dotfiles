@@ -331,9 +331,8 @@
      (defun generate-sbcl-image ()
        (interactive)
        (shell-command
-        "sbcl -e \"(progn
-       (mapc 'require '(sb-bsd-sockets sb-posix sb-introspect sb-cltl2 asdf))
-       (save-lisp-and-die \"sbcl.core-for-sly\"))\"")
+        "sbcl --eval \"(progn (mapc 'require '(sb-bsd-sockets sb-posix sb-introspect sb-cltl2 asdf))
+        (save-lisp-and-die \"sbcl.core-for-sly\"))")
        (rename-file (expand-file-name "sbcl.core-for-sly")
                     (expand-file-name "~/.emacs.d/slynk/sbcl.core-for-sly")))
    #+end_src
