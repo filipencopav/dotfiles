@@ -2,19 +2,21 @@
 #+SUBTITLE: can't rember what I configured
 
 * Little reminders
-  Camera utility: guvcview
-  What package file belongs to: pacman -Qo FILEPATH
+  Camera utilities: =guvcview=, =xawtv=
+
+  To find out what package a given file belongs to: =pacman -Qo FILEPATH=
 
 * Tutorials
 ** Camera configuration on linux
    To configure the camera I used =guvcview= (for viewing/testing parameters),
-   =v4l2-ctl= (Video4Linux) to set values through a command and udev. To find
-   out the right video settings (brightness, contrast, exposure, etc.) we tweak
-   them in =guvcview= (Image Controls) and copy them into the command.
+   =v4l2-ctl= (Video4Linux) to set values through a command and udev for
+   persistance. To find out the right video settings (brightness, contrast,
+   exposure, etc.) we tweak them in =guvcview= (Image Controls) and copy them
+   into the command.
 
    To get current resolution/format info, we use =-V= (uppercase, lowercase is
-   for *setting*). To set the camera's resolution to =640x480=, we use =-v
-   width=640,height=480=.
+   for *setting*). To set the camera's resolution to =640x480=, we use =-v =
+   =width=640,height=480=.
 
   v4l2-ctl command:
   #+begin_src bash
@@ -25,12 +27,13 @@
                       -c hue=0 -c white_balance_automatic=1 -c gamma=101 -c gain=0 \
                       -c power_line_frequency=1 -c sharpness=3 \
                       -c backlight_compensation=1 -c auto_exposure=1 \
-                      -c exposure_time_absolute=38 -c exposure_dynamic_framerate=1 \
+                      -c exposure_time_absolute=128 \
+                      -c exposure_dynamic_framerate=1 \
                       -v width=640,height=480
   #+end_src
 
-  To make these settings persist, we follow [[https://wiki.archlinux.org/title/Webcam_setup#Persisting_configuration_changes][this]]. Get the device vendor id and
-  product id (these don't ever, ever change) we use =lsusb=.
+  To make these settings persist, we follow [[https://wiki.archlinux.org/title/Webcam_setup#Persisting_configuration_changes][this]]. To get the device vendor id
+  and product id (these don't ever, ever change) we use =lsusb=.
 
   udev config:
   #+begin_src bash
