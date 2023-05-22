@@ -107,7 +107,7 @@
 ** Font
    #+begin_src emacs-lisp
      (defvar main-font nil "Font used everywhere")
-     (setq main-font "Fantasque Sans Mono:pixelsize=14")
+     (setq main-font "JetBrains Mono:pixelsize=14")
      (add-to-list 'default-frame-alist
                   `(font . ,main-font))
    #+end_src
