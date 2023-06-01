@@ -225,14 +225,8 @@
    #+begin_src emacs-lisp
      (leaf eglot
        :config
-       (add-hook 'eglot--managed-mode-hook (lambda () (flymake-mode -1)))
        (setcdr (assq 'java-mode eglot-server-programs) '("/usr/share/java/java-language-server/lang_server_linux.sh"))
        (add-to-list 'eglot-server-programs '(c-mode "ccls")))
-   #+end_src
-
-** Flycheck
-   #+begin_src emacs-lisp
-     (leaf flycheck)
    #+end_src
 
 ** Rust
@@ -330,11 +324,14 @@
    #+begin_src emacs-lisp
      (defun generate-sbcl-image ()
        (interactive)
-       (shell-command
-        "sbcl --eval \"(progn (mapc 'require '(sb-bsd-sockets sb-posix sb-introspect sb-cltl2 asdf))
-        (save-lisp-and-die \"sbcl.core-for-sly\"))")
-       (rename-file (expand-file-name "sbcl.core-for-sly")
-                    (expand-file-name "~/.emacs.d/slynk/sbcl.core-for-sly")))
+       (let ((location (expand-file-name "~/.emacs.d/slynk/sbcl.core-for-sly")))
+         (delete-file location)
+         (shell-command
+          (format
+           "sbcl --eval \"(progn
+                            (mapc 'require '(sb-bsd-sockets sb-posix sb-introspect sb-cltl2 asdf))
+                            (save-lisp-and-die \\\"%s\\\"))\""
+           location))))
    #+end_src
 
    #+begin_src emacs-lisp
