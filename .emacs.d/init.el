@@ -8,7 +8,9 @@
 (eval-and-compile
   (add-to-list 'package-archives '("org" . "https://orgmode.org/elpa/"))
   (add-to-list 'package-archives '("melpa-stable" . "http://stable.melpa.org/packages/"))
+  (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
   (add-to-list 'package-archives '("gnu" . "https://elpa.gnu.org/packages/"))
+  (add-to-list 'package-archive-priorities '("melpa-stable" . 1))
   (package-initialize)
   (unless (package-installed-p 'leaf)
     (package-refresh-contents)
