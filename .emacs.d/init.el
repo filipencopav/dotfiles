@@ -28,4 +28,5 @@
     (leaf-keywords-init)))
 ;;; leaf-install-code
 
-(org-babel-load-file "~/.emacs.d/config.org" nil)
+(load-file "~/.emacs.d/config.el")
+(xah-fly-keys)
