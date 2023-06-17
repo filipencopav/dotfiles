@@ -193,20 +193,22 @@
   (add-hook 'server-after-make-frame-hook #'my/apply-emoji-font))
 
 (defun my/replace-mhtml (cons)
-  (when (eq (cdr cons) 'mhtml-mode)
-    (setf (cdr cons) 'web-mode)))
+  (if (eq (cdr cons) 'mhtml-mode)
+      (cons (car cons) 'web-mode)
+    cons))
 
 (leaf web-mode
   :setq
   (web-mode-markup-indent-offset . 2)
   (web-mode-css-indent-offset . 2)
   :config
-  (mapc #'my/replace-mhtml auto-mode-alist)
+  (setq auto-mode-alist (mapcar #'my/replace-mhtml auto-mode-alist))
   (add-to-list 'auto-mode-alist '("\\.php\\'" . web-mode)))
 
 (defalias 'yes-or-no-p 'y-or-n-p)
 
 (defun my/tab-insert-command () (interactive) (insert " "))
+
 (defun my/nop () (interactive) nil)
 (global-set-key (kbd "C-<tab>") 'my/tab-insert-command)
 (global-set-key (kbd "M-<escape>") 'my/nop)
@@ -339,7 +341,7 @@
 
 (setq-default indent-tabs-mode nil
               tab-width 4
-              fill-column 80
+              fill-column 100
               c-default-style '((c-mode . "bsd"))
               c-basic-offset tab-width
               cperl-indent-level tab-width
