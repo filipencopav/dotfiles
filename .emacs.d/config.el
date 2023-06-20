@@ -10,6 +10,13 @@
   (interactive)
   (load-file my/config-path))
 
+(defun my/close-help-or-xah-save-close-current-buffer ()
+  "If currently in a *Help* buffer, kill it and delete the window. Otherwise, xah-save-close-current-buffer"
+  (interactive)
+  (if (eq major-mode 'help-mode)
+      (quit-window t)
+    (xah-save-close-current-buffer)))
+
 (leaf xah-fly-keys
   :config
   (xah-fly-keys-set-layout "qwerty")
@@ -20,7 +27,8 @@
     (define-key my/z-map (kbd "c") editor-keymap))
   ;; TODO: Add entire org agenda shortcuts set
   (define-key my/z-map (kbd "a") 'org-agenda)
-  (define-key xah-fly-leader-key-map (kbd "z") my/z-map))
+  (define-key xah-fly-leader-key-map (kbd "z") my/z-map)
+  (define-key xah-fly-leader-key-map (kbd "u") 'my/close-help-or-xah-save-close-current-buffer))
 
 (eval-when-compile
   (add-to-list 'load-path (expand-file-name "~/.emacs.d/elisp/"))
@@ -41,7 +49,7 @@
 (defvar my/after-theme-load-hook '() "List of functions to run after a theme has been loaded.")
 
 (defun my/load-theme (theme &optional no-confirm no-enable)
-  "Load `theme' using LOAD-THEME, afterwards running the MY-AFTER-THEME-LOAD-HOOK"
+  "Load `theme' using LOAD-THEME, afterwards running MY-AFTER-THEME-LOAD-HOOK"
   (interactive (list (intern (completing-read "Load custom theme: " (mapcar #'symbol-name (custom-available-themes)))) nil nil))
   (load-theme theme no-confirm no-enable)
   (run-hook-with-args 'my/after-theme-load-hook theme))
@@ -56,10 +64,26 @@
 
 (leaf tao-theme
   :config)
+
 (leaf solarized-theme
-  :config (add-hook 'after-init-hook (lambda () (my/load-theme 'solarized-dark t))))
+  :config
+  (setq solarized-use-variable-pitch nil)
+  (setq solarized-use-more-italic t)
+  (setq solarized-scale-org-headlines nil)
+  (setq solarized-scale-markdown-headlines t)
+
+  ;; Avoid all font-size changes
+  (setq solarized-height-minus-1 1.0)
+  (setq solarized-height-plus-1 1.0)
+  (setq solarized-height-plus-2 1.0)
+  (setq solarized-height-plus-3 1.0)
+  (setq solarized-height-plus-4 1.0)
+
+  (add-hook 'after-init-hook (lambda () (my/load-theme 'solarized-dark t))))
+
 (leaf gruvbox-theme
   :config)
+
 (leaf nord-theme
   :config)
 
@@ -244,6 +268,7 @@
       org-latex-minted-options '(("breaklines" "true") ("breakanywhere" "true") ("breaksymbolleft" "\\null"))
       org-adapt-indentation nil
       org-startup-truncated nil
+      org-latex-images-centered t
       org-agenda-files (file-expand-wildcards "~/.emacs.d/org/agenda/*.org"))
 
 (leaf org-bullets
@@ -265,17 +290,12 @@
   :pre-setq (org-roam-v2-ack . t)
   :custom
   (org-roam-complete-everywhere . t)
-  :bind (("C-c n l" . org-roam-buffer-toggle)
-         ("C-c n f" . org-roam-node-find)
-         ("C-c n i" . org-roam-node-insert)
-         ("C-c n g" . org-roam-graph)
-         ("C-c n c" . org-roam-capture)
-         ;; Dailies
-         ("C-c n j" . org-roam-dailies-capture-today)
-         (:org-mode-map
-          ("C-M-i"  . completion-at-point)))
   :config
   (setq org-roam-directory (file-truename "~/.emacs.d/org/roam/"))
+  (define-prefix-command 'my/org-roam-commands)
+  (define-key my/org-roam-commands (kbd "f") 'org-roam-node-find)
+  (define-key my/org-roam-commands (kbd "i") 'org-roam-node-insert)
+  (define-key my/z-map (kbd "r") my/org-roam-commands)
   (org-roam-setup))
 
 ;; UTF-8 as default encoding
@@ -291,6 +311,8 @@
 (add-to-list 'default-frame-alist '(undecorated . t))
 (add-to-list 'default-frame-alist '(cursor-type . t))
 (setq-default cursor-type 't)
+
+(setq-default default-input-method "russian-computer")
 
 (defun unfill-region (beg end)
   "Unfill the region, joining the paragraphs into a single line per paragraph."
@@ -337,7 +359,8 @@
 (setq require-final-newline t
       column-number-mode t
       split-width-threshold 120
-      confirm-kill-process nil)
+      confirm-kill-process nil
+      sentence-end-double-space nil)
 
 (setq-default indent-tabs-mode nil
               tab-width 4
