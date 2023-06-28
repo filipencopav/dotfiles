@@ -6,6 +6,10 @@
 
   To find out what package a given file belongs to: =pacman -Qo FILEPATH=
 
+  Emacs lisp eval s-exp with ~pp-eval-expression~.
+
+  Org element parse document: ~M-x pp-eval-expression RET (org-element-parse-buffer)~.
+
 * Tutorials
 ** Camera configuration on linux
    To configure the camera I used =guvcview= (for viewing/testing parameters),
