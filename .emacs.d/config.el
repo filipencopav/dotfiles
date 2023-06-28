@@ -11,10 +11,10 @@
   (load-file my/config-path))
 
 (defun my/close-help-or-xah-save-close-current-buffer ()
-  "If currently in a *Help* buffer, kill it and delete the window. Otherwise, xah-save-close-current-buffer"
+  "If currently in a *Help* buffer, bury it and delete the window. Otherwise, xah-save-close-current-buffer"
   (interactive)
   (if (eq major-mode 'help-mode)
-      (quit-window t)
+      (quit-window)
     (xah-save-close-current-buffer)))
 
 (leaf xah-fly-keys
@@ -58,7 +58,9 @@
   (when (cl-find theme '(gruvbox-dark-medium gruvbox-dark-hard gruvbox-dark-soft))
     (set-face-attribute 'default nil :foreground "#ebdbb2")
     (set-face-attribute 'mode-line nil :background "#32302F" :foreground "#FE8019")
-    (set-face-attribute 'mode-line-inactive nil :background "#32302F")))
+    (set-face-attribute 'mode-line-inactive nil :background "#32302F"))
+  (set-face-attribute 'mode-line nil :box nil :underline nil :overline nil)
+  (set-face-attribute 'mode-line-inactive nil :box nil :underline nil :overline nil))
 
 (add-hook 'my/after-theme-load-hook 'my/custom-face-config)
 
@@ -154,7 +156,7 @@
 
 (defun my/generate-sbcl-image ()
   (interactive)
-  (let ((location (expand-file-name "~/.emacs.d/slynk/sbcl.core-for-slime")))
+  (let ((location (expand-file-name "~/.emacs.d/swank/sbcl.core-for-slime")))
     (delete-file location)
     (shell-command
      (format "sbcl --eval \"(progn (mapc 'require '(sb-bsd-sockets sb-posix sb-introspect sb-cltl2 asdf)) (save-lisp-and-die \\\"%s\\\"))\""
@@ -449,3 +451,5 @@
   (defun my/toggle-text-centering ()
     (interactive)
     (setq visual-fill-column-center-text (not visual-fill-column-center-text))))
+
+(leaf ebnf-mode)
