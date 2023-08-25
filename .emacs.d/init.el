@@ -1,3 +1,5 @@
+;;; init.el --- -*- lexical-binding: t; -*-
+
 (setq startup/gc-cons-threshold gc-cons-threshold)
 (setq gc-cons-threshold most-positive-fixnum)
 (defun startup/reset-gc () (setq gc-cons-threshold startup/gc-cons-threshold))
