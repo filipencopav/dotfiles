@@ -1,3 +1,5 @@
+;;; config.el --- -*- lexical-binding: t; -*-
+
 (defvar my/config-path "~/.emacs.d/config.el")
 
 (defun config-edit ()
@@ -40,9 +42,15 @@
   (require 'paren-face))
 
 (defvar main-font nil "Font used everywhere")
-(setq main-font "Fantasque Sans Mono:pixelsize=16")
+(setq main-font "Fantasque Sans Mono:pixelsize=20")
 (add-to-list 'default-frame-alist
              `(font . ,main-font))
+
+(defun my/apply-emoji-font ()
+    (set-fontset-font t 'emoji (font-spec :family "Apple Color Emoji" :size 13) nil 'prepend))
+  (add-hook 'server-after-make-frame-hook #'my/apply-emoji-font)
+
+(add-hook 'server-after-make-frame-hook 'my/apply-emoji-font)
 
 (add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
 
@@ -119,6 +127,29 @@
        (:eval (cond (buffer-read-only "[RO]") ((buffer-modified-p) "[+]"))))
      ;; Right
      '("line %l, col %2C")))))
+
+(leaf eglot)
+(leaf rustic
+  :after (eglot)
+  :mode ("\\.rs\\'" . rustic-mode)
+  :bind (:rustic-mode-map
+         ("M-j" . eglot-imenu)
+         ("M-?" . xref-find-references)
+         ("C-c C-c r" . eglot-rename)
+         ("C-c C-c q" . eglot-reconnect)
+         ("C-c C-c Q" . eglot-shutdown)
+         ("C-c C-c o" . eglot-code-action-organize-imports)
+         ("C-c C-c b" . rustic-cargo-build)
+         ("C-c C-c c" . rustic-cargo-check))
+  :init
+  (setq rustic-lsp-server 'rust-analyzer)
+  (setq rustic-lsp-client 'eglot)
+  :config
+  (setq rustic-analyzer-command '("rustup" "run" "nightly" "rust-analyzer"))
+  (setq rustic-format-on-save t)
+  (rustic-setup-eglot))
+
+(leaf typescript-mode)
 
 (leaf lua-mode)
 
@@ -209,15 +240,6 @@
   (completion-category-defaults . nil)
   (completion-category-overrides . '((file (styles partial-completion)))))
 
-(leaf emojify
-  :config
-  (setq emojify-display-style 'unicode
-        emojify-display-styles '(unicode)
-        use-default-font-for-symbols nil)
-  (defun my/apply-emoji-font ()
-    (set-fontset-font t 'emoji (font-spec :family "Apple Color Emoji" :size 13) nil 'prepend))
-  (add-hook 'server-after-make-frame-hook #'my/apply-emoji-font))
-
 (defun my/replace-mhtml (cons)
   (if (eq (cdr cons) 'mhtml-mode)
       (cons (car cons) 'web-mode)
@@ -286,7 +308,8 @@
 (advice-add 'org-agenda-quit :before 'org-save-all-org-buffers)
 
 (setq org-capture-bookmark nil
-      org-src-window-setup 'current-window)
+      org-src-window-setup 'current-window
+      org-link-descriptive nil)
 
 (leaf org-roam
   :pre-setq (org-roam-v2-ack . t)
@@ -297,8 +320,17 @@
   (define-prefix-command 'my/org-roam-commands)
   (define-key my/org-roam-commands (kbd "f") 'org-roam-node-find)
   (define-key my/org-roam-commands (kbd "i") 'org-roam-node-insert)
-  (define-key my/z-map (kbd "r") my/org-roam-commands)
+  (define-key my/org-roam-commands (kbd "j") 'org-capture)
+  (define-key my/z-map (kbd "n") my/org-roam-commands)
   (org-roam-setup))
+
+(setq org-capture-templates
+      '(("f" "Fleeting note" plain (file "~/.emacs.d/org/agenda/notes.org")
+         "%i\n%?" :empty-lines-before 1)
+        ("t" "Org agenda TODO entry" entry (file "~/.emacs.d/org/agenda/agenda.org")
+         "* TODO %?\n" :empty-lines-before 1)))
+(setq org-todo-keywords
+      (quote ((sequence "TODO" "DOING" "|" "DONE" "CANCELLED" "SUSPENDED"))))
 
 ;; UTF-8 as default encoding
 (set-language-environment "UTF-8")
@@ -310,7 +342,6 @@
 
 (setq-default frame-title-format "%b - emacs")
 
-(add-to-list 'default-frame-alist '(undecorated . t))
 (add-to-list 'default-frame-alist '(cursor-type . t))
 (setq-default cursor-type 't)
 
@@ -338,6 +369,7 @@
     ("\\.x?html?\\'" . default)))
 
 (setq css-indent-offset 2)
+(setq js-indent-level 2)
 
 (setq font-lock-support-mode #'jit-lock-mode)
 
@@ -355,8 +387,11 @@
       create-lockfiles  nil
       inhibit-startup-screen t)
 
-(setq show-paren-delay 0.125)
-(show-paren-mode 1)
+(leaf highlight-parentheses
+  :config
+  (setq show-paren-delay 0.125)
+  (show-paren-mode 1)
+  (global-highlight-parentheses-mode))
 
 (setq require-final-newline t
       column-number-mode t
@@ -376,22 +411,29 @@
 (fringe-mode '(0 . 0))
 
 (setq ibuffer-expert t
+      ibuffer-show-empty-filter-groups nil
       ibuffer-saved-filter-groups
       '(("default"
          ("lisp" (or
                   (mode . lisp-mode)
                   (mode . scheme-mode)
                   (mode . emacs-lisp-mode)))
+         ("org agenda"
+          (filename . ".emacs.d/org/agenda/"))
          ("org" (or (mode . org-mode)
                     (name . "\\*Org Src.*\\*")))
-         ("emacs" (or
-                   (name . "^\\*scratch\\*$")
-                   (name . "^\\*Messages\\*$")))
+         ("emacs" (name . "^\\*.*\\*$"))
          ("trashcan" (or
-                      (name . "^\\*straight-process\\*$")
                       (name . "^\\*Compile-Log\\*$")
                       (name . "^\\*inferior-lisp\\*$")
                       (name . "^\\*slime-events\\*$"))))))
+
+;; This switches to my default filter group and hides emacs and org agenda buffer lists by default
+(add-hook 'ibuffer-mode-hook 'my/ibuffer-setup)
+(defun my/ibuffer-setup ()
+  (ibuffer-switch-to-saved-filter-groups "default")
+  (setq ibuffer-hidden-filter-groups (list "org agenda" "emacs"))
+  (ibuffer-update nil t))
 
 (scroll-bar-mode -1)
 (menu-bar-mode -1)
@@ -424,7 +466,6 @@
   ((prog-mode-hook)
      (display-line-numbers-mode)
      (display-fill-column-indicator-mode))
-  (ibuffer-mode-hook (ibuffer-switch-to-saved-filter-groups "default"))
   ((help-mode-hook sly-db-mode-hook) (visual-fill-column-mode))
   (css-mode-hook (electric-pair-local-mode)))
 
