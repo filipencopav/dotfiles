@@ -1,49 +1,102 @@
+#+STARTUP: overview
 #+TITLE: dementia.org
 #+SUBTITLE: can't rember what I configured
 
 * Little reminders
-  Camera utilities: =guvcview=, =xawtv=
+To merge multiple tracks with ffmpeg:
+~ffmpeg -i INPUT1 -i INPUT2 -i INPUT3 -i INPUTN -filter_complex amix=inputs=N:duration=longest OUTPUT~
 
-  To find out what package a given file belongs to: =pacman -Qo FILEPATH=
+Camera utilities: =guvcview=, =xawtv=
 
-  Emacs lisp eval s-exp with ~pp-eval-expression~.
+To find out what package a given file belongs to: =pacman -Qo FILEPATH=
 
-  Org element parse document: ~M-x pp-eval-expression RET (org-element-parse-buffer)~.
+Emacs lisp eval s-exp with ~pp-eval-expression~.
+
+Org element parse document: ~M-x pp-eval-expression RET (org-element-parse-buffer)~.
 
 * Tutorials
 ** Camera configuration on linux
-   To configure the camera I used =guvcview= (for viewing/testing parameters),
-   =v4l2-ctl= (Video4Linux) to set values through a command and udev for
-   persistance. To find out the right video settings (brightness, contrast,
-   exposure, etc.) we tweak them in =guvcview= (Image Controls) and copy them
-   into the command.
+To configure the camera I used =guvcview= (for viewing/testing parameters),
+=v4l2-ctl= (Video4Linux) to set values through a command and udev for
+persistance. To find out the right video settings (brightness, contrast,
+exposure, etc.) we tweak them in =guvcview= (Image Controls) and copy them
+into the command.
 
-   To get current resolution/format info, we use =-V= (uppercase, lowercase is
-   for *setting*). To set the camera's resolution to =640x480=, we use =-v =
-   =width=640,height=480=.
+To get current resolution/format info, we use =-V= (uppercase, lowercase is
+for *setting*). To set the camera's resolution to =640x480=, we use =-v =
+=width=640,height=480=.
 
-  v4l2-ctl command:
-  #+begin_src bash
-    # This command contains `$devnode', so it's not for use in the console. delete
-    # `-d $devnode' to run (test) the command on the command line.
+v4l2-ctl command:
+#+begin_src bash
+  # This command contains `$devnode', so it's not for use in the console. delete
+  # `-d $devnode' to run (test) the command on the command line.
 
-    /usr/bin/v4l2-ctl -d $devnode -c brightness=14 -c contrast=28 -c saturation=80 \
-                      -c hue=0 -c white_balance_automatic=1 -c gamma=101 -c gain=0 \
-                      -c power_line_frequency=1 -c sharpness=3 \
-                      -c backlight_compensation=1 -c auto_exposure=1 \
-                      -c exposure_time_absolute=128 \
-                      -c exposure_dynamic_framerate=1 \
-                      -v width=640,height=480
-  #+end_src
+  /usr/bin/v4l2-ctl -d $devnode -c brightness=14 -c contrast=28 -c saturation=80 \
+                    -c hue=0 -c white_balance_automatic=1 -c gamma=101 -c gain=0 \
+                    -c power_line_frequency=1 -c sharpness=3 \
+                    -c backlight_compensation=1 -c auto_exposure=1 \
+                    -c exposure_time_absolute=128 \
+                    -c exposure_dynamic_framerate=1 \
+                    -v width=640,height=480
+#+end_src
 
-  To make these settings persist, we follow [[https://wiki.archlinux.org/title/Webcam_setup#Persisting_configuration_changes][this]]. To get the device vendor id
-  and product id (these don't ever, ever change) we use =lsusb=.
+To make these settings persist, we follow [[https://wiki.archlinux.org/title/Webcam_setup#Persisting_configuration_changes][this]]. To get the device vendor id
+and product id (these don't ever, ever change) we use =lsusb=.
 
-  udev config:
-  #+begin_src bash
-    # /etc/udev/rules.d/99-webcam.rules
+udev config:
+#+begin_src bash
+  # /etc/udev/rules.d/99-webcam.rules
 
-    KERNEL=="video[0-9]*", SUBSYSTEM=="video4linux", \
-          ATTR{index}=="0", ATTRS{idVendor}=="0c45", ATTRS{idProduct}=="6366", \
-          RUN+="<insert v4l2-ctl command here>"
-  #+end_src
+  KERNEL=="video[0-9]*", SUBSYSTEM=="video4linux", \
+        ATTR{index}=="0", ATTRS{idVendor}=="0c45", ATTRS{idProduct}=="6366", \
+        RUN+="<insert v4l2-ctl command here>"
+#+end_src
+
+* Wordpress
+1. Install Apache, php, mariadb
+2. Configure Apache: ~/etc/httpd/conf/extra/httpd-wordpress.conf~ and ~/etc/httpd/conf/httpd.conf~ (Include conf/extra/...)
+3. Uncomment ~LoadModule rewrite_module modules/mod_rewrite.so~ ?
+4. Add ~DirectoryIndex index.php~ into IfModule dir_module entry.
+
+** Mariadb setup
+#+begin_src bash
+  root$ mariadb-install-db --user=mysql --basedir=/usr --datadir=/var/lib/mysql
+#+end_src
+
+2 users by default: root and mysql. Both without a password but you have to be root and mysql user respectively to connect.
+
+If mariadb is already installed, ~# rm -rf /var/lib/mysql~.
+
+Create a user and database.
+
+#+NOTE: wordpress is your Database Name and wp-user is your User Name. You can change them if you wish. Also replace choose_db_password with your new Password for this database. You will be asked for these values along with localhost in the next section. (https://wiki.archlinux.org/title/Wordpress)
+
+#+begin_src sql
+  MariaDB> CREATE DATABASE wordpress;
+  MariaDB> GRANT ALL PRIVILEGES ON wordpress.* TO "wp-user"@"localhost" IDENTIFIED BY "choose_db_password";
+  MariaDB> FLUSH PRIVILEGES;
+  MariaDB> EXIT
+#+end_src
+
+** PHP setup
+This is the setup of PHP to work with Apache. <https://wiki.archlinux.org/title/Apache_HTTP_Server>
+
+1. Install ~php-apache~.
+2. Comment this line in ~/etc/httpd/conf/httpd.conf~: ~#LoadModule mpm_event_module modules/mod_mpm_event.so~
+3. Uncomment this line in the file above: ~LoadModule mpm_prefork_module modules/mod_mpm_prefork.so~
+4. Place this at the end of the LoadModule list: ~LoadModule php_module modules/libphp.so~,  ~AddHandler php-script .php~
+5. Insert ~PHPIniDir "/etc/php"~ into php_module.conf, inside ~<IfModule php_module>~ tag.
+6. Place this at the end of the Include list: ~Include conf/extra/php_module.conf~
+
+In order for PHP to work with MySql, add (or uncomment) these lines to ~/etc/php/php.ini~:
+#+begin_verbatim
+extension=pdo_mysql
+extension=mysqli
+#+end_verbatim
+
+Retart httpd.service and mariadb.service
+
+** Wp setup steps
+I don't know if these change anything, but I get a stupid error so I did:
+1. Rename php-config-sample.php into php-config.php
+2. Edit php-config.php, change db name to ~wordpress~, change user name to ~wp-user~, change password to ~choose_db_password~.
