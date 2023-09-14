@@ -249,6 +249,7 @@
   :setq
   (web-mode-markup-indent-offset . 2)
   (web-mode-css-indent-offset . 2)
+  (web-mode-code-indent-offset . 2)
   :config
   (setq auto-mode-alist (mapcar #'my/replace-mhtml auto-mode-alist))
   (add-to-list 'auto-mode-alist '("\\.php\\'" . web-mode)))
@@ -371,7 +372,23 @@
 (setq css-indent-offset 2)
 (setq js-indent-level 2)
 
-(setq font-lock-support-mode #'jit-lock-mode)
+(leaf prettier-js
+  :config
+  (add-hook 'js-mode-hook 'prettier-js-mode)
+  (add-hook 'js2-mode-hook 'prettier-js-mode)
+  (setq
+   prettier-js-args
+   '("--trailing-comma" "all"
+     "--arrow-parens" "avoid"
+     "--single-quote")))
+
+;; (setq font-lock-support-mode #'jit-lock-mode)
+(leaf tree-sitter
+  :config
+  (leaf tree-sitter-langs
+    :config
+    (global-tree-sitter-mode)
+    (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode)))
 
 (defun my/auto-hide-compilation-window (buf str)
   (when (null (string-match ".*exited abnormally.*" str))
