@@ -16,12 +16,11 @@ export DOTNET_CLI_TELEMETRY_OPTOUT=1
 # shellcheck source=/dev/null
 [ "$SHELL" = "/bin/zsh" ] && . "$HOME/.zshrc"
 
-
-[ -d "$HOME/.local/bin" ]  && export PATH="$HOME/.local/bin:$PATH"
-[ -d "$HOME/.cargo/bin" ]  && export PATH="$PATH:$HOME/.cargo/bin"
-[ -d "$HOME/.roswell/bin"] && export PATH="$PATH:$HOME/.roswell/bin"
-[ -d "$HOME/.cache" ]      && export XDG_CACHE_HOME="$HOME/.cache"
-[ -d "$HOME/.config" ]     && export XDG_CONFIG_HOME="$HOME/.config"
+[ -d "$HOME/.local/bin" ]   && export PATH="$HOME/.local/bin:$PATH"
+[ -d "$HOME/.cargo/bin" ]   && export PATH="$HOME/.cargo/bin:$PATH"
+[ -d "$HOME/.roswell/bin" ] && export PATH="$HOME/.roswell/bin:$PATH"
+[ -d "$HOME/.cache" ]       && export XDG_CACHE_HOME="$HOME/.cache"
+[ -d "$HOME/.config" ]      && export XDG_CONFIG_HOME="$HOME/.config"
 
 [ -d "$HOME/.local/share/info" ] &&
     export INFOPATH="$HOME/.local/share/info:$INFOPATH"
