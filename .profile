@@ -25,6 +25,9 @@ export DOTNET_CLI_TELEMETRY_OPTOUT=1
 [ -d "$HOME/.local/share/info" ] &&
     export INFOPATH="$HOME/.local/share/info:$INFOPATH"
 
+which go >/dev/null 2>/dev/null &&
+    mkdir -p "$HOME/devel/go" &&
+    export GOPATH="$HOME/devel/go"
 
 
 export GNUPGHOME="$XDG_CONFIG_HOME/gnupg"
