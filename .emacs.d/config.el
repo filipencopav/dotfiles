@@ -13,11 +13,11 @@
   (load-file my/config-path))
 
 (defun my/close-help-or-xah-save-close-current-buffer ()
-  "If currently in a *Help* buffer, bury it and delete the window. Otherwise, xah-save-close-current-buffer"
+  "If currently in a *Help* buffer, bury it and delete the window. Otherwise, xah-close-current-buffer"
   (interactive)
   (if (eq major-mode 'help-mode)
       (quit-window)
-    (xah-save-close-current-buffer)))
+    (xah-close-current-buffer)))
 
 (leaf xah-fly-keys
   :config
@@ -30,7 +30,7 @@
   ;; TODO: Add entire org agenda shortcuts set
   (define-key my/z-map (kbd "a") 'org-agenda)
   (define-key xah-fly-leader-key-map (kbd "z") my/z-map)
-  (define-key xah-fly-leader-key-map (kbd "u") 'my/close-help-or-xah-save-close-current-buffer))
+  (define-key xah-fly-leader-key-map (kbd "u") 'my/close-help-or-xah-close-current-buffer))
 
 (eval-when-compile
   (add-to-list 'load-path (expand-file-name "~/.emacs.d/elisp/"))

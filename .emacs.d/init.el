@@ -13,7 +13,6 @@
   (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
   (add-to-list 'package-archives '("gnu" . "https://elpa.gnu.org/packages/"))
   (add-to-list 'package-archive-priorities '("melpa-stable" . 1))
-  (package-initialize)
   (unless (package-installed-p 'leaf)
     (package-refresh-contents)
     (package-install 'leaf))
@@ -23,11 +22,7 @@
 
   (setq leaf-defaults '(:require t :ensure t))
 
-  (leaf leaf-keywords
-    :init
-    (leaf el-get :ensure t)
-    :config
-    (leaf-keywords-init)))
+  (leaf leaf-keywords))
 ;;; leaf-install-code
 
 (load-file "~/.emacs.d/config.el")
