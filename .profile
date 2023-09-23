@@ -1,6 +1,8 @@
 #!/bin/sh
 # Profile file. Runs on login
 
+# Source /etc/profile
+[ -f /etc/profile ] && . /etc/profile
 
 export CC='gcc'
 export EDITOR='mg'
@@ -12,13 +14,13 @@ export DOTNET_CLI_TELEMETRY_OPTOUT=1
 # shellcheck source=/dev/null
 [ "$SHELL" = "/bin/bash" ] && . "$HOME/.bashrc"
 # shellcheck source=/dev/null
-[ "$SHELL" = "/bin/ksh" ] && . "$HOME/.kshrc"
+[ "$SHELL" = "/bin/ksh"  ] && . "$HOME/.kshrc"
 # shellcheck source=/dev/null
-[ "$SHELL" = "/bin/zsh" ] && . "$HOME/.zshrc"
+[ "$SHELL" = "/bin/zsh"  ] && . "$HOME/.zshrc"
 
-[ -d "$HOME/.local/bin" ]   && export PATH="$HOME/.local/bin:$PATH"
-[ -d "$HOME/.cargo/bin" ]   && export PATH="$HOME/.cargo/bin:$PATH"
-[ -d "$HOME/.roswell/bin" ] && export PATH="$HOME/.roswell/bin:$PATH"
+[ -d "$HOME/.local/bin" ]   && export PATH="$PATH:$HOME/.local/bin"
+[ -d "$HOME/.cargo/bin" ]   && export PATH="$PATH:$HOME/.cargo/bin"
+[ -d "$HOME/.roswell/bin" ] && export PATH="$PATH:$HOME/.roswell/bin"
 [ -d "$HOME/.cache" ]       && export XDG_CACHE_HOME="$HOME/.cache"
 [ -d "$HOME/.config" ]      && export XDG_CONFIG_HOME="$HOME/.config"
 
@@ -27,7 +29,8 @@ export DOTNET_CLI_TELEMETRY_OPTOUT=1
 
 which go >/dev/null 2>/dev/null &&
     mkdir -p "$HOME/devel/go" &&
-    export GOPATH="$HOME/devel/go"
+    export GOPATH="$HOME/devel/go" &&
+    export PATH="$PATH:$GOPATH/bin"
 
 
 export GNUPGHOME="$XDG_CONFIG_HOME/gnupg"
