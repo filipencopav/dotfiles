@@ -12,7 +12,7 @@
   (interactive)
   (load-file my/config-path))
 
-(defun my/close-help-or-xah-save-close-current-buffer ()
+(defun my/close-help-or-xah-close-current-buffer ()
   "If currently in a *Help* buffer, bury it and delete the window. Otherwise, xah-close-current-buffer"
   (interactive)
   (if (eq major-mode 'help-mode)
@@ -149,7 +149,27 @@
   (setq rustic-format-on-save t)
   (rustic-setup-eglot))
 
-(leaf typescript-mode)
+(leaf go-mode
+  :require (t project)
+  :config
+  (defun project-find-go-module (dir)
+    (when-let ((root (locate-dominating-file dir "go.mod")))
+      (cons 'go-module root)))
+
+  (cl-defmethod project-root ((project (head go-module)))
+    (cdr project))
+
+  (add-hook 'project-find-functions #'project-find-go-module)
+  (add-hook 'go-mode-hook 'eglot-ensure)
+  (defun eglot-format-buffer-on-save ()
+    (add-hook 'before-save-hook #'gofmt-before-save nil t)
+    (add-hook 'before-save-hook #'eglot-format-buffer -10 t))
+  (add-hook 'go-mode-hook #'eglot-format-buffer-on-save))
+
+(leaf typescript-mode
+  :config
+  (setq js-indent-level 2)
+  (setq typescript-indent-level js-indent-level))
 
 (leaf lua-mode)
 
@@ -221,6 +241,7 @@
   :setq
   (corfu-auto . t)
   (corfu-quit-no-match . t)
+  (corfu-auto-delay . 0.5)
   :config
   (global-corfu-mode))
 
@@ -312,18 +333,18 @@
       org-src-window-setup 'current-window
       org-link-descriptive nil)
 
-(leaf org-roam
-  :pre-setq (org-roam-v2-ack . t)
-  :custom
-  (org-roam-complete-everywhere . t)
-  :config
-  (setq org-roam-directory (file-truename "~/.emacs.d/org/roam/"))
-  (define-prefix-command 'my/org-roam-commands)
-  (define-key my/org-roam-commands (kbd "f") 'org-roam-node-find)
-  (define-key my/org-roam-commands (kbd "i") 'org-roam-node-insert)
-  (define-key my/org-roam-commands (kbd "j") 'org-capture)
-  (define-key my/z-map (kbd "n") my/org-roam-commands)
-  (org-roam-setup))
+;; (leaf org-roam
+;;   :pre-setq (org-roam-v2-ack . t)
+;;   :custom
+;;   (org-roam-complete-everywhere . t)
+;;   :config
+;;   (setq org-roam-directory (file-truename "~/.emacs.d/org/roam/"))
+;;   (define-prefix-command 'my/org-roam-commands)
+;;   (define-key my/org-roam-commands (kbd "f") 'org-roam-node-find)
+;;   (define-key my/org-roam-commands (kbd "i") 'org-roam-node-insert)
+;;   (define-key my/org-roam-commands (kbd "j") 'org-capture)
+;;   (define-key my/z-map (kbd "n") my/org-roam-commands)
+;;   (org-roam-setup))
 
 (setq org-capture-templates
       '(("f" "Fleeting note" plain (file "~/.emacs.d/org/agenda/notes.org")
@@ -369,9 +390,6 @@
     ("\\.mm\\'" . default)
     ("\\.x?html?\\'" . default)))
 
-(setq css-indent-offset 2)
-(setq js-indent-level 2)
-
 (leaf prettier-js
   :config
   (add-hook 'js-mode-hook 'prettier-js-mode)
@@ -406,7 +424,7 @@
 
 (leaf highlight-parentheses
   :config
-  (setq show-paren-delay 0.125)
+  (setq show-paren-delay 0.2)
   (show-paren-mode 1)
   (global-highlight-parentheses-mode))
 
