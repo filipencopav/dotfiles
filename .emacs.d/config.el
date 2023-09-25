@@ -42,7 +42,7 @@
   (require 'paren-face))
 
 (defvar main-font nil "Font used everywhere")
-(setq main-font "Fantasque Sans Mono:pixelsize=20")
+(setq main-font "Fantasque Sans Mono:pixelsize=16")
 (add-to-list 'default-frame-alist
              `(font . ,main-font))
 
@@ -128,6 +128,13 @@
      ;; Right
      '("line %l, col %2C")))))
 
+(leaf eldoc-box
+  :config
+  (set-face-attribute 'eldoc-box-border nil :background "#000")
+  (defun my/eldoc-hooks ()
+    (eldoc-box-hover-mode))
+  (add-hook 'eldoc-mode-hook 'my/eldoc-hooks))
+
 (leaf eglot)
 (leaf rustic
   :after (eglot)
@@ -147,7 +154,10 @@
   :config
   (setq rustic-analyzer-command '("rustup" "run" "nightly" "rust-analyzer"))
   (setq rustic-format-on-save t)
-  (rustic-setup-eglot))
+  (rustic-setup-eglot)
+  (defun my/rustic-functions ()
+    (setq-local syntax-propertize-function nil))
+  (add-hook 'rustic-mode-hook 'my/rustic-functions))
 
 (leaf go-mode
   :require (t project)
@@ -228,6 +238,12 @@
   :config
   (define-key slime-mode-map [remap eval-last-sexp] 'slime-eval-last-expression)
   (define-key slime-mode-map [remap eval-last-sexp] 'slime-eval-last-expression))
+
+(leaf cider
+  :require (t cider-eval)
+  :setq (cider-preferred-build-tool . 'lein)
+  :config
+  (define-key cider-mode-map [remap eval-last-sexp] 'cider-eval-last-sexp))
 
 (leaf editorconfig
   :config
@@ -492,7 +508,7 @@
                pairs)))
 
 (my/add-hooks
-  ((lisp-mode-hook scheme-mode-hook emacs-lisp-mode-hook)
+  ((lisp-mode-hook scheme-mode-hook emacs-lisp-mode-hook clojure-mode-hook)
      (setq tab-width 2 indent-tabs-mode nil fill-column 100)
      (paren-face-mode))
   (before-save-hook
