@@ -1,5 +1,13 @@
 ;;; config.el --- -*- lexical-binding: t; -*-
 
+(defmacro my/add-hooks (&rest pairs)
+  "Adds lambdas to the hooks of the specified modes. Takes a list of lists, the first element may be either a symbol (hook variable) or a list of symbols. The rest of the elements are "
+  `(progn
+     ,@(mapcan (lambda (pair)
+                 (mapcar (lambda (x) `(add-hook ',x (lambda () ,@ (cdr pair))))
+                         (if (listp (car pair)) (car pair) (list (car pair)))))
+               pairs)))
+
 (defvar my/config-path "~/.emacs.d/config.el")
 
 (defun config-edit ()
@@ -26,6 +34,7 @@
   (let ((editor-keymap (make-keymap)))
     (define-key editor-keymap (kbd "r") 'config-reload)
     (define-key editor-keymap (kbd "e") 'config-edit)
+    (define-key editor-keymap (kbd "c") 'org-capture)
     (define-key my/z-map (kbd "c") editor-keymap))
   ;; TODO: Add entire org agenda shortcuts set
   (define-key my/z-map (kbd "a") 'org-agenda)
@@ -39,7 +48,22 @@
   (require 'org)
   (require 'ox-latex)
   (require 'ox-md)
-  (require 'paren-face))
+  (require 'window-layout))
+
+;; https://github.com/kiwanami/emacs-window-layout
+(setq wm
+      (wlf:layout
+       '(- (:upper-size-ratio 0.8)
+           (| (:left-size-ratio 0.6)
+              code
+              (- (:upper-max-size 15)
+                 repl
+                 help))
+           output)
+       '((:name output :buffer "output buffer")
+         (:name code :buffer "code buffer")
+         (:name repl :buffer "repl buffer")
+         (:name help :buffer "*Help*"))))
 
 (defvar main-font nil "Font used everywhere")
 (setq main-font "Fantasque Sans Mono:pixelsize=16")
@@ -126,12 +150,13 @@
        "%b "
        (:eval (cond (buffer-read-only "[RO]") ((buffer-modified-p) "[+]"))))
      ;; Right
-     '("line %l, col %2C")))))
+     '("line %3l, col %3c")))))
 
 (leaf eldoc-box
   :config
-  (set-face-attribute 'eldoc-box-border nil :background "#000")
+  (set-face-attribute 'eldoc-box-border nil :background "#2f6b73")
   (defun my/eldoc-hooks ()
+    (interactive)
     (eldoc-box-hover-mode))
   (add-hook 'eldoc-mode-hook 'my/eldoc-hooks))
 
@@ -179,7 +204,11 @@
 (leaf typescript-mode
   :config
   (setq js-indent-level 2)
-  (setq typescript-indent-level js-indent-level))
+  (setq typescript-indent-level js-indent-level)
+  (with-eval-after-load 'eglot
+    (add-to-list 'eglot-server-programs
+                 '((typescript-ts-mode typescript-mode) "deno" "lsp"))
+    (add-to-list 'typescript-mode-hook 'eglot-ensure)))
 
 (leaf lua-mode)
 
@@ -243,7 +272,9 @@
   :require (t cider-eval)
   :setq (cider-preferred-build-tool . 'lein)
   :config
-  (define-key cider-mode-map [remap eval-last-sexp] 'cider-eval-last-sexp))
+  (define-key cider-mode-map [remap eval-last-sexp] 'cider-eval-last-sexp)
+  (setq clojure-indent-style 'always-indent)
+  (setq cider-repl-display-output-before-window-boundaries t))
 
 (leaf editorconfig
   :config
@@ -444,6 +475,12 @@
   (show-paren-mode 1)
   (global-highlight-parentheses-mode))
 
+(leaf paren-face
+  :config
+  (my/add-hooks
+   ((lisp-mode-hook scheme-mode-hook emacs-lisp-mode-hook clojure-mode-hook)
+    (paren-face-mode))))
+
 (setq require-final-newline t
       column-number-mode t
       split-width-threshold 120
@@ -499,18 +536,9 @@
 
 (setq-default auto-hscroll-mode 'current-line)
 
-(defmacro my/add-hooks (&rest pairs)
-  "Adds lambdas to the hooks of the specified modes. Takes a list of lists, the first element may be either a symbol (hook variable) or a list of symbols. The rest of the elements are "
-  `(progn
-     ,@(mapcan (lambda (pair)
-                 (mapcar (lambda (x) `(add-hook ',x (lambda () ,@ (cdr pair))))
-                         (if (listp (car pair)) (car pair) (list (car pair)))))
-               pairs)))
-
 (my/add-hooks
   ((lisp-mode-hook scheme-mode-hook emacs-lisp-mode-hook clojure-mode-hook)
-     (setq tab-width 2 indent-tabs-mode nil fill-column 100)
-     (paren-face-mode))
+     (setq tab-width 2 indent-tabs-mode nil fill-column 100))
   (before-save-hook
      (unless (eq major-mode 'markdown-mode)
        (delete-trailing-whitespace)))
@@ -545,3 +573,9 @@
     (setq visual-fill-column-center-text (not visual-fill-column-center-text))))
 
 (leaf ebnf-mode)
+
+(setq warning-suppress-types '(comp))
+
+(defun my/lisp-indent-function (indent-point state))
+
+(setq lisp-indent-function 'lisp-indent-function)
