@@ -1,23 +1,7 @@
 #!/bin/bash
-# idk
 alias e="$EDITOR"
 
-# memes
-alias 'pls'='sudo '
-alias ':q'='exit'
-alias ':wq'='exit'
-alias mute='mpc pause'
-
-# edit configuration files
-alias bashrc="$EDITOR $HOME/.bashrc"
-alias profile="$EDITOR $HOME/.profile"
-
-alias kakrc="kak $HOME/.config/kak/kakrc"
-alias visrc="vis $HOME/.config/vis/visrc.lua"
-alias vimrc="vim $HOME/.vim/vimrc"
-alias nvimrc="nvim $HOME/.config/nvim/init.vim"
-
-alias config="/usr/bin/git --git-dir=$HOME/dotfiles/ --work-tree=$HOME"
+alias dotconf="/usr/bin/git --git-dir=$HOME/dotfiles/ --work-tree=$HOME"
 
 # youtube downloader alias
 alias youtube-dl="/usr/bin/youtube-dl -o '%(title)s.%(ext)s'"

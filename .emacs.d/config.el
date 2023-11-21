@@ -51,22 +51,22 @@
   (require 'window-layout))
 
 ;; https://github.com/kiwanami/emacs-window-layout
-(setq wm
-      (wlf:layout
-       '(- (:upper-size-ratio 0.8)
-           (| (:left-size-ratio 0.6)
-              code
-              (- (:upper-max-size 15)
-                 repl
-                 help))
-           output)
-       '((:name output :buffer "output buffer")
-         (:name code :buffer "code buffer")
-         (:name repl :buffer "repl buffer")
-         (:name help :buffer "*Help*"))))
+;; (setq wm
+;;       (wlf:layout
+;;        '(- (:upper-size-ratio 0.8)
+;;            (| (:left-size-ratio 0.6)
+;;               code
+;;               (- (:upper-max-size 15)
+;;                  repl
+;;                  help))
+;;            output)
+;;        '((:name output :buffer "output buffer")
+;;          (:name code :buffer "code buffer")
+;;          (:name repl :buffer "repl buffer")
+;;          (:name help :buffer "*Help*"))))
 
 (defvar main-font nil "Font used everywhere")
-(setq main-font "Fantasque Sans Mono:pixelsize=16")
+(setq main-font "FantasqueSansM Nerd Font:pixelsize=16")
 (add-to-list 'default-frame-alist
              `(font . ,main-font))
 
@@ -78,7 +78,8 @@
 
 (add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
 
-(defvar my/after-theme-load-hook '() "List of functions to run after a theme has been loaded.")
+(defvar my/after-theme-load-hook (list)
+  "List of functions to run after a theme has been loaded.")
 
 (defun my/load-theme (theme &optional no-confirm no-enable)
   "Load `theme' using LOAD-THEME, afterwards running MY-AFTER-THEME-LOAD-HOOK"
@@ -111,15 +112,15 @@
   (setq solarized-height-plus-1 1.0)
   (setq solarized-height-plus-2 1.0)
   (setq solarized-height-plus-3 1.0)
-  (setq solarized-height-plus-4 1.0)
-
-  (add-hook 'after-init-hook (lambda () (my/load-theme 'solarized-dark t))))
+  (setq solarized-height-plus-4 1.0))
 
 (leaf gruvbox-theme
   :config)
 
 (leaf nord-theme
   :config)
+
+(add-hook 'after-init-hook (lambda () (my/load-theme 'modus-vivendi t)))
 
 (defun my/frame-behaviors (&optional frame)
   "Make frame- and/or terminal-local changes."
@@ -154,7 +155,6 @@
 
 (leaf eldoc-box
   :config
-  (set-face-attribute 'eldoc-box-border nil :background "#2f6b73")
   (defun my/eldoc-hooks ()
     (interactive)
     (eldoc-box-hover-mode))
@@ -211,6 +211,17 @@
     (add-to-list 'typescript-mode-hook 'eglot-ensure)))
 
 (leaf lua-mode)
+
+(leaf ada-mode
+  :config
+  (add-hook 'ada-mode-hook (lambda () (indent-tabs-mode -1)))
+  (defun project-find-gpr-build (dir)
+    (when-let ((root (locate-dominating-file dir "build.gpr")))
+      (cons 'gpr-build root)))
+
+  (cl-defmethod project-root ((project (head gpr-build)))
+    (cdr project))
+  (add-hook 'project-find-functions #'project-find-gpr-build))
 
 (leaf yasnippet
   :setq
@@ -273,8 +284,10 @@
   :setq (cider-preferred-build-tool . 'lein)
   :config
   (define-key cider-mode-map [remap eval-last-sexp] 'cider-eval-last-sexp)
+  (define-key cider-repl-mode-map (kbd "C-c M-o") 'cider-repl-clear-buffer)
   (setq clojure-indent-style 'always-indent)
-  (setq cider-repl-display-output-before-window-boundaries t))
+  (setq cider-repl-display-output-before-window-boundaries t)
+  (setq cider-show-error-buffer t))
 
 (leaf editorconfig
   :config
@@ -496,7 +509,7 @@
               display-line-numbers-width 3)
 
 (add-to-list 'auto-mode-alist '("\\.cl\\'" . lisp-mode))
-(fringe-mode '(0 . 0))
+(fringe-mode 0)
 
 (setq ibuffer-expert t
       ibuffer-show-empty-filter-groups nil
@@ -562,6 +575,7 @@
   (add-hook 'org-mode-hook #'text-buf-wrap-setup)
   (add-hook 'text-mode-hook #'text-buf-wrap-setup)
   (add-hook 'help-mode-hook #'text-buf-wrap-setup)
+  (add-hook 'Info-mode-hook #'text-buf-wrap-setup)
 
   (leaf adaptive-wrap
     :config
