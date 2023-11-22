@@ -12,11 +12,11 @@ export MPC_FORMAT='[%artist%[ "%album%"][ ##%track%] - ]%title%'
 export DOTNET_CLI_TELEMETRY_OPTOUT=1
 
 # shellcheck source=/dev/null
-[ "$SHELL" = "/bin/bash" ] && . "$HOME/.bashrc"
+[ $(basename "$SHELL") = "bash" ] && . "$HOME/.bashrc"
 # shellcheck source=/dev/null
-[ "$SHELL" = "/bin/ksh"  ] && . "$HOME/.kshrc"
+[ $(basename "$SHELL") = "ksh"  ] && . "$HOME/.kshrc"
 # shellcheck source=/dev/null
-[ "$SHELL" = "/bin/zsh"  ] && . "$HOME/.zshrc"
+[ $(basename "$SHELL") = "zsh"  ] && . "$HOME/.zshrc"
 
 [ -d "$HOME/.local/bin" ]   && export PATH="$PATH:$HOME/.local/bin"
 [ -d "$HOME/.cargo/bin" ]   && export PATH="$PATH:$HOME/.cargo/bin"
