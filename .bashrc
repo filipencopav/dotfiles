@@ -1,7 +1,7 @@
 #!/bin/bash
 alias e="$EDITOR"
 
-alias dotconf="/usr/bin/git --git-dir=$HOME/dotfiles/ --work-tree=$HOME"
+alias dotconf="git --git-dir=$HOME/dotfiles/ --work-tree=$HOME"
 
 # youtube downloader alias
 alias youtube-dl="/usr/bin/youtube-dl -o '%(title)s.%(ext)s'"
@@ -20,11 +20,6 @@ alias mupdf='devour mupdf'
 alias zathura='devour zathura'
 alias feh='devour feh'
 alias sxiv='devour sxiv'
-
-# programming
-PROJECT_PATH="$HOME"/devel/aerosmith
-alias proj="cd $PROJECT_PATH"
-alias thinkdast="cd $HOME"/devel/thinkdast
 
 # source sh-powerline script
 source "$HOME/.bash-powerline.sh"
