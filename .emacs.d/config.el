@@ -281,13 +281,17 @@
 
 (leaf cider
   :require (t cider-eval)
-  :setq (cider-preferred-build-tool . 'lein)
   :config
   (define-key cider-mode-map [remap eval-last-sexp] 'cider-eval-last-sexp)
   (define-key cider-repl-mode-map (kbd "C-c M-o") 'cider-repl-clear-buffer)
   (setq clojure-indent-style 'always-indent)
   (setq cider-repl-display-output-before-window-boundaries t)
-  (setq cider-show-error-buffer t))
+  (setq cider-show-error-buffer t)
+  ;; do not indent single ; character
+  (add-hook 'clojure-mode-hook (lambda () (setq-local comment-column 0)))
+
+  (setq cider-clojure-cli-aliases ":dev")
+  )
 
 (leaf editorconfig
   :config
