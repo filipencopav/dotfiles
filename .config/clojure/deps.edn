@@ -1,0 +1,30 @@
+{:mvn/repos {"central" {:url "https://repo1.maven.org/maven2/"}
+             "clojars" {:url "https://repo.clojars.org/"}}
+
+ :aliases
+ {:dev {:extra-paths ["dev"]
+        :extra-deps {org.clojure/clojure {:mvn/version "1.12.0-alpha5"}}}
+
+  :test {:extra-paths ["test"]
+         :extra-deps {io.github.cognitect-labs/test-runner
+                      {:git/tag "v0.5.1" :git/sha "dfb30dd"}}
+         :main-opts ["-m" "cognitect.test-runner"]
+         :exec-fn cognitect.test-runner.api/test}
+
+  :repl/basic
+  {:extra-deps {nrepl/nrepl {:mvn/version "1.1.0"}
+                cider/cider-nrepl {:mvn/version "0.44.0"}}
+   :main-opts  ["--main" "nrepl.cmdline"
+                "--middleware" "[cider.nrepl/cider-middleware]"
+                "--interactive"]}
+
+  :repl/rebel
+  {:extra-deps {nrepl/nrepl                {:mvn/version "1.1.0"}
+                cider/cider-nrepl          {:mvn/version "0.44.0"}
+                com.bhauman/rebel-readline {:mvn/version "0.1.4"}}
+   :main-opts  ["--eval" "(apply require clojure.main/repl-requires)"
+                "--main" "nrepl.cmdline"
+                "--middleware" "[cider.nrepl/cider-middleware]"
+                "--interactive"
+                "-f" "rebel-readline.main/-main"]}
+  }}
