@@ -100,3 +100,8 @@ Retart httpd.service and mariadb.service
 I don't know if these change anything, but I get a stupid error so I did:
 1. Rename php-config-sample.php into php-config.php
 2. Edit php-config.php, change db name to ~wordpress~, change user name to ~wp-user~, change password to ~choose_db_password~.
+
+* Migrate ~pass~ to another device
+Put ~.password-store/~ into the other device's user directory.
+
+Put the contents of ~.gnupg/~ (or ~.config/gnupg/~) into ~.gnupg/~ (or ~config/gnupg/~). If you use the ~.config/...~ variant, make sure XDG_CONFIG_DIR is set, or it will not find the secret keys. The contents of ~.password-store~ you can share anywhere. The contents of ~.gnupg/~ should never be shared, whatever the circumstance, because you'll give away access to your passwords.
