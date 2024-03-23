@@ -18,6 +18,7 @@ export DOTNET_CLI_TELEMETRY_OPTOUT=1
 # shellcheck source=/dev/null
 [ $(basename "$SHELL") = "zsh"  ] && . "$HOME/.zshrc"
 
+[ -d "$HOME/.local/python/bin" ] && export PATH="$HOME/.local/python/bin:$PATH"
 [ -d "$HOME/.local/bin" ]   && export PATH="$PATH:$HOME/.local/bin"
 [ -d "$HOME/.cargo/bin" ]   && export PATH="$PATH:$HOME/.cargo/bin"
 [ -d "$HOME/.roswell/bin" ] && export PATH="$PATH:$HOME/.roswell/bin"
@@ -40,17 +41,21 @@ export TERMINFO="$XDG_DATA_HOME"/terminfo
 export WINEPREFIX="$HOME"/games/dummy
 export WEECHAT_HOME="$XDG_CONFIG_HOME"/weechat
 
-# wayland stuff
-# export MOZ_ENABLE_WAYLAND=1
-# export QT_QPA_PLATFORM=wayland
-# export XDG_SESSION_TYPE=wayland
+export USING_WAYLAND=yes
+if [ "$USING_WAYLAND" == "yes" ]; then
+    export MOZ_ENABLE_WAYLAND=1
+    export QT_QPA_PLATFORM=wayland
+    export XDG_SESSION_TYPE=wayland
+fi
 
 # river (wayland) keyboard stuff
 export XKB_DEFAULT_LAYOUT="ro,ru"
 export XKB_DEFAULT_OPTIONS="caps:escape,grp:alt_caps_toggle"
 
+export START_XORG=no
+
 date
 
-if [ "$(tty)" = "/dev/tty1" ] ; then
+if [ "$(tty)" = "/dev/tty1" ] && [ "$START_XORG" == "yes" ]; then
     exec startx
 fi
