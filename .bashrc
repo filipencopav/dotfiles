@@ -4,8 +4,8 @@ alias e="$EDITOR"
 alias dotconf="git --git-dir=$HOME/dotfiles/ --work-tree=$HOME"
 
 # youtube downloader alias
-alias youtube-dl="/usr/bin/youtube-dl -o '%(title)s.%(ext)s'"
-alias audio-dl='youtube-dl -ic -x -f bestaudio/best'
+alias youtube-dl="/usr/bin/yt-dlp -o '%(title)s.%(ext)s'"
+alias audio-dl='yt-dlp -ic -x -f bestaudio/best'
 
 # QOL basic system navigation commands
 alias rm='rm -Iv'
