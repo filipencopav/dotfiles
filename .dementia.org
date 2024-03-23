@@ -104,4 +104,46 @@ I don't know if these change anything, but I get a stupid error so I did:
 * Migrate ~pass~ to another device
 Put ~.password-store/~ into the other device's user directory.
 
-Put the contents of ~.gnupg/~ (or ~.config/gnupg/~) into ~.gnupg/~ (or ~config/gnupg/~). If you use the ~.config/...~ variant, make sure XDG_CONFIG_DIR is set, or it will not find the secret keys. The contents of ~.password-store~ you can share anywhere. The contents of ~.gnupg/~ should never be shared, whatever the circumstance, because you'll give away access to your passwords.
+Put the contents of ~.gnupg/~ (or ~.config/gnupg/~) into ~.gnupg/~ (or ~config/gnupg/~). If you use the ~.config/...~ variant, make sure ~XDG_CONFIG_DIR~ is set, or it will not find the secret keys. The contents of ~.password-store~ you can share anywhere. The contents of ~.gnupg/~ should never be shared, whatever the circumstance, because you'll give away access to your passwords.
+
+* Postgresql
+First, install postgres (~pacman -S postgresql postgresql-old-upgrade~).
+** Init postgres
+#+begin_src sh
+[postgres]$ initdb -D /var/lib/postgres/data
+#+end_src
+
+~/var/lib/postgres/data~ can be any directory, but the owner must be the ~postgres~ user. TODO: more postgres user details?
+
+** Create first user
+#+begin_src sh
+  [postgres]$ createuser --interactive
+  [postgres]$ createdb <username>
+#+end_src
+
+** Give owner privileges to user
+#+begin_src sh
+  [postgres]$ psql
+  psql (16.1)
+  Type "help" for help.
+
+  postgres=# ALTER DATABASE <username> OWNER TO <username>;
+  ALTER DATABASE
+  postgres=# exit
+#+end_src
+
+** Configure local users' privileges
+In ~pg_hba.conf~, write these lines:
+#+begin_src conf
+  # ..................
+
+  # TYPE  DATABASE        USER            ADDRESS                 METHOD
+  # "local" is for Unix domain socket connections only
+  local   samerole        all                                     trust
+
+  # ..................
+#+end_src
+
+This will ensure that when you connect with your db user, you will automatically get connected to that user's db correspondingly. For example with ~psql -U <username>~ you will instantly get access to the same db. Happy development.
+
+** TODO Migrate to a new version
