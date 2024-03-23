@@ -120,7 +120,7 @@
 (leaf nord-theme
   :config)
 
-(add-hook 'after-init-hook (lambda () (my/load-theme 'modus-vivendi t)))
+(add-hook 'after-init-hook (lambda () (my/load-theme 'modus-operandi t)))
 
 (defun my/frame-behaviors (&optional frame)
   "Make frame- and/or terminal-local changes."
@@ -157,7 +157,7 @@
   :config
   (defun my/eldoc-hooks ()
     (interactive)
-    (eldoc-box-hover-mode))
+    (eldoc-box-hover-at-point-mode))
   (add-hook 'eldoc-mode-hook 'my/eldoc-hooks))
 
 (leaf eglot)
@@ -249,19 +249,22 @@
   (setq dashboard-startup-banner
         (expand-file-name "~/.emacs.d/emacs-splash.png")))
 
-(setq initial-scratch-message
-      ";; USAGE GUIDE
-;; 1) Open files with File->Visit File
-;; 2) Standard editor movement keys up down left right, etc. advanced commands in the menu bar
-")
+(setq initial-scratch-message "# Org mode scratch buf\n\n"
+      initial-major-mode 'org-mode)
 
-(defun my/generate-sbcl-image ()
+(defvar *sly-image-location*
+  (expand-file-name "~/.emacs.d/lisp/sbcl.core-for-sly"))
+
+(defun my/generate-sly-image ()
   (interactive)
-  (let ((location (expand-file-name "~/.emacs.d/swank/sbcl.core-for-slime")))
-    (delete-file location)
-    (shell-command
-     (format "sbcl --eval \"(progn (mapc 'require '(sb-bsd-sockets sb-posix sb-introspect sb-cltl2 asdf)) (save-lisp-and-die \\\"%s\\\"))\""
-             location))))
+  (shell-command
+   (format
+   "sbcl \\
+--eval \"(mapc 'require '(sb-bsd-sockets sb-posix sb-introspect sb-cltl2 asdf))\" \\
+--load %s \\
+--eval '(slynk-loader:dump-image \"%s\")'"
+   (expand-file-name "~/.emacs.d/sly/slynk/slynk-loader.lisp")
+   *sly-image-location*)))
 
 (defun my/set-sly-mrepl-faces ()
   (let ((string-fg (face-attribute 'font-lock-string-face :foreground))
@@ -269,15 +272,31 @@
     (set-face-attribute 'sly-mrepl-note-face nil :foreground comment-fg)
     (set-face-attribute 'sly-mrepl-output-face nil :foreground string-fg)))
 
-(leaf slime
+(leaf sly
   :setq
   (inferior-lisp-program . "sbcl")
-  (slime-lisp-implementations . `((sbcl ("sbcl" "--core" ,(expand-file-name "~/.emacs.d/swank/sbcl.core-for-slime")))))
-  (slime-truncate-lines . nil)
-  (slime-net-coding-system . 'utf-8-unix)
+  (sly-lisp-implementations
+   .
+   `((sbcl ("sbcl" "--core" ,*sly-image-location*)
+           :init (lambda (port-file _)
+                   (format "(slynk:start-server %S)\n"
+                           port-file)))))
+  (sly-truncate-lines . nil)
+  (sly-net-coding-system . 'utf-8-unix)
   :config
-  (define-key slime-mode-map [remap eval-last-sexp] 'slime-eval-last-expression)
-  (define-key slime-mode-map [remap eval-last-sexp] 'slime-eval-last-expression))
+  (with-eval-after-load 'sly-mrepl
+    (define-key sly-mrepl-mode-map [remap eval-last-sexp] 'sly-eval-last-expression))
+  (define-key sly-mode-map [remap eval-last-sexp] 'sly-eval-last-expression))
+
+;; (leaf slime
+;;   :setq
+;;   (inferior-lisp-program . "sbcl")
+;;   (slime-lisp-implementations . `((sbcl ("sbcl" "--core" ,(expand-file-name "~/.emacs.d/swank/sbcl.core-for-slime")))))
+;;   (slime-truncate-lines . nil)
+;;   (slime-net-coding-system . 'utf-8-unix)
+;;   :config
+;;   (define-key slime-mode-map [remap eval-last-sexp] 'slime-eval-last-expression)
+;;   (define-key slime-mode-map [remap eval-last-sexp] 'slime-eval-last-expression))
 
 (leaf cider
   :require (t cider-eval)
@@ -361,20 +380,21 @@
       (make-directory pub-dir))))
 
 (setq org-html-head-include-default-style nil)
-(add-to-list 'org-latex-packages-alist '("AUTO" "babel" t ("xelatex" "pdflatex")))
+(setq org-latex-compilers '("tectonic" "pdflatex" "xelatex" "lualatex"))
+(add-to-list 'org-latex-packages-alist '("AUTO" "babel" t ("tectonic" "xelatex" "pdflatex")))
 (add-to-list 'org-latex-packages-alist '("cache=false" "minted" t ("xelatex")))
-(add-to-list 'org-latex-packages-alist '("" "titling" t ("xelatex" "pdflatex")))
-(add-to-list 'org-latex-packages-alist '("" "graphicx" t ("xelatex")))
-(add-to-list 'org-latex-packages-alist '("" "setspace" t ("xelatex")))
-(add-to-list 'org-latex-packages-alist '("" "footmisc" t ("xelatex")))
-(add-to-list 'org-latex-packages-alist '("" "fontspec" t ("xelatex")))
-(add-to-list 'org-latex-packages-alist '("margin=2.5cm" "geometry" t ("xelatex")))
-(add-to-list 'org-latex-packages-alist (list "" "parskip" t org-latex-compilers))
+(add-to-list 'org-latex-packages-alist '("" "titling" t ("tectonic" "xelatex" "pdflatex")))
+(add-to-list 'org-latex-packages-alist '("" "graphicx" t ("tectonic" "xelatex")))
+(add-to-list 'org-latex-packages-alist '("" "setspace" t ("tectonic" "xelatex")))
+(add-to-list 'org-latex-packages-alist '("" "footmisc" t ("tectonic" "xelatex")))
+(add-to-list 'org-latex-packages-alist '("" "fontspec" t ("tectonic" "xelatex")))
+(add-to-list 'org-latex-packages-alist '("margin=2.5cm" "geometry" t ("tectonic" "xelatex")))
+(add-to-list 'org-latex-packages-alist (list "" "parskip" t '("tectonic" . org-latex-compilers)))
 
 (setq org-latex-title-command nil
-      org-latex-listings 'minted
-      org-latex-compiler "xelatex"
-      org-latex-pdf-process '("xelatex -shell-escape -interaction nonstopmode -output-directory %o %f")
+      org-latex-listings 'listings
+      org-latex-compiler "tectonic"
+      org-latex-pdf-process '("tectonic --outdir %o %f")
       org-latex-minted-options '(("breaklines" "true") ("breakanywhere" "true") ("breaksymbolleft" "\\null"))
       org-adapt-indentation nil
       org-startup-truncated nil
@@ -414,9 +434,12 @@
       '(("f" "Fleeting note" plain (file "~/.emacs.d/org/agenda/notes.org")
          "%i\n%?" :empty-lines-before 1)
         ("t" "Org agenda TODO entry" entry (file "~/.emacs.d/org/agenda/agenda.org")
+         "* TODO %?\n" :empty-lines-before 1)
+        ("k" "Organizational TODO entry" entry (file "~/.emacs.d/org/agenda/komm.org")
          "* TODO %?\n" :empty-lines-before 1)))
+
 (setq org-todo-keywords
-      (quote ((sequence "TODO" "DOING" "|" "DONE" "CANCELLED" "SUSPENDED"))))
+      '((sequence "TODO" "|" "DONE" "CANCELLED" "SUSPENDED")))
 
 ;; UTF-8 as default encoding
 (set-language-environment "UTF-8")
@@ -555,7 +578,11 @@
 
 (my/add-hooks
   ((lisp-mode-hook scheme-mode-hook emacs-lisp-mode-hook clojure-mode-hook)
-     (setq tab-width 2 indent-tabs-mode nil fill-column 100))
+   (setq indent-tabs-mode nil fill-column 100))
+  ((lisp-mode-hook scheme-mode-hook clojure-mode-hook)
+   (setq tab-width 2))
+  (emacs-lisp-mode-hook
+   (setq tab-width 8))
   (before-save-hook
      (unless (eq major-mode 'markdown-mode)
        (delete-trailing-whitespace)))
