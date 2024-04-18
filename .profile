@@ -4,13 +4,6 @@
 # Source /etc/profile
 [ -f /etc/profile ] && . /etc/profile
 
-export CC='gcc'
-export EDITOR='mg'
-export TERMINAL='st'
-export BROWSER='chromium'
-export MPC_FORMAT='[%artist%[ "%album%"][ ##%track%] - ]%title%'
-export DOTNET_CLI_TELEMETRY_OPTOUT=1
-
 # shellcheck source=/dev/null
 [ $(basename "$SHELL") = "bash" ] && . "$HOME/.bashrc"
 # shellcheck source=/dev/null
@@ -18,39 +11,26 @@ export DOTNET_CLI_TELEMETRY_OPTOUT=1
 # shellcheck source=/dev/null
 [ $(basename "$SHELL") = "zsh"  ] && . "$HOME/.zshrc"
 
-[ -d "$HOME/.local/python/bin" ] && export PATH="$HOME/.local/python/bin:$PATH"
-[ -d "$HOME/.local/bin" ]   && export PATH="$PATH:$HOME/.local/bin"
-[ -d "$HOME/.cargo/bin" ]   && export PATH="$PATH:$HOME/.cargo/bin"
-[ -d "$HOME/.roswell/bin" ] && export PATH="$PATH:$HOME/.roswell/bin"
-[ -d "$HOME/.cache" ]       && export XDG_CACHE_HOME="$HOME/.cache"
-[ -d "$HOME/.config" ]      && export XDG_CONFIG_HOME="$HOME/.config"
-
-[ -d "$HOME/.local/share/info" ] &&
-    export INFOPATH="$HOME/.local/share/info:$INFOPATH"
-
-which go >/dev/null 2>/dev/null &&
-    mkdir -p "$HOME/devel/go" &&
-    export GOPATH="$HOME/devel/go" &&
-    export PATH="$PATH:$GOPATH/bin"
-
-
-export GNUPGHOME="$XDG_CONFIG_HOME/gnupg"
-export LESSHISTFILE="-"
-export MPLAYER_HOME="$XDG_CONFIG_HOME"/mplayer
-export TERMINFO="$XDG_DATA_HOME"/terminfo
-export WINEPREFIX="$HOME"/games/dummy
-export WEECHAT_HOME="$XDG_CONFIG_HOME"/weechat
+export $(run-parts /usr/lib/systemd/user-environment-generators | xargs -
+0)
 
 export USING_WAYLAND=yes
 if [ "$USING_WAYLAND" == "yes" ]; then
     export MOZ_ENABLE_WAYLAND=1
     export QT_QPA_PLATFORM=wayland
     export XDG_SESSION_TYPE=wayland
+    # https://wiki.archlinux.org/title/wayland#Requirements
+    # > To force GBM as a backend, set the following environment variables:
+    GBM_BACKEND=nvidia-drm
+    __GLX_VENDOR_LIBRARY_NAME=nvidia
 fi
 
-# river (wayland) keyboard stuff
-export XKB_DEFAULT_LAYOUT="ro,ru"
-export XKB_DEFAULT_OPTIONS="caps:escape,grp:alt_caps_toggle"
+# wayland keyboard stuff
+export USING_GNOME="yes"
+if [ "$USING_GNOME" == "no" ]; then
+    export XKB_DEFAULT_LAYOUT="ro,ru"
+    export XKB_DEFAULT_OPTIONS="caps:escape,grp:alt_caps_toggle"
+fi
 
 export START_XORG=no
 
