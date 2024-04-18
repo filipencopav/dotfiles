@@ -18,7 +18,13 @@
   (setq leaf-defaults '(:require t :ensure t))
 
   (leaf leaf-keywords))
+
 ;;; leaf-install-code
 
-(load-file "~/.emacs.d/config.el")
+(defvar *emacs-config-location*
+  (expand-file-name "emacs" (getenv "XDG_CONFIG_HOME")))
+(defvar *config.el-location*
+  (expand-file-name "config.el" *emacs-config-location*))
+
+(load-file *config.el-location*)
 (xah-fly-keys)

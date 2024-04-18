@@ -8,17 +8,15 @@
                          (if (listp (car pair)) (car pair) (list (car pair)))))
                pairs)))
 
-(defvar my/config-path "~/.emacs.d/config.el")
-
 (defun config-edit ()
   "Find config.org"
   (interactive)
-  (find-file my/config-path))
+  (find-file *config.el-location*))
 
 (defun config-reload ()
   "Reload the configuration file"
   (interactive)
-  (load-file my/config-path))
+  (load-file *config.el-location*))
 
 (defun my/close-help-or-xah-close-current-buffer ()
   "If currently in a *Help* buffer, bury it and delete the window. Otherwise, xah-close-current-buffer"
@@ -41,8 +39,10 @@
   (define-key xah-fly-leader-key-map (kbd "z") my/z-map)
   (define-key xah-fly-leader-key-map (kbd "u") 'my/close-help-or-xah-close-current-buffer))
 
+(xah-fly-keys)
+
 (eval-when-compile
-  (add-to-list 'load-path (expand-file-name "~/.emacs.d/elisp/"))
+  (add-to-list 'load-path (expand-file-name "elisp" *emacs-config-location*))
   (require 'org-element)
   (require 'org-tempo)
   (require 'org)
@@ -66,17 +66,17 @@
 ;;          (:name help :buffer "*Help*"))))
 
 (defvar main-font nil "Font used everywhere")
-(setq main-font "FantasqueSansM Nerd Font:pixelsize=16")
+(setq main-font "FantasqueSansM Nerd Font:pixelsize=14:antialias=true")
 (add-to-list 'default-frame-alist
              `(font . ,main-font))
 
 (defun my/apply-emoji-font ()
-    (set-fontset-font t 'emoji (font-spec :family "Apple Color Emoji" :size 13) nil 'prepend))
-  (add-hook 'server-after-make-frame-hook #'my/apply-emoji-font)
+  (set-fontset-font t 'emoji (font-spec :family "Apple Color Emoji" :size 13) nil 'prepend))
+(add-hook 'server-after-make-frame-hook #'my/apply-emoji-font)
 
 (add-hook 'server-after-make-frame-hook 'my/apply-emoji-font)
 
-(add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
+(add-to-list 'custom-theme-load-path (expand-file-name "themes" *emacs-config-location*))
 
 (defvar my/after-theme-load-hook (list)
   "List of functions to run after a theme has been loaded.")
@@ -223,12 +223,11 @@
     (cdr project))
   (add-hook 'project-find-functions #'project-find-gpr-build))
 
-(leaf yasnippet
-  :setq
-  (yas-snippet-dirs . '("~/.emacs.d/snippets"))
+(kill-new (format "%s" (macroexpand-all '(leaf yasnippet
   :hook (prog-mode-hook . yas-minor-mode)
   :config
-  (yas-reload-all))
+  (setq yas-snippet-dirs (expand-file-name "snippets" *emacs-config-location*))
+  (yas-reload-all)))))
 
 (defun my/choose-initial-buffer ()
   (if (get-buffer-window "*dashboard*" 'visible)
@@ -247,13 +246,13 @@
   :config
   ;; (dashboard-setup-startup-hook)
   (setq dashboard-startup-banner
-        (expand-file-name "~/.emacs.d/emacs-splash.png")))
+        (expand-file-name "emacs-splash.png" *emacs-config-location*)))
 
 (setq initial-scratch-message "# Org mode scratch buf\n\n"
       initial-major-mode 'org-mode)
 
 (defvar *sly-image-location*
-  (expand-file-name "~/.emacs.d/lisp/sbcl.core-for-sly"))
+  (expand-file-name "lisp/sbcl.core-for-sly" *emacs-config-location*))
 
 (defun my/generate-sly-image ()
   (interactive)
@@ -263,7 +262,7 @@
 --eval \"(mapc 'require '(sb-bsd-sockets sb-posix sb-introspect sb-cltl2 asdf))\" \\
 --load %s \\
 --eval '(slynk-loader:dump-image \"%s\")'"
-   (expand-file-name "~/.emacs.d/sly/slynk/slynk-loader.lisp")
+   (expand-file-name "sly/slynk/slynk-loader.lisp" *emacs-config-location*)
    *sly-image-location*)))
 
 (defun my/set-sly-mrepl-faces ()
@@ -291,7 +290,7 @@
 ;; (leaf slime
 ;;   :setq
 ;;   (inferior-lisp-program . "sbcl")
-;;   (slime-lisp-implementations . `((sbcl ("sbcl" "--core" ,(expand-file-name "~/.emacs.d/swank/sbcl.core-for-slime")))))
+;;   (slime-lisp-implementations . `((sbcl ("sbcl" "--core" ,(expand-file-name "swank/sbcl.core-for-slime" *emacs-config-location*)))))
 ;;   (slime-truncate-lines . nil)
 ;;   (slime-net-coding-system . 'utf-8-unix)
 ;;   :config
@@ -399,7 +398,7 @@
       org-adapt-indentation nil
       org-startup-truncated nil
       org-latex-images-centered t
-      org-agenda-files (file-expand-wildcards "~/.emacs.d/org/agenda/*.org"))
+      org-agenda-files (file-expand-wildcards (expand-file-name "org/agenda/*.org" *emacs-config-location*)))
 
 (leaf org-bullets
   :custom
@@ -422,7 +421,7 @@
 ;;   :custom
 ;;   (org-roam-complete-everywhere . t)
 ;;   :config
-;;   (setq org-roam-directory (file-truename "~/.emacs.d/org/roam/"))
+;;   (setq org-roam-directory (file-truename (expand-file-name "org/roam/" *emacs-config-location*))
 ;;   (define-prefix-command 'my/org-roam-commands)
 ;;   (define-key my/org-roam-commands (kbd "f") 'org-roam-node-find)
 ;;   (define-key my/org-roam-commands (kbd "i") 'org-roam-node-insert)
@@ -431,11 +430,11 @@
 ;;   (org-roam-setup))
 
 (setq org-capture-templates
-      '(("f" "Fleeting note" plain (file "~/.emacs.d/org/agenda/notes.org")
+      `(("f" "Fleeting note" plain (file ,(expand-file-name "org/agenda/notes.org" *emacs-config-location*))
          "%i\n%?" :empty-lines-before 1)
-        ("t" "Org agenda TODO entry" entry (file "~/.emacs.d/org/agenda/agenda.org")
+        ("t" "Org agenda TODO entry" entry (file ,(expand-file-name "org/agenda/agenda.org" *emacs-config-location*))
          "* TODO %?\n" :empty-lines-before 1)
-        ("k" "Organizational TODO entry" entry (file "~/.emacs.d/org/agenda/komm.org")
+        ("k" "Organizational TODO entry" entry (file ,(expand-file-name "org/agenda/komm.org" *emacs-config-location*))
          "* TODO %?\n" :empty-lines-before 1)))
 
 (setq org-todo-keywords
@@ -462,7 +461,7 @@
   (let ((fill-column (point-max)))
     (fill-region beg end)))
 
-(setq common-lisp-hyperspec-root (concat "file:///" (expand-file-name "~/.emacs.d/clhs/")))
+(setq common-lisp-hyperspec-root (concat "file:///" (expand-file-name "clhs/" *emacs-config-location*)))
 
 (defun my/eww-browser-bind-advice (original-function &rest args)
   "Binds EWW as the local browser to do whatever browsing is required."
@@ -536,18 +535,18 @@
               display-line-numbers-width 3)
 
 (add-to-list 'auto-mode-alist '("\\.cl\\'" . lisp-mode))
-(fringe-mode 0)
+(fringe-mode 1)
 
 (setq ibuffer-expert t
       ibuffer-show-empty-filter-groups nil
       ibuffer-saved-filter-groups
-      '(("default"
+      `(("default"
          ("lisp" (or
                   (mode . lisp-mode)
                   (mode . scheme-mode)
                   (mode . emacs-lisp-mode)))
          ("org agenda"
-          (filename . ".emacs.d/org/agenda/"))
+          (filename . ,(expand-file-name "org/agenda/" *emacs-config-location*)))
          ("org" (or (mode . org-mode)
                     (name . "\\*Org Src.*\\*")))
          ("emacs" (name . "^\\*.*\\*$"))
@@ -569,8 +568,8 @@
 
 (blink-cursor-mode)
 
-(setq custom-file "~/.emacs.d/custom.el")
-(load "~/.emacs.d/custom.el")
+(setq custom-file (expand-file-name "custom.el" *emacs-config-location*))
+(load custom-file)
 
 (setq completion-auto-help 'lazy)
 
