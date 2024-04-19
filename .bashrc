@@ -15,6 +15,9 @@ alias ls='ls -hN --color=auto --group-directories-first'
 alias ll='ls --color=auto -l -a'
 alias 'update-grub'='grub-mkconfig -o /boot/grub/grub.cfg'
 
+alias nvidia-settings="nvidia-settings --config=${XDG_CONFIG_HOME}/nvidia/settings"
+alias wget=wget --hsts-file="$XDG_DATA_HOME/wget-hsts"
+
 # devour aliases
 alias mupdf='devour mupdf'
 alias zathura='devour zathura'
@@ -26,5 +29,7 @@ source "$HOME/.bash-powerline.sh"
 
 export HISTCONTROL=erasedups
 export HISTIGNORE="clear:ls:history"
+export HISTFILE="${XDG_STATE_HOME}/bash/history"
+export MPC_FORMAT='[%artist%[ "%album%"][ ##%track%] - ]%title%'
 
 complete -cf doas
