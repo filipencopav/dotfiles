@@ -157,7 +157,7 @@
   :config
   (defun my/eldoc-hooks ()
     (interactive)
-    (eldoc-box-hover-at-point-mode))
+    (eldoc-box-hover-mode))
   (add-hook 'eldoc-mode-hook 'my/eldoc-hooks))
 
 (leaf eglot)
@@ -223,11 +223,11 @@
     (cdr project))
   (add-hook 'project-find-functions #'project-find-gpr-build))
 
-(kill-new (format "%s" (macroexpand-all '(leaf yasnippet
+(leaf yasnippet
   :hook (prog-mode-hook . yas-minor-mode)
   :config
-  (setq yas-snippet-dirs (expand-file-name "snippets" *emacs-config-location*))
-  (yas-reload-all)))))
+  (setq yas-snippet-dirs (list (expand-file-name "snippets" *emacs-config-location*)))
+  (yas-reload-all))
 
 (defun my/choose-initial-buffer ()
   (if (get-buffer-window "*dashboard*" 'visible)
@@ -344,18 +344,42 @@
   (completion-category-overrides . '((file (styles partial-completion)))))
 
 (defun my/replace-mhtml (cons)
-  (if (eq (cdr cons) 'mhtml-mode)
+  (if (member (cdr cons) '(mhtml-mode))
       (cons (car cons) 'web-mode)
     cons))
 
+(defun my/web-mode-hooks ()
+  "Hooks for Web mode."
+  )
+
 (leaf web-mode
-  :setq
-  (web-mode-markup-indent-offset . 2)
-  (web-mode-css-indent-offset . 2)
-  (web-mode-code-indent-offset . 2)
   :config
   (setq auto-mode-alist (mapcar #'my/replace-mhtml auto-mode-alist))
-  (add-to-list 'auto-mode-alist '("\\.php\\'" . web-mode)))
+  (setq web-mode-auto-close-style 2)
+
+  (setq web-mode-markup-indent-offset  2)
+  (setq web-mode-css-indent-offset     2)
+
+  (setq web-mode-enable-auto-pairing   t)
+  (setq web-mode-enable-auto-closing   t)
+  (setq web-mode-enable-auto-indentation t)
+
+  (setq web-mode-markup-indent-offset  2)
+  (setq web-mode-css-indent-offset     2)
+  (setq web-mode-code-indent-offset    2)
+  (setq web-mode-enable-current-element-highlight t)
+
+  (add-to-list 'auto-mode-alist '("\\.phtml\\'" . web-mode))
+  (add-to-list 'auto-mode-alist '("\\.tpl\\.php\\'" . web-mode))
+  (add-to-list 'auto-mode-alist '("\\.[agj]sp\\'" . web-mode))
+  (add-to-list 'auto-mode-alist '("\\.as[cp]x\\'" . web-mode))
+  (add-to-list 'auto-mode-alist '("\\.erb\\'" . web-mode))
+  (add-to-list 'auto-mode-alist '("\\.mustache\\'" . web-mode))
+  (add-to-list 'auto-mode-alist '("\\.djhtml\\'" . web-mode))
+  (add-to-list 'auto-mode-alist '("\\.php\\'" . web-mode))
+  (add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
+  (add-to-list 'auto-mode-alist '("\\.scss\\'" . web-mode))
+  (add-hook 'web-mode-hook 'my/web-mode-hooks))
 
 (defalias 'yes-or-no-p 'y-or-n-p)
 
@@ -623,3 +647,15 @@
 (defun my/lisp-indent-function (indent-point state))
 
 (setq lisp-indent-function 'lisp-indent-function)
+
+(leaf languagetool
+  :config
+  (setq languagetool-java-arguments
+        '("-Dfile.encoding=UTF-8"
+          "-cp" "/usr/share/languagetool:/usr/share/java/languagetool/*")
+
+        languatetool-console-command
+        "/usr/share/java/languagetool/languagetool-commandline.jar"
+
+        languagetool-server-command
+        "/usr/share/java/languagetool/languagetool-server.jar"))
