@@ -11,7 +11,9 @@
 # shellcheck source=/dev/null
 [ $(basename "$SHELL") = "zsh"  ] && . "$HOME/.zshrc"
 
-export $(run-parts /usr/lib/systemd/user-environment-generators | xargs -0)
+export $(run-parts /usr/lib/systemd/user-environment-generators |
+             sed '/:$/d; /^$/d;' |
+             xargs -0)
 
 export USING_WAYLAND=yes
 if [ "$USING_WAYLAND" == "yes" ]; then
