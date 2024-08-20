@@ -50,6 +50,98 @@
   (require 'ox-md)
   (require 'window-layout))
 
+(leaf org
+  :custom
+  (org-babel-load-languages . '((emacs-lisp . t) (lisp . t)))
+  (org-todo-keywords . '((sequence "TODO" "|" "DONE" "CANCELLED" "SUSPENDED")))
+  ((org-confirm-babel-evaluate
+    org-capture-bookmark
+    org-link-descriptive
+    org-html-head-include-default-style
+    org-latex-title-command
+    org-adapt-indentation
+    org-startup-truncated)
+   . nil)
+  ((org-latex-images-centered) . t)
+  (org-src-window-setup . 'current-window)
+  (org-latex-listings . 'listings)
+  (org-latex-compiler . "tectonic")
+  (org-latex-pdf-process . '("tectonic --outdir %o %f"))
+  (org-latex-minted-options . '(("breaklines" "true")
+                                ("breakanywhere" "true")
+                                ("breaksymbolleft" "\\null")))
+  (org-agenda-files . `',(file-expand-wildcards
+                          (expand-file-name
+                           "org/agenda/*.org"
+                           *emacs-config-location*)))
+  (org-capture-templates
+   .
+   `(("f" "Fleeting note" plain
+      (file ,(expand-file-name "org/agenda/notes.org" *emacs-config-location*))
+      "%i\n%?" :empty-lines-before 1)
+
+     ("t" "Org agenda TODO entry" entry
+      (file ,(expand-file-name "org/agenda/agenda.org" *emacs-config-location*))
+      "* TODO %?\n" :empty-lines-before 1)
+
+     ("k" "Organizational TODO entry" entry
+      (file ,(expand-file-name "org/agenda/komm.org" *emacs-config-location*))
+      "* TODO %?\n" :empty-lines-before 1)))
+
+  :config
+  (add-to-list 'org-modules 'org-tempo)
+  (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
+
+  (defadvice org-export-output-file-name (before org-add-export-dir activate)
+    "Modifies org-export to place exported files in a different directory"
+    (when (not pub-dir)
+      (setq pub-dir "exported-org-files")
+      (when (not (file-directory-p pub-dir))
+        (make-directory pub-dir))))
+
+  (setq org-latex-compilers '("tectonic" "pdflatex" "xelatex" "lualatex"))
+  (dolist (pkg (list '("AUTO" "babel" t ("tectonic" "xelatex" "pdflatex"))
+                     '("cache=false" "minted" t ("xelatex"))
+                     '("" "titling" t ("tectonic" "xelatex" "pdflatex"))
+                     '("" "graphicx" t ("tectonic" "xelatex"))
+                     '("" "setspace" t ("tectonic" "xelatex"))
+                     '("" "footmisc" t ("tectonic" "xelatex"))
+                     '("" "fontspec" t ("tectonic" "xelatex" "lualatex"))
+                     '("margin=2.5cm" "geometry" t ("tectonic" "xelatex"))
+                     `("" "parskip" t ,org-latex-compilers)
+                     `("" "listings" t ,org-latex-compilers)))
+    (add-to-list 'org-latex-packages-alist pkg))
+
+  (advice-add 'org-agenda-quit :before 'org-save-all-org-buffers))
+
+(leaf org-contrib
+  :after (org))
+
+(leaf org-bullets
+  :after (org)
+  :custom
+  ;; Default: '("◉" "○" "✸" "✿")
+  ;; Second:  '("*" "●" "○" "·")
+  ;; Third:   '("●" "*" "•" "·")
+  ;; ♥ ● ◇ ✚ ✜ ☯ ◆ ♠ ♣ ♦ ☢ ❀ ◆ ◖ ▶
+  ;; ►  ★ ▸
+  (org-bullets-bullet-list . '("●" "*" "•" "·"))
+  :hook (org-mode-hook . org-bullets-mode))
+
+;; (leaf org-roam
+;;   :pre-setq (org-roam-v2-ack . t)
+;;   :custom
+;;   (org-roam-complete-everywhere . t)
+;;   :config
+;;   (setq org-roam-directory (file-truename (expand-file-name "org/roam/" *emacs-config-location*))
+;;   (define-prefix-command 'my/org-roam-commands)
+;;   (define-key my/org-roam-commands (kbd "f") 'org-roam-node-find)
+;;   (define-key my/org-roam-commands (kbd "i") 'org-roam-node-insert)
+;;   (define-key my/org-roam-commands (kbd "j") 'org-capture)
+;;   (define-key my/z-map (kbd "n") my/org-roam-commands)
+;;   (org-roam-setup))
+
+
 ;; https://github.com/kiwanami/emacs-window-layout
 ;; (setq wm
 ;;       (wlf:layout
@@ -161,8 +253,9 @@
   (add-hook 'eldoc-mode-hook 'my/eldoc-hooks))
 
 (leaf eglot)
+
 (leaf rustic
-  :after (eglot)
+  :after eglot
   :mode ("\\.rs\\'" . rustic-mode)
   :bind (:rustic-mode-map
          ("M-j" . eglot-imenu)
@@ -184,22 +277,51 @@
     (setq-local syntax-propertize-function nil))
   (add-hook 'rustic-mode-hook 'my/rustic-functions))
 
-(leaf go-mode
-  :require (t project)
+(leaf scala-ts-mode
+  :after (eglot treesit-auto)
+  :interpreter ("scala" . scala-ts-mode)
+  :hook (scala-ts-mode . eglot-ensure)
   :config
+  (add-to-list 'eglot-server-programs '(scala-ts-mode "metals-emacs"))
+  (setq-default eglot-workspace-configuration
+                (plist-put eglot-workspace-configuration
+                           :metals
+                           '(:superMethodLensesEnabled t :showInferredType t))))
+
+(leaf sbt-mode
+  :commands (sbt-start sbt-command)
+  :config
+  (setq sbt:program-options '("-Dsbt.supershell=false")))
+
+(leaf reformatter)
+(leaf go-ts-mode
+  :after (reformatter)
+  :require (t project reformatter)
+  :hook
+  (go-ts-mode-hook . eglot-ensure)
+  (go-ts-mode-hook . gofmt-on-save-mode)
+  (go-ts-mode-hook . goimports-on-save-mode)
+  :init
+  (add-to-list 'major-mode-remap-alist '(go-mode . go-ts-mode))
+  (add-to-list 'major-mode-remap-alist '(go-dot-mod-mode . go-mod-ts-mode))
+  :custom
+  (go-ts-mode-indent-offset . 4)
+  :config
+  (reformatter-define gofmt
+    :program "gofmt"
+    :lighter "GoFmt"
+    :group 'go-format)
+  (reformatter-define goimports
+    :program "goimports"
+    :lighter "GoImp"
+    :group 'go-format)
+
   (defun project-find-go-module (dir)
     (when-let ((root (locate-dominating-file dir "go.mod")))
       (cons 'go-module root)))
-
   (cl-defmethod project-root ((project (head go-module)))
     (cdr project))
-
-  (add-hook 'project-find-functions #'project-find-go-module)
-  (add-hook 'go-mode-hook 'eglot-ensure)
-  (defun eglot-format-buffer-on-save ()
-    (add-hook 'before-save-hook #'gofmt-before-save nil t)
-    (add-hook 'before-save-hook #'eglot-format-buffer -10 t))
-  (add-hook 'go-mode-hook #'eglot-format-buffer-on-save))
+  (add-hook 'project-find-functions #'project-find-go-module))
 
 (leaf typescript-mode
   :config
@@ -222,6 +344,10 @@
   (cl-defmethod project-root ((project (head gpr-build)))
     (cdr project))
   (add-hook 'project-find-functions #'project-find-gpr-build))
+
+(leaf typst-ts-mode
+  :vc (:url "https://codeberg.org/meow_king/typst-ts-mode.git")
+  :after tree-sitter)
 
 (leaf yasnippet
   :hook (prog-mode-hook . yas-minor-mode)
@@ -272,16 +398,19 @@
     (set-face-attribute 'sly-mrepl-output-face nil :foreground string-fg)))
 
 (leaf sly
-  :setq
+  :after org
+  :custom
+  (org-babel-lisp-eval-fn . #'sly-eval)
   (inferior-lisp-program . "sbcl")
+  (sly-truncate-lines . nil)
+  (sly-net-coding-system . 'utf-8-unix)
+  :setq
   (sly-lisp-implementations
    .
    `((sbcl ("sbcl" "--core" ,*sly-image-location*)
            :init (lambda (port-file _)
                    (format "(slynk:start-server %S)\n"
                            port-file)))))
-  (sly-truncate-lines . nil)
-  (sly-net-coding-system . 'utf-8-unix)
   :config
   (with-eval-after-load 'sly-mrepl
     (define-key sly-mrepl-mode-map [remap eval-last-sexp] 'sly-eval-last-expression))
@@ -390,80 +519,6 @@
 (global-set-key (kbd "M-<escape>") 'my/nop)
 (define-key isearch-mode-map (kbd "M-ESC") 'my/nop)
 
-(leaf org-contrib)
-
-(add-to-list 'org-modules 'org-tempo)
-(add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
-
-(defadvice org-export-output-file-name (before org-add-export-dir activate)
-  "Modifies org-export to place exported files in a different directory"
-  (when (not pub-dir)
-    (setq pub-dir "exported-org-files")
-    (when (not (file-directory-p pub-dir))
-      (make-directory pub-dir))))
-
-(setq org-html-head-include-default-style nil)
-(setq org-latex-compilers '("tectonic" "pdflatex" "xelatex" "lualatex"))
-(add-to-list 'org-latex-packages-alist '("AUTO" "babel" t ("tectonic" "xelatex" "pdflatex")))
-(add-to-list 'org-latex-packages-alist '("cache=false" "minted" t ("xelatex")))
-(add-to-list 'org-latex-packages-alist '("" "titling" t ("tectonic" "xelatex" "pdflatex")))
-(add-to-list 'org-latex-packages-alist '("" "graphicx" t ("tectonic" "xelatex")))
-(add-to-list 'org-latex-packages-alist '("" "setspace" t ("tectonic" "xelatex")))
-(add-to-list 'org-latex-packages-alist '("" "footmisc" t ("tectonic" "xelatex")))
-(add-to-list 'org-latex-packages-alist '("" "fontspec" t ("tectonic" "xelatex")))
-(add-to-list 'org-latex-packages-alist '("margin=2.5cm" "geometry" t ("tectonic" "xelatex")))
-(add-to-list 'org-latex-packages-alist (list "" "parskip" t '("tectonic" . org-latex-compilers)))
-
-(setq org-latex-title-command nil
-      org-latex-listings 'listings
-      org-latex-compiler "tectonic"
-      org-latex-pdf-process '("tectonic --outdir %o %f")
-      org-latex-minted-options '(("breaklines" "true") ("breakanywhere" "true") ("breaksymbolleft" "\\null"))
-      org-adapt-indentation nil
-      org-startup-truncated nil
-      org-latex-images-centered t
-      org-agenda-files (file-expand-wildcards (expand-file-name "org/agenda/*.org" *emacs-config-location*)))
-
-(leaf org-bullets
-  :custom
-  ;; Default: '("◉" "○" "✸" "✿")
-  ;; Second:  '("*" "●" "○" "·")
-  ;; Third:   '("●" "*" "•" "·")
-  ;; ♥ ● ◇ ✚ ✜ ☯ ◆ ♠ ♣ ♦ ☢ ❀ ◆ ◖ ▶
-  ;; ►  ★ ▸
-  (org-bullets-bullet-list . '("●" "*" "•" "·"))
-  :hook (org-mode-hook . org-bullets-mode))
-
-(advice-add 'org-agenda-quit :before 'org-save-all-org-buffers)
-
-(setq org-capture-bookmark nil
-      org-src-window-setup 'current-window
-      org-link-descriptive nil)
-
-;; (leaf org-roam
-;;   :pre-setq (org-roam-v2-ack . t)
-;;   :custom
-;;   (org-roam-complete-everywhere . t)
-;;   :config
-;;   (setq org-roam-directory (file-truename (expand-file-name "org/roam/" *emacs-config-location*))
-;;   (define-prefix-command 'my/org-roam-commands)
-;;   (define-key my/org-roam-commands (kbd "f") 'org-roam-node-find)
-;;   (define-key my/org-roam-commands (kbd "i") 'org-roam-node-insert)
-;;   (define-key my/org-roam-commands (kbd "j") 'org-capture)
-;;   (define-key my/z-map (kbd "n") my/org-roam-commands)
-;;   (org-roam-setup))
-
-(setq org-capture-templates
-      `(("f" "Fleeting note" plain (file ,(expand-file-name "org/agenda/notes.org" *emacs-config-location*))
-         "%i\n%?" :empty-lines-before 1)
-        ("t" "Org agenda TODO entry" entry (file ,(expand-file-name "org/agenda/agenda.org" *emacs-config-location*))
-         "* TODO %?\n" :empty-lines-before 1)
-        ("k" "Organizational TODO entry" entry (file ,(expand-file-name "org/agenda/komm.org" *emacs-config-location*))
-         "* TODO %?\n" :empty-lines-before 1)))
-
-(setq org-todo-keywords
-      '((sequence "TODO" "|" "DONE" "CANCELLED" "SUSPENDED")))
-
 ;; UTF-8 as default encoding
 (set-language-environment "UTF-8")
 (set-default-coding-systems 'utf-8)
@@ -511,12 +566,11 @@
      "--single-quote")))
 
 ;; (setq font-lock-support-mode #'jit-lock-mode)
-(leaf tree-sitter
+(leaf treesit-auto
+  :custom
+  '(treesit-auto-install . t)
   :config
-  (leaf tree-sitter-langs
-    :config
-    (global-tree-sitter-mode)
-    (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode)))
+  (global-treesit-auto-mode))
 
 (defun my/auto-hide-compilation-window (buf str)
   (when (null (string-match ".*exited abnormally.*" str))
@@ -603,9 +657,9 @@
   ((lisp-mode-hook scheme-mode-hook emacs-lisp-mode-hook clojure-mode-hook)
    (setq indent-tabs-mode nil fill-column 100))
   ((lisp-mode-hook scheme-mode-hook clojure-mode-hook)
-   (setq tab-width 2))
+   (setq-local tab-width 2))
   (emacs-lisp-mode-hook
-   (setq tab-width 8))
+   (setq-local tab-width 8))
   (before-save-hook
      (unless (eq major-mode 'markdown-mode)
        (delete-trailing-whitespace)))
@@ -643,10 +697,6 @@
 (leaf ebnf-mode)
 
 (setq warning-suppress-types '(comp))
-
-(defun my/lisp-indent-function (indent-point state))
-
-(setq lisp-indent-function 'lisp-indent-function)
 
 (leaf languagetool
   :config
