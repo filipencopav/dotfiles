@@ -70,10 +70,10 @@
   (org-latex-minted-options . '(("breaklines" "true")
                                 ("breakanywhere" "true")
                                 ("breaksymbolleft" "\\null")))
-  (org-agenda-files . `',(file-expand-wildcards
-                          (expand-file-name
-                           "org/agenda/*.org"
-                           *emacs-config-location*)))
+  (org-agenda-files . `(,@(file-expand-wildcards
+                           (expand-file-name
+                            "org/agenda/*.org"
+                            *emacs-config-location*))))
   (org-capture-templates
    .
    `(("f" "Fleeting note" plain
