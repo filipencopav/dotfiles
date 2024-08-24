@@ -25,7 +25,13 @@ alias feh='devour feh'
 alias sxiv='devour sxiv'
 
 # source sh-powerline script
-source "$HOME/.bash-powerline.sh"
+. "$HOME/.bash-powerline.sh"
+
+export ASDF_CONFIG_FILE="${XDG_CONFIG_HOME}/asdf/asdfrc"
+export ASDF_DATA_DIR="${XDG_DATA_HOME}/asdf"
+# https://asdf-vm.com/guide/getting-started.html
+. /opt/asdf-vm/asdf.sh
+export KERL_CONFIGURE_OPTIONS="--without-javac --with-odbc=/var/lib/pacman/local/unixodbc-$(pacman -Q unixodbc | cut -d' ' -f2)"
 
 export HISTCONTROL=erasedups
 export HISTIGNORE="clear:ls:history"
