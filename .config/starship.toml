@@ -75,9 +75,9 @@ truncation_symbol = "…/"
 "Developer" = "󰲋 "
 
 [git_branch]
-symbol = ""
+symbol = '\[git\]'
 style = "fg:color_aqua"
-format = '[ \[git\] $branch]($style)'
+format = '[ $symbol $branch]($style)'
 
 [git_status]
 ahead = "↑"
@@ -85,7 +85,7 @@ behind = "↓"
 untracked = "?"
 modified = "*"
 style = "fg:color_aqua"
-format = '([$all_status$ahead_behind ]($style))'
+format = '([ $all_status$ahead_behind]($style))'
 
 [docker_context]
 symbol = ""
