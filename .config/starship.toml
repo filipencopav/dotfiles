@@ -77,7 +77,7 @@ truncation_symbol = "…/"
 [git_branch]
 symbol = ""
 style = "fg:color_aqua"
-format = '[ \[git\] $branch ]($style)'
+format = '[ \[git\] $branch]($style)'
 
 [git_status]
 ahead = "↑"
@@ -115,5 +115,5 @@ disabled = false
 
 [nix_shell]
 style = "bold fg:color_blue"
-symbol = "[\\[nix\\]]($style)"
+symbol = "[ \\[nix\\]]($style)"
 format = "[$symbol $state( «$name»)]($style)"
