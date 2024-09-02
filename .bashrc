@@ -24,9 +24,6 @@ alias zathura='devour zathura'
 alias feh='devour feh'
 alias sxiv='devour sxiv'
 
-# source sh-powerline script
-. "$HOME/.bash-powerline.sh"
-
 export ASDF_CONFIG_FILE="${XDG_CONFIG_HOME}/asdf/asdfrc"
 export ASDF_DATA_DIR="${XDG_DATA_HOME}/asdf"
 # https://asdf-vm.com/guide/getting-started.html
@@ -39,3 +36,5 @@ export HISTFILE="${XDG_STATE_HOME}/bash/history"
 export MPC_FORMAT='[%artist%[ "%album%"][ ##%track%] - ]%title%'
 
 complete -cf doas
+
+eval "$(starship init bash)"
