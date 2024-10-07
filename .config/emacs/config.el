@@ -86,7 +86,13 @@
 
      ("k" "Organizational TODO entry" entry
       (file ,(expand-file-name "org/agenda/komm.org" *emacs-config-location*))
-      "* TODO %?\n" :empty-lines-before 1)))
+      "* TODO %?\n" :empty-lines-before 1)
+
+     ("p" "New priority" entry
+      (file ,(expand-file-name
+              "org/agenda/priorities.org"
+              *emacs-config-location*))
+      "* TODO %?\n" :empty-lines-before 0)))
 
   :config
   (add-to-list 'org-modules 'org-tempo)
@@ -128,19 +134,24 @@
   (org-bullets-bullet-list . '("●" "*" "•" "·"))
   :hook (org-mode-hook . org-bullets-mode))
 
-;; (leaf org-roam
-;;   :pre-setq (org-roam-v2-ack . t)
-;;   :custom
-;;   (org-roam-complete-everywhere . t)
-;;   :config
-;;   (setq org-roam-directory (file-truename (expand-file-name "org/roam/" *emacs-config-location*))
-;;   (define-prefix-command 'my/org-roam-commands)
-;;   (define-key my/org-roam-commands (kbd "f") 'org-roam-node-find)
-;;   (define-key my/org-roam-commands (kbd "i") 'org-roam-node-insert)
-;;   (define-key my/org-roam-commands (kbd "j") 'org-capture)
-;;   (define-key my/z-map (kbd "n") my/org-roam-commands)
-;;   (org-roam-setup))
+(leaf org-roam
+  :pre-setq (org-roam-v2-ack . t)
+  :custom
+  (org-roam-complete-everywhere . t)
+  :config
+  (setq org-roam-directory (-> "org/roam/"
+                               (expand-file-name *emacs-config-location*)
+                               (file-truename)))
+  (define-prefix-command 'my/org-roam-commands)
+  (define-key my/org-roam-commands (kbd "f") 'org-roam-node-find)
+  (define-key my/org-roam-commands (kbd "i") 'org-roam-node-insert)
+  (define-key my/org-roam-commands (kbd "j") 'org-capture)
+  (define-key my/z-map (kbd "n") my/org-roam-commands)
+  (org-roam-setup))
 
+(leaf org-roam-ui
+  :require (org-roam t)
+  :after org-roam)
 
 ;; https://github.com/kiwanami/emacs-window-layout
 ;; (setq wm
@@ -316,6 +327,12 @@
     :lighter "GoImp"
     :group 'go-format)
 
+  (when-let (cache-dir (getenv "XDG_CACHE_HOME"))
+    (add-to-list 'eglot-server-programs
+                 `((go-mode go-dot-mod-mode go-dot-work-mode go-ts-mode go-mod-ts-mode)
+                   "gopls" "-logfile" ,(expand-file-name "gopls/emacs.log" cache-dir)
+                   "-rpc.trace")))
+
   (defun project-find-go-module (dir)
     (when-let ((root (locate-dominating-file dir "go.mod")))
       (cons 'go-module root)))
@@ -323,14 +340,30 @@
     (cdr project))
   (add-hook 'project-find-functions #'project-find-go-module))
 
-(leaf typescript-mode
+(leaf protobuf-ts-mode
+  :mode ("\\.proto\\'" . protobuf-ts-mode))
+
+(leaf dockerfile-ts-mode)
+
+(leaf erlang
+  :require '(t erlang-start)
+  :after (eglot reformatter)
+  :hook
+  (erlang-mode-hook . eglot-ensure)
+  :mode ("/?rebar\\.config\\'" . erlang-mode)
+  :setq (erlang-electric-commands . '(erlang-electric-gt))
+  :config
+  (add-to-list 'eglot-server-programs
+               '(erlang-mode "elp" "server")))
+
+(leaf typescript-ts-mode
+  :after eglot
   :config
   (setq js-indent-level 2)
   (setq typescript-indent-level js-indent-level)
-  (with-eval-after-load 'eglot
-    (add-to-list 'eglot-server-programs
-                 '((typescript-ts-mode typescript-mode) "deno" "lsp"))
-    (add-to-list 'typescript-mode-hook 'eglot-ensure)))
+  (add-to-list 'eglot-server-programs
+               '((typescript-ts-mode typescript-mode) "deno" "lsp"))
+  (add-to-list 'typescript-ts-mode-hook #'eglot-ensure))
 
 (leaf lua-mode)
 
@@ -426,6 +459,10 @@
 ;;   (define-key slime-mode-map [remap eval-last-sexp] 'slime-eval-last-expression)
 ;;   (define-key slime-mode-map [remap eval-last-sexp] 'slime-eval-last-expression))
 
+(leaf clojure-ts-mode
+  :config
+  (add-to-list 'major-mode-remap-alist '(clojure-mode . clojure-ts-mode)))
+
 (leaf cider
   :require (t cider-eval)
   :config
@@ -437,19 +474,14 @@
   ;; do not indent single ; character
   (add-hook 'clojure-mode-hook (lambda () (setq-local comment-column 0)))
 
-  (setq cider-clojure-cli-aliases ":dev")
-  )
+  (setq cider-clojure-cli-aliases ":dev"))
 
 (leaf editorconfig
   :config
   (editorconfig-mode 1))
 
-(leaf scss-mode
-  :config
-  (setq scss-compile-at-save t))
-
 (leaf corfu
-  :setq
+  :custom
   (corfu-auto . t)
   (corfu-quit-no-match . t)
   (corfu-auto-delay . 0.5)
@@ -476,10 +508,6 @@
   (if (member (cdr cons) '(mhtml-mode))
       (cons (car cons) 'web-mode)
     cons))
-
-(defun my/web-mode-hooks ()
-  "Hooks for Web mode."
-  )
 
 (leaf web-mode
   :config
@@ -508,6 +536,21 @@
   (add-to-list 'auto-mode-alist '("\\.php\\'" . web-mode))
   (add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
   (add-to-list 'auto-mode-alist '("\\.scss\\'" . web-mode))
+
+  (defun my/web-mode-hooks ()
+    "Hooks for Web mode."
+    )
+
+  (defun my/scss-compile ()
+    (interactive)
+    (compile
+     (concat
+      "sassc " ;; FIXME: should I put it into a variable instead?
+      "--sourcemap=auto "
+      "'" buffer-file-name "'"
+      " "
+      "'" (replace-regexp-in-string "\\.scss\\'" ".css" buffer-file-name) "'")))
+
   (add-hook 'web-mode-hook 'my/web-mode-hooks))
 
 (defalias 'yes-or-no-p 'y-or-n-p)
@@ -670,6 +713,7 @@
   (css-mode-hook (electric-pair-local-mode)))
 
 (global-visual-line-mode)
+(global-auto-revert-mode t)
 
 (leaf visual-fill-column
   :config
@@ -695,17 +739,3 @@
     (setq visual-fill-column-center-text (not visual-fill-column-center-text))))
 
 (leaf ebnf-mode)
-
-(setq warning-suppress-types '(comp))
-
-(leaf languagetool
-  :config
-  (setq languagetool-java-arguments
-        '("-Dfile.encoding=UTF-8"
-          "-cp" "/usr/share/languagetool:/usr/share/java/languagetool/*")
-
-        languatetool-console-command
-        "/usr/share/java/languagetool/languagetool-commandline.jar"
-
-        languagetool-server-command
-        "/usr/share/java/languagetool/languagetool-server.jar"))
