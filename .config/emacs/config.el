@@ -257,13 +257,43 @@
      '("line %3l, col %3c")))))
 
 (leaf eldoc-box
+  :init
+  (defun my/eldoc-box-scroll-up ()
+    "Scroll up in `eldoc-box--frame'"
+    (interactive)
+    (with-current-buffer eldoc-box--buffer
+      (with-selected-frame eldoc-box--frame
+        (scroll-down 3))))
+  (defun my/eldoc-box-scroll-down ()
+    "Scroll down in `eldoc-box--frame'"
+    (interactive)
+    (with-current-buffer eldoc-box--buffer
+      (with-selected-frame eldoc-box--frame
+        (scroll-up 3))))
+  :after eglot
+  :custom
+  (eldoc-box-max-pixel-height . 200)
+  :bind (:eglot-mode-map
+         ("M-i" . my/eldoc-box-scroll-up)
+         ("M-k" . my/eldoc-box-scroll-down))
   :config
   (defun my/eldoc-hooks ()
     (interactive)
     (eldoc-box-hover-mode))
   (add-hook 'eldoc-mode-hook 'my/eldoc-hooks))
 
-(leaf eglot)
+(leaf eglot
+  (with-eval-after-load 'eglot
+    (setf (alist-get '(elixir-mode elixir-ts-mode heex-ts-mode)
+                     eglot-server-programs
+                     nil nil #'equal)
+          (if (and (fboundp 'w32-shell-dos-semantics)
+                   (w32-shell-dos-semantics))
+              '("language_server.bat")
+            (eglot-alternatives
+             '("language_server.sh" "start_lexical.sh"))))))
+
+(leaf elixir-ts-mode)
 
 (leaf rustic
   :after eglot
@@ -312,6 +342,7 @@
   (go-ts-mode-hook . eglot-ensure)
   (go-ts-mode-hook . gofmt-on-save-mode)
   (go-ts-mode-hook . goimports-on-save-mode)
+  (go-ts-mode-hook . subword-mode)
   :init
   (add-to-list 'major-mode-remap-alist '(go-mode . go-ts-mode))
   (add-to-list 'major-mode-remap-alist '(go-dot-mod-mode . go-mod-ts-mode))
@@ -635,6 +666,10 @@
   (show-paren-mode 1)
   (global-highlight-parentheses-mode))
 
+(leaf ispell
+  :custom
+  (ispell-program-name . "aspell"))
+
 (leaf paren-face
   :config
   (my/add-hooks
@@ -681,7 +716,12 @@
 (defun my/ibuffer-setup ()
   (ibuffer-switch-to-saved-filter-groups "default")
   (setq ibuffer-hidden-filter-groups (list "org agenda" "emacs"))
-  (ibuffer-update nil t))
+  (ibuffer-update nil t)
+  (setq-local truncate-partial-width-windows nil)
+  (visual-fill-column-mode -1)
+  (visual-line-mode -1)
+  (toggle-truncate-lines 1)
+  )
 
 (scroll-bar-mode -1)
 (menu-bar-mode -1)
@@ -739,3 +779,10 @@
     (setq visual-fill-column-center-text (not visual-fill-column-center-text))))
 
 (leaf ebnf-mode)
+
+(leaf treemacs
+  :config
+  (defun turn-off-truncate-lines ()
+    (toggle-truncate-lines 1))
+
+  (add-hook 'treemacs-mode-hook 'turn-off-truncate-lines))

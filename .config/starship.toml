@@ -1,9 +1,6 @@
 "$schema" = 'https://starship.rs/config-schema.json'
 
-format = """
-$os\
-$username\
-$directory\
+format = """$directory\
 $git_branch\
 $git_status\
 $docker_context\
@@ -11,6 +8,8 @@ $nix_shell\
 $line_break$status; """
 
 palette = 'gruvbox_dark'
+
+command_timeout = 1000
 
 [palettes.gruvbox_dark]
 background="#282828"
@@ -80,12 +79,13 @@ style = "fg:color_aqua"
 format = '[ $symbol $branch]($style)'
 
 [git_status]
-ahead = "↑"
-behind = "↓"
+ahead = "($count)↑"
+behind = "($count)↓"
 untracked = "?"
 modified = "*"
+deleted = '-'
 style = "fg:color_aqua"
-format = '([ $all_status$ahead_behind]($style))'
+format = '([ ($ahead_behind )(\[$all_status\])]($style))'
 
 [docker_context]
 symbol = ""

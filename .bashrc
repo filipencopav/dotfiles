@@ -24,10 +24,6 @@ alias zathura='devour zathura'
 alias feh='devour feh'
 alias sxiv='devour sxiv'
 
-export ASDF_CONFIG_FILE="${XDG_CONFIG_HOME}/asdf/asdfrc"
-export ASDF_DATA_DIR="${XDG_DATA_HOME}/asdf"
-# https://asdf-vm.com/guide/getting-started.html
-. /opt/asdf-vm/asdf.sh
 export KERL_CONFIGURE_OPTIONS="--without-javac --with-odbc=/var/lib/pacman/local/unixodbc-$(pacman -Q unixodbc | cut -d' ' -f2)"
 
 export HISTCONTROL=erasedups
@@ -36,5 +32,7 @@ export HISTFILE="${XDG_STATE_HOME}/bash/history"
 export MPC_FORMAT='[%artist%[ "%album%"][ ##%track%] - ]%title%'
 
 complete -cf doas
+
+export LC_ALL=C.UTF-8
 
 eval "$(starship init bash)"

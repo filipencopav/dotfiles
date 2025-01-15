@@ -147,3 +147,8 @@ In ~pg_hba.conf~, write these lines:
 This will ensure that when you connect with your db user, you will automatically get connected to that user's db correspondingly. For example with ~psql -U <username>~ you will instantly get access to the same db. Happy development.
 
 ** TODO Migrate to a new version
+
+* Concatenate 2 pdf files
+#+begin_src shell
+pdftk file1.pdf file2.pdf cat output outputfile.pdf
+#+end_src
