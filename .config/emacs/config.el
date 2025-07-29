@@ -28,6 +28,7 @@
 (leaf xah-fly-keys
   :config
   (xah-fly-keys-set-layout "qwerty")
+  (xah-fly-keys)
   (define-prefix-command 'my/z-map)
   (let ((editor-keymap (make-keymap)))
     (define-key editor-keymap (kbd "r") 'config-reload)
@@ -37,9 +38,10 @@
   ;; TODO: Add entire org agenda shortcuts set
   (define-key my/z-map (kbd "a") 'org-agenda)
   (define-key xah-fly-leader-key-map (kbd "z") my/z-map)
-  (define-key xah-fly-leader-key-map (kbd "u") 'my/close-help-or-xah-close-current-buffer))
-
-(xah-fly-keys)
+  (define-key xah-fly-leader-key-map (kbd "u") 'my/close-help-or-xah-close-current-buffer)
+  (define-key xah-fly-key-map (kbd "3") 'delete-other-windows)
+  (define-key xah-fly-key-map (kbd "4") 'split-window-vertically)
+  (define-key xah-fly-key-map (kbd "5") 'delete-forward-char))
 
 (eval-when-compile
   (add-to-list 'load-path (expand-file-name "elisp" *emacs-config-location*))
@@ -223,7 +225,7 @@
 (leaf nord-theme
   :config)
 
-(add-hook 'after-init-hook (lambda () (my/load-theme 'modus-operandi t)))
+(add-hook 'after-init-hook (lambda () (my/load-theme 'modus-vivendi t)))
 
 (defun my/frame-behaviors (&optional frame)
   "Make frame- and/or terminal-local changes."
@@ -273,9 +275,10 @@
   :after eglot
   :custom
   (eldoc-box-max-pixel-height . 200)
-  :bind (:eglot-mode-map
-         ("M-i" . my/eldoc-box-scroll-up)
-         ("M-k" . my/eldoc-box-scroll-down))
+  :bind ((:eglot-mode-map
+          ("M-i" . my/eldoc-box-scroll-up)
+          ("M-k" . my/eldoc-box-scroll-down)))
+
   :config
   (defun my/eldoc-hooks ()
     (interactive)
@@ -283,15 +286,15 @@
   (add-hook 'eldoc-mode-hook 'my/eldoc-hooks))
 
 (leaf eglot
-  (with-eval-after-load 'eglot
-    (setf (alist-get '(elixir-mode elixir-ts-mode heex-ts-mode)
-                     eglot-server-programs
-                     nil nil #'equal)
-          (if (and (fboundp 'w32-shell-dos-semantics)
-                   (w32-shell-dos-semantics))
-              '("language_server.bat")
-            (eglot-alternatives
-             '("language_server.sh" "start_lexical.sh"))))))
+  :config
+  (setf (alist-get '(elixir-mode elixir-ts-mode heex-ts-mode)
+                   eglot-server-programs
+                   nil nil #'equal)
+        (if (and (fboundp 'w32-shell-dos-semantics)
+                 (w32-shell-dos-semantics))
+            '("language_server.bat")
+          (eglot-alternatives
+           '("language_server.sh" "start_lexical.sh")))))
 
 (leaf elixir-ts-mode)
 
@@ -396,6 +399,24 @@
                '((typescript-ts-mode typescript-mode) "deno" "lsp"))
   (add-to-list 'typescript-ts-mode-hook #'eglot-ensure))
 
+(leaf astro-ts-mode
+  :after (treesit-auto eglot)
+  :config
+  (let ((astro-recipe (make-treesit-auto-recipe
+                       :lang 'astro
+                       :ts-mode 'astro-ts-mode
+                       :url "https://github.com/virchau13/tree-sitter-astro"
+                       :revision nil
+                       :source-dir nil
+                       :ext "\\.astro\\'")))
+    (add-to-list 'treesit-auto-recipe-list astro-recipe)
+    (add-to-list 'treesit-auto-langs 'astro))
+  (add-to-list 'eglot-server-programs
+               '(astro-ts-mode
+                 . ("astro-ls" "--stdio"
+                    :initializationOptions
+                    (:typescript (:tsdk "./node_modules/typescript/lib"))))))
+
 (leaf lua-mode)
 
 (leaf ada-mode
@@ -412,6 +433,9 @@
 (leaf typst-ts-mode
   :vc (:url "https://codeberg.org/meow_king/typst-ts-mode.git")
   :after tree-sitter)
+
+(leaf nix-ts-mode
+  :mode "\\.nix\\'")
 
 (leaf yasnippet
   :hook (prog-mode-hook . yas-minor-mode)
@@ -491,6 +515,13 @@
 ;;   (define-key slime-mode-map [remap eval-last-sexp] 'slime-eval-last-expression))
 
 (leaf clojure-ts-mode
+  :setq
+  (clojure-ts-indent-style . 'fixed)
+
+  :bind (:clojure-ts-mode-map
+         ("M-i" . my/eldoc-box-scroll-up)
+         ("M-k" . my/eldoc-box-scroll-down))
+
   :config
   (add-to-list 'major-mode-remap-alist '(clojure-mode . clojure-ts-mode)))
 
@@ -502,6 +533,7 @@
   (setq clojure-indent-style 'always-indent)
   (setq cider-repl-display-output-before-window-boundaries t)
   (setq cider-show-error-buffer t)
+  (setq cider-redirect-server-output-to-repl t)
   ;; do not indent single ; character
   (add-hook 'clojure-mode-hook (lambda () (setq-local comment-column 0)))
 
@@ -567,6 +599,7 @@
   (add-to-list 'auto-mode-alist '("\\.php\\'" . web-mode))
   (add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
   (add-to-list 'auto-mode-alist '("\\.scss\\'" . web-mode))
+  (add-to-list 'auto-mode-alist '("\\.vue\\'" . web-mode))
 
   (defun my/web-mode-hooks ()
     "Hooks for Web mode."
@@ -639,12 +672,25 @@
      "--arrow-parens" "avoid"
      "--single-quote")))
 
-;; (setq font-lock-support-mode #'jit-lock-mode)
+(leaf tree-sitter)
+(leaf tree-sitter-langs)
 (leaf treesit-auto
   :custom
   '(treesit-auto-install . t)
+  (treesit-auto-langs . '(awk bash bibtex c c-sharp clojure cmake commonlisp cpp css
+                          dart dockerfile elixir glsl go gomod heex html java javascript
+                          json julia kotlin lua make markdown nix org perl
+                          proto python r ruby rust scala sql surface toml tsx typescript typst
+                          vhdl vue wast wat wgsl yaml))
+
   :config
-  (global-treesit-auto-mode))
+  (global-treesit-auto-mode)
+  (add-to-list 'treesit-language-source-alist
+               '(markdown
+                 . ("https://github.com/tree-sitter-grammars/tree-sitter-markdown"
+                    "update" "tree-sitter-markdown/src")))
+  (add-to-list 'treesit-language-source-alist
+               '(astro "https://github.com/virchau13/tree-sitter-astro")))
 
 (defun my/auto-hide-compilation-window (buf str)
   (when (null (string-match ".*exited abnormally.*" str))
