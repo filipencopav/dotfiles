@@ -1,0 +1,19 @@
+# vim: set filetype=sh:
+
+set selection-clipboard clipboard
+set font "Terminus 12"
+
+set statusbar-fg "#ebdbb2"
+set statusbar-bg "#282828"
+
+set inputbar-fg "#b8bb26"
+set inputbar-bg "#282828"
+
+map <C-i> recolor
+map i scroll up
+map j scroll left
+map k scroll down
+map I navigate previous
+map K navigate next
+
+set database "sqlite"
