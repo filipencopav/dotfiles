@@ -40,7 +40,9 @@
   (define-key xah-fly-leader-key-map (kbd "z") my/z-map)
   (define-key xah-fly-leader-key-map (kbd "u") 'my/close-help-or-xah-close-current-buffer)
   (define-key xah-fly-key-map (kbd "3") 'delete-other-windows)
+  (define-key xah-fly-leader-key-map (kbd "3") 'delete-window)
   (define-key xah-fly-key-map (kbd "4") 'split-window-vertically)
+  (define-key xah-fly-leader-key-map (kbd "4") 'split-window-horizontally)
   (define-key xah-fly-key-map (kbd "5") 'delete-forward-char))
 
 (eval-when-compile
@@ -467,24 +469,6 @@
 
 (defvar *sly-image-location*
   (expand-file-name "lisp/sbcl.core-for-sly" *emacs-config-location*))
-
-(defun my/generate-sly-image ()
-  (interactive)
-  (shell-command
-   (format
-   "sbcl \\
---eval \"(mapc 'require '(sb-bsd-sockets sb-posix sb-introspect sb-cltl2 asdf))\" \\
---load %s \\
---eval '(slynk-loader:dump-image \"%s\")'"
-   (expand-file-name "sly/slynk/slynk-loader.lisp" *emacs-config-location*)
-   *sly-image-location*)))
-
-(defun my/set-sly-mrepl-faces ()
-  (let ((string-fg (face-attribute 'font-lock-string-face :foreground))
-        (comment-fg (face-attribute 'font-lock-comment-face :foreground)))
-    (set-face-attribute 'sly-mrepl-note-face nil :foreground comment-fg)
-    (set-face-attribute 'sly-mrepl-output-face nil :foreground string-fg)))
-
 (leaf sly
   :after org
   :custom
@@ -500,6 +484,22 @@
                    (format "(slynk:start-server %S)\n"
                            port-file)))))
   :config
+  (defun my/generate-sly-image ()
+    (interactive)
+    (compile
+     (format
+      "sbcl \\
+        --eval \"(mapc 'require '(sb-bsd-sockets sb-posix sb-introspect sb-cltl2 asdf))\" \\
+        --eval '(save-lisp-and-die \"sbcl.core-for-sly\")'"
+      (expand-file-name "sly/slynk/slynk-loader.lisp" *emacs-config-location*)
+      *sly-image-location*)))
+
+  (defun my/set-sly-mrepl-faces ()
+    (let ((string-fg (face-attribute 'font-lock-string-face :foreground))
+          (comment-fg (face-attribute 'font-lock-comment-face :foreground)))
+      (set-face-attribute 'sly-mrepl-note-face nil :foreground comment-fg)
+      (set-face-attribute 'sly-mrepl-output-face nil :foreground string-fg)))
+
   (with-eval-after-load 'sly-mrepl
     (define-key sly-mrepl-mode-map [remap eval-last-sexp] 'sly-eval-last-expression))
   (define-key sly-mode-map [remap eval-last-sexp] 'sly-eval-last-expression))
