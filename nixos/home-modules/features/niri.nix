@@ -56,14 +56,23 @@ in {
   stylix.targets.fuzzel.enable = true;
   programs.fuzzel = {
     enable = true;
+    settings.colors.selection = lib.mkForce
+      "${config.lib.stylix.colors.base02-hex}ff";
     settings.main = {
+      font = lib.mkForce (lib.concatStringsSep ":" [
+        config.stylix.fonts.monospace.name
+        "size=12"
+      ]);
+      width = 50;
       layer = "overlay";
       vertical-pad = 20;
       horizontal-pad = 30;
-      radius = 5;
       inner-pad = 10;
       x-margin = 0;
       y-margin = 0;
+    };
+    settings.border = {
+      radius = 5;
     };
   };
 
@@ -102,7 +111,9 @@ in {
       "Mod+Return".hotkey-overlay.title = "Open a Terminal: kitty";
       "Mod+Shift+E".action.spawn = ["emacsclient" "-c"];
       "Mod+D".action.spawn = ["fuzzel"];
-      "Mod+D".hotkey-overlay.title = "Run an Application: wofi";
+      "Mod+D".hotkey-overlay.title = "Run an Application: fuzzel";
+      "Mod+P".action.spawn = ["passfuzzel"];
+      "Mod+P".hotkey-overlay.title = "Passwords menu";
       # Super+Alt+L hotkey-overlay-title="Lock the Screen: swaylock" { spawn "swaylock"; }
 
       # You can also use a shell. Do this if you need pipes, multiple commands, etc.
