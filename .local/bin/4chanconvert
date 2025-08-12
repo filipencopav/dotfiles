@@ -1,3 +1,0 @@
-#!/bin/bash
-
-ffmpeg -i "$1" -b:v 960K -an -c:v libvpx "$2"

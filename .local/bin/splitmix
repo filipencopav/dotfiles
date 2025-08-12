@@ -1,0 +1,49 @@
+#!/bin/sh
+
+usage="Usage: splitmix [OPTION]... MIXFILE TRACKLIST DIRNAME"
+
+if [ ! -f "$2" ] || [ ! -f "$1" ]; then
+    echo "$usage"
+    exit
+fi
+
+if [ -z "$3" ]; then
+    echo "$usage"
+    exit
+fi
+
+inputaudio="$1"
+booktitle="$3"
+
+! mkdir -p "$booktitle" &&
+    echo "Do you have write access in this directory?" &&
+    exit 1
+
+ext="${1##*.}"
+
+while read -r x;
+do
+    end="$(echo "$x" | cut -d' ' -f 1)"
+    file="$booktitle/$(printf "%.2d" "$track")-$esctitle.$ext"
+    if [ -n "$start" ]; then
+        echo "From $start to $end; $track $title"
+        ffmpeg -i "$inputaudio" -nostdin -y \
+               -loglevel -8 \
+               -metadata artist="$author" -metadata title="$title" \
+               -ss "$start" -to "$end" \
+               -vn -c copy "$file"
+    fi
+    author="$(echo "$x" | awk -F ' - ' '{ print $1 }' | cut -d ' ' -f 2-)"
+    title="$(echo "$x" | awk -F ' - ' '{ OFS=""; $1=""; print $0 }')"
+    esctitle="$(printf '%s' "$title" | tr -d '[:punct:]' | tr '[:upper:]' '[:lower:]' | tr ' ' '-' | sed "s/-\+/-/g;s/\(^-\|-\$\)//g")"
+    track="$((track+1))"
+    start="$end"
+done < "$2"
+
+file="$booktitle/$(printf "%.2d" "$track")-$esctitle.$ext"
+echo "From $start to the end; $track $title"
+ffmpeg -i "$inputaudio" \
+       -metadata artist="$author" -metadata title="$title" \
+       -loglevel -8 \
+       -ss "$start" \
+       -vn -c copy "$file"

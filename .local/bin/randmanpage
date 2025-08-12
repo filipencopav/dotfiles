@@ -1,3 +1,0 @@
-#!/bin/sh
-
-man 1p "$(find /usr/share/man/man1 -type f | shuf -n1)"

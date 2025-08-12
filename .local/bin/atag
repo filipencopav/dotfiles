@@ -1,0 +1,48 @@
+#!/bin/sh
+
+err() {
+    usage="Usage:
+	atag [OPTIONS] file output-file
+Options:
+	-a: artist/author
+	-t: song title
+	-A: album title
+	-n: track number
+	-d: date/year of publication
+	-g: genre
+	-c: comment"
+
+        echo "$usage" && exit 1
+}
+
+while getopts "a:t:A:n:d:g:c:" OPTION;
+do
+    case "$OPTION" in
+        a) artist="${OPTARG}"  ;;
+        t) title="${OPTARG}"   ;;
+        A) album="${OPTARG}"   ;;
+        n) track="${OPTARG}"   ;;
+        d) date="${OPTARG}"    ;;
+        g) genre="${OPTARG}"   ;;
+        c) comment="${OPTARG}" ;;
+        *) printf "Invalid option: -%s\\n" "$OPTARG" && err ;;
+    esac
+done
+
+shift $((OPTIND - 1))
+
+file="$1"
+ofile="$2"
+
+[ ! -f "$file" ] && printf "No such file or directory: %s\\n" "$file" && err;
+[ -z "$ofile" ] && printf "Enter an output file name.\\n" "$file" && err;
+
+ffmpeg -i "$file" -c copy -loglevel 16         \
+       ${artist+-metadata  "artist=$artist"}   \
+       ${title+-metadata   "title=$title"}     \
+       ${album+-metadata   "album=$album"}     \
+       ${track+-metadata   "track=$track"}     \
+       ${date+-metadata    "date=$date"}       \
+       ${genre+-metadata   "genre=$genre"}     \
+       ${comment+-metadata "comment=$comment"} \
+       "$ofile"

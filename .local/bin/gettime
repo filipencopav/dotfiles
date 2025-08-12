@@ -1,5 +1,0 @@
-#!/bin/sh
-
-date '+%H:%M « %a, %d %b %Y'
-
-exit 0
