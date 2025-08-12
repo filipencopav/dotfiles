@@ -8,18 +8,18 @@
     enable = true;
     fonts = {
       serif = {
-        package = nerd-fonts.fantasque-sans-mono;
-        name = "FantasqueSansM Nerd Font";
-      };
-
-      sansSerif = {
         package = ibm-plex;
         name = "IBM Plex Serif";
       };
 
-      monospace = {
+      sansSerif = {
         package = ibm-plex;
         name = "IBM Plex Sans";
+      };
+
+      monospace = {
+        package = nerd-fonts.fantasque-sans-mono;
+        name = "FantasqueSansM Nerd Font";
       };
 
       emoji = {
