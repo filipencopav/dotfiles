@@ -8,8 +8,8 @@
   services.gpg-agent = {
     enable = true;
     pinentry = {
-      package = pkgs.pinentry-gtk2;
-      program = "pinentry-gtk-2";
+      package = pkgs.pinentry-gnome3;
+      program = "pinentry-gnome3";
     };
   };
 }
