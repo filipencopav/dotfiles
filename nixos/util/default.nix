@@ -27,13 +27,11 @@ let
   # `wrapper` = function { module, moduleName, ... } -> moduleAttributeSet
   wrap-modules =
     paths: wrapper: let
-    in
-      (map (path: module-args: let
-        name = get-module-name path;
-      in (
+    in (
+      map (path: module-args: (
         wrapper {
-          moduleName = name;
-          module = (import path module-args);
+          moduleName = get-module-name path;
+          module = (import path) module-args;
         }))
         paths);
 
@@ -113,12 +111,12 @@ in {
       then config.lib.nixGL.wrap value
       else value);
 
-  mk-system = config:
-    nixpkgs.lib.nixosSystem {
+  mk-system = system: config: let
+    in nixpkgs.lib.nixosSystem {
       specialArgs = { inherit inputs outputs util; };
       modules = [
         config
-        outputs.nixos-modules.default
+        outputs.nixosModules.default
         overlay-module
       ];
     };

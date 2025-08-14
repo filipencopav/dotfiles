@@ -36,7 +36,7 @@
 
     targets.vesktop.enable = true;
     targets.vencord.enable = true;
-
+    targets.gtk.enable = true;
     targets.zathura.enable = true;
   };
 }

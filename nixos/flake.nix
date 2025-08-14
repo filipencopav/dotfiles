@@ -27,17 +27,20 @@
 
   outputs = inputs:
   let
-    # TODO: delegate system definition to a later moment, with a theoretical `util.mkConfig`
-    #       function
-    system = "x86_64-linux";
-
     util = import ./util inputs;
   in {
     # NOTE: 'nixos' is the default hostname
-    nixosConfigurations.desktop = util.mk-system ./configurations/desktop/configuration.nix;
-    homeConfigurations."pavel@desktop" = util.mk-home system ./configurations/desktop/home.nix;
+    nixosConfigurations.desktop =
+      util.mk-system
+        "x86_64-linux"
+        ./configurations/desktop/configuration.nix;
 
-    nixos-modules.default = ./nixos-modules;
+    homeConfigurations."pavel@desktop" =
+      util.mk-home
+        "x86_64-linux"
+        ./configurations/desktop/home.nix;
+
+    nixosModules.default = ./nixos-modules;
     home-modules.default = ./home-modules;
   };
 }

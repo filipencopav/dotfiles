@@ -76,6 +76,8 @@ in {
     };
   };
 
+  my.features.waybar.enable = true;
+
   # TODO: window rules for borderless when single on workspace. how would that work? anyway
   programs.niri = {
     enable = true;
@@ -88,8 +90,13 @@ in {
       repeat-delay = 270;
       repeat-rate = 43;
     };
+    
+    # settings.xwayland-satellite = {
+    #   enable = true;
+    #   path = lib.getExe pkgs.xwayland-satellite;
+    # };
 
-    settings.spawn-at-startup =  [
+    settings.spawn-at-startup = [
     ];
     settings.environment = {
       # For XWayland

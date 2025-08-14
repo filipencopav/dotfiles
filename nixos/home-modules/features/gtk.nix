@@ -1,4 +1,4 @@
-{ lib, pkgs, config, ... }:
+{ pkgs, config, ... }:
 let xdg = config.xdg;
 in {
   stylix.targets.gtk.enable = true;
