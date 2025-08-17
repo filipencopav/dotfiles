@@ -113,6 +113,28 @@ I use modus themes, particularly modus-vivendi. They are nice because they are m
   (add-hook 'after-init-hook (lambda () (load-theme 'modus-vivendi t)))
 #+end_src
 
+** Font
+Fantasque Sans Mono Nerd font as the default and Twitter Color Emoji as the emoji font.
+
+#+begin_src emacs-lisp
+  (setq p/main-font "FantasqueSansM Nerd Font:pixelsize=16:antialias=true")
+  (add-to-list 'default-frame-alist
+               `(font . ,p/main-font))
+
+  ;; For emacs client frame creations
+  (defun p/apply-emoji-font ()
+    (set-fontset-font
+     t nil
+     (font-spec :family "Fantasque SansM Nerd Font" :size 15)
+     nil 'prepend)
+    (set-fontset-font
+     t 'emoji
+     (font-spec :family "Twitter Color Emoji" :size 13)
+     nil 'prepend))
+  ️
+  (add-hook 'server-after-make-frame-hook #'p/apply-emoji-font)
+#+end_src
+
 ** Disable menu bar, scroll bar, fringes and title bar
 #+begin_src emacs-lisp
   (scroll-bar-mode -1)
@@ -120,6 +142,35 @@ I use modus themes, particularly modus-vivendi. They are nice because they are m
   (tool-bar-mode -1)
   (setq-default left-fringe-width 0)
   (setq-default right-fringe-width 0)
+#+end_src
+
+** Initial buffer
+Dashboard as the initial buffer.
+#+begin_src emacs-lisp
+  (leaf dashboard
+    :setq
+    (initial-buffer-choice       . 'p/choose-initial-buffer)
+    (dashboard-banner-logo-title . "O U R macs")
+    (dashboard-center-content    . t)
+    (dashboard-page-separator    . "\n")
+
+    (dashboard-items . '((bookmarks . 4)
+                         (agenda . 4)))
+    :config
+    (defun p/choose-initial-buffer ()
+      (if (get-buffer-window dashboard-buffer-name 'visible)
+          t
+        (get-buffer-create dashboard-buffer-name)))
+
+    (dashboard-setup-startup-hook)
+    (setq dashboard-startup-banner
+          (expand-file-name "emacs-splash.png" *emacs-config-location*)))
+#+end_src
+
+Scratch buffer as org mode buffer.
+#+begin_src emacs-lisp
+  (setq initial-scratch-message "# Org mode scratch buf\n\n"
+        initial-major-mode 'org-mode)
 #+end_src
 
 ** Minibuffer vertical completion
@@ -178,13 +229,6 @@ I need a nice indicator at the bottom that shows the things I care about.
          " «")))))
 #+end_src
 
-** Emoji font
-#+begin_src emacs-lisp
-  (defun p/apply-emoji-font ()
-    (set-fontset-font t 'emoji (font-spec :family "Twitter Color Emoji" :size 13) nil 'prepend))
-  (add-hook 'server-after-make-frame-hook #'p/apply-emoji-font)
-#+end_src
-
 ** Bar cursor when in insert mode
 Since I use modal editing, a bar-shaped cursor indicating that I'm in insert mode is very convenient.
 
@@ -213,6 +257,8 @@ I like lines wrapping around and, in certain buffers, I like the text to be cent
     (setq-default truncate-lines nil)
     (add-hook 'visual-line-mode-hook #'visual-fill-column-mode)
     (add-hook 'minibuffer-setup-hook (lambda () (visual-fill-column-mode -1)))
+
+    (global-visual-line-mode)
 
     (defun text-buf-wrap-setup ()
       (visual-line-mode)
@@ -307,6 +353,18 @@ I like lines wrapping around and, in certain buffers, I like the text to be cent
     (corfu-auto-delay . 0.5)
     :config
     (global-corfu-mode))
+#+end_src
+
+** Default completion buffer tweaks
+Setting this makes the buffer appear only on the second failed attempt.
+#+begin_src emacs-lisp
+  (setq completion-auto-help 'lazy)
+#+end_src
+
+** Buffer synchronization with what is on disk
+Automatically sync buffer context with what changed on disk.
+#+begin_src emacs-lisp
+  (global-auto-revert-mode t)
 #+end_src
 
 * Org mode
@@ -808,7 +866,11 @@ CIDER. Notice how clojure is different from all the other languages? Yes, it doe
 
     (with-eval-after-load 'sly-mrepl
       (define-key sly-mrepl-mode-map [remap eval-last-sexp] 'sly-eval-last-expression))
-    (define-key sly-mode-map [remap eval-last-sexp] 'sly-eval-last-expression))
+    (define-key sly-mode-map [remap eval-last-sexp] 'sly-eval-last-expression)
+
+    (add-to-list 'auto-mode-alist '("\\.cl\\'" . lisp-mode))
+
+    )
 #+end_src
 
 *** Dockerfile
