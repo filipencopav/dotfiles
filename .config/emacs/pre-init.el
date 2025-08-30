@@ -10,6 +10,7 @@
   (setq elpaca-core-date "2025-08-06"))
 
 ;;; START elpaca install code
+(setq package-enable-at-startup nil)
 (defvar elpaca-installer-version 0.11)
 (defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
 (defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))

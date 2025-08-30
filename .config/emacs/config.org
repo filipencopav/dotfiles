@@ -76,8 +76,9 @@ These are required to ensure smooth configuration.
 
   (define-key ctl-x-map (kbd "k") 'kill-current-buffer)
   (define-key ctl-x-map (kbd "C-b") nil)
+  (define-key ctl-x-map (kbd "i") 'ibuffer)
   (define-key global-map (kbd "C-t") 'set-mark-command)
-  (define-key esc-map (kbd "j") 'avy-goto-char)
+  (define-key esc-map (kbd "j") 'other-window)
   (define-key esc-map (kbd "c") 'p/copy-region-or-line)
 
   ;; remap C-x to something else, map C-k to `ctl-x-map'
@@ -131,7 +132,7 @@ Fantasque Sans Mono Nerd font as the default and Twitter Color Emoji as the emoj
      t 'emoji
      (font-spec :family "Twitter Color Emoji" :size 13)
      nil 'prepend))
-  ️
+
   (add-hook 'server-after-make-frame-hook #'p/apply-emoji-font)
 #+end_src
 
@@ -154,12 +155,15 @@ Dashboard as the initial buffer.
     (dashboard-center-content    . t)
     (dashboard-page-separator    . "\n")
 
-    (dashboard-items . '((bookmarks . 4)
-                         (agenda . 4)))
+    (dashboard-items . '((recents . 5)
+                         (agenda . 5)))
     :config
+    (add-hook 'elpaca-after-init-hook #'dashboard-insert-startupify-lists)
+    (add-hook 'elpaca-after-init-hook #'dashboard-initialize)
+
     (defun p/choose-initial-buffer ()
       (if (get-buffer-window dashboard-buffer-name 'visible)
-          t
+          (get-buffer dashboard-buffer-name)
         (get-buffer-create dashboard-buffer-name)))
 
     (dashboard-setup-startup-hook)
@@ -248,7 +252,7 @@ Since by default =ryo-modal-mode-hook= doesn't run at the start of the session o
   (setq-default cursor-type 'bar)
 #+end_src
 
-** Visual fill column mode
+** Line wrapping
 I like lines wrapping around and, in certain buffers, I like the text to be centered.
 
 #+begin_src emacs-lisp
@@ -267,12 +271,15 @@ I like lines wrapping around and, in certain buffers, I like the text to be cent
     (add-hook 'text-mode-hook #'text-buf-wrap-setup)
     (add-hook 'help-mode-hook #'text-buf-wrap-setup)
     (add-hook 'Info-mode-hook #'text-buf-wrap-setup)
-
-    (leaf adaptive-wrap
-      :config
-      (add-hook 'visual-line-mode-hook #'adaptive-wrap-prefix-mode)
-      (add-hook 'org-mode-hook (lambda () (adaptive-wrap-prefix-mode -1))))
     )
+#+end_src
+
+Adaptive wrap for pretty wrapping.
+#+begin_src emacs-lisp
+  (leaf adaptive-wrap
+    :config
+    (add-hook 'visual-line-mode-hook #'adaptive-wrap-prefix-mode)
+    (add-hook 'org-mode-hook (lambda () (adaptive-wrap-prefix-mode -1))))
 #+end_src
 
 * Usability
@@ -376,6 +383,7 @@ Automatically sync buffer context with what changed on disk.
 - Bind =C-z c c= to =org-capture=.
 #+begin_src emacs-lisp
   (leaf org
+    :elpaca nil
     :custom
     (org-babel-load-languages . '((emacs-lisp . t) (lisp . t)))
     (org-todo-keywords . '((sequence "TODO" "|" "DONE" "CANCELLED" "SUSPENDED")))
@@ -441,6 +449,7 @@ They look nice.
 ** Org roam
 #+begin_src emacs-lisp
   (leaf org-roam
+    :after (org)
     :pre-setq (org-roam-v2-ack . t)
     :custom
     (org-roam-complete-everywhere . t)
@@ -457,9 +466,10 @@ They look nice.
 #+end_src
 
 #+begin_src emacs-lisp
-(leaf org-roam-ui
-  :require (org-roam t)
-  :after org-roam)
+  (leaf org-roam-ui
+    :require (org-roam t)
+    :after (org-roam)
+    )
 #+end_src
 
 * Programming
@@ -519,11 +529,7 @@ Hooks.
    ((help-mode-hook sly-db-mode-hook)
     (visual-fill-column-mode))
    (css-mode-hook
-    (electric-pair-local-mode))
-   (compilation-finish-functions
-    (when (null (string-match ".*exited abnormally.*" str))
-      (let ((win (get-buffer-window buf 'visible)))
-        (when win (delete-window win))))))
+    (electric-pair-local-mode)))
 #+end_src
 
 ** Tree sitter syntax highlighting
@@ -564,6 +570,13 @@ Hooks.
       (when (eglot-managed-p)
         (add-hook 'before-save-hook 'eglot-format nil t)))
     (add-hook 'eglot-managed-mode-hook 'p/eglot-hooks))
+#+end_src
+
+** Dape
+#+begin_src emacs-lisp
+  (leaf dape
+    :custom
+    (dape-buffer-window-arrangement . 'right))
 #+end_src
 
 ** Reformatter
@@ -624,7 +637,7 @@ Hooks.
 *** Go
 #+begin_src emacs-lisp
   (leaf go-ts-mode
-    :after (eglot reformatter tree-sitter tree-sitter-langs treesit-auto)
+    :after (eglot dape reformatter treesit-auto)
     :elpaca nil t
     :require (t project reformatter)
     :hook
@@ -659,7 +672,22 @@ Hooks.
         (cons 'go-module root)))
     (cl-defmethod project-root ((project (head go-module)))
       (cdr project))
-    (add-hook 'project-find-functions #'project-find-go-module))
+    (add-hook 'project-find-functions #'project-find-go-module)
+
+    (add-to-list 'dape-configs
+                 `(delve
+                   modes (go-mode go-ts-mode)
+                   command "dlv"
+                   command-args ("dap" "--listen" "127.0.0.1:55878")
+                   command-cwd dape-cwd-fn
+                   host "127.0.0.1"
+                   port 55878
+                   :type "debug"
+                   :request "launch"
+                   :cwd dape-cwd-fn
+                   :program dape-cwd-fn))
+
+    )
 #+end_src
 
 *** Nix
@@ -670,6 +698,60 @@ Hooks.
     :config
     (add-to-list 'eglot-server-programs '(nix-ts-mode "nixd"))
     (add-hook 'nix-ts-mode-hook 'eglot-ensure))
+#+end_src
+
+*** Java
+Java ts mode.
+#+begin_src emacs-lisp
+  (leaf eglot-java
+    :after (eglot)
+    :config
+    (load-library "jsonrpc") ;; stupid hack
+
+    (setq eglot-java-user-init-opts-fn 'p/custom-eglot-java-init-opts)
+    (defun p/custom-eglot-java-init-opts (server eglot-java-eclipse-jdt)
+      "Custom options that will be merged with any default settings."
+      '(:settings
+        (:java
+         (:format
+          (:settings
+           (:url "https://raw.githubusercontent.com/google/styleguide/gh-pages/eclipse-java-google-style.xml")
+           :enabled t)))))
+
+    )
+
+  (leaf java-ts-mode
+    :elpaca nil
+    :after (eglot eglot-java)
+    :hook (java-ts-mode-hook . eglot-java-mode)
+    :config
+    (add-to-list 'major-mode-remap-alist '(java-mode . java-ts-mode))
+
+    (p/add-hooks
+     (java-ts-mode-hook
+      (auto-fill-mode)
+      (flymake-mode)
+      (subword-mode)
+      (yas-minor-mode)
+      (when window-system
+        (set-fringe-style '(8 . 0)))
+
+      ;; Fix indentation for anonymous classes
+      (c-set-offset 'substatement-open 0)
+      (if (assoc 'inexpr-class c-offsets-alist)
+          (c-set-offset 'inexpr-class 0))
+
+      ;; Indent arguments on the next line as indented body.
+      (c-set-offset 'arglist-intro '++)))
+
+    (defun project-find-pom-xml (dir)
+      (when-let ((root (locate-dominating-file dir "pom.xml")))
+        (cons 'pom-xml root)))
+    (cl-defmethod project-root ((project (head pom-xml)))
+      (cdr project))
+    (add-hook 'project-find-functions #'project-find-pom-xml)
+
+    )
 #+end_src
 
 *** JS/TS/etc.
@@ -858,15 +940,21 @@ CIDER. Notice how clojure is different from all the other languages? Yes, it doe
       (compile
        (format
         "sbcl \\
+          --non-interactive \\
           --eval \"(mapc 'require '(sb-bsd-sockets sb-posix sb-introspect
                                     sb-cltl2 asdf))\" \\
-          --eval '(save-lisp-and-die \"sbcl.core-for-sly\")'"
-        (expand-file-name "sly/slynk/slynk-loader.lisp" *emacs-config-location*)
-        ,*sly-image-location*)))
+          --eval '(load \"%s\")' \\
+          --eval '(slynk-loader:dump-image \"%s\")'"
+        (expand-file-name "elpaca/repos/sly/slynk/slynk-loader.lisp"
+                          user-emacs-directory)
+         ,*sly-image-location*)))
 
     (with-eval-after-load 'sly-mrepl
-      (define-key sly-mrepl-mode-map [remap eval-last-sexp] 'sly-eval-last-expression))
-    (define-key sly-mode-map [remap eval-last-sexp] 'sly-eval-last-expression)
+      (define-key sly-mrepl-mode-map [remap eval-last-sexp]
+                  'sly-eval-last-expression))
+    (define-key sly-mode-map [remap eval-last-sexp]
+                'sly-eval-last-expression)
+    (define-key sly-mode-map (kbd "C-x") 'p/kill-region-or-line)
 
     (add-to-list 'auto-mode-alist '("\\.cl\\'" . lisp-mode))
 
@@ -884,7 +972,11 @@ CIDER. Notice how clojure is different from all the other languages? Yes, it doe
 #+begin_src emacs-lisp
   (leaf yaml-ts-mode
     :elpaca nil
-    :mode ("\\.ya?ml\\'" . yaml-ts-mode))
+    :mode ("\\.ya?ml\\'" . yaml-ts-mode)
+    :config
+    (p/add-hooks
+     (yaml-ts-mode
+      (setq-local tab-width 2))))
 #+end_src
 
 *** Protobuf
@@ -896,17 +988,21 @@ CIDER. Notice how clojure is different from all the other languages? Yes, it doe
 *** Typst
 #+begin_src emacs-lisp
   (leaf typst-ts-mode
-    :elpaca (typst-ts-mode
-             :url "https://codeberg.org/meow_king/typst-ts-mode.git")
     :after tree-sitter)
 #+end_src
 
 ** Treemacs
 #+begin_src emacs-lisp
   (leaf treemacs
+    :custom
+    (treemacs-width . 35)
+    (treemacs-indentation . 1)
+    (treemacs-expand-after-init . nil)
+    (treemacs-file-follow-delay . 0)
+    (treemacs-position . 'right)
+    (treemacs-no-png-images . t)
     :config
-    (defun p/turn-on-truncate-lines ()
-      (toggle-truncate-lines 1))
+    (define-key treemacs-mode-map (kbd "C-k") ctl-x-map)
 
-    (add-hook 'treemacs-mode-hook 'p/turn-on-truncate-lines))
+    )
 #+end_src
