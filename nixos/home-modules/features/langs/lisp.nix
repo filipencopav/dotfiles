@@ -9,7 +9,10 @@ in
   # PATH=${PATH}:${ROSWELL_HOME}/bin
   home.packages = with pkgs; [
     roswell
-    sbcl
+    (sbcl.withPackages (sp: [
+      sp.cffi-libffi
+      sp.cffi
+    ]))
   ];
 
   home.sessionVariables =  {

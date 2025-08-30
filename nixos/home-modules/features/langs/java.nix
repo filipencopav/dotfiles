@@ -1,7 +1,12 @@
 { pkgs, lib, config, ... }:
-{
+let jdk = pkgs.openjdk24;
+in {
   home.packages = [
-    pkgs.openjdk24
+    jdk
+    pkgs.maven
+    (pkgs.gradle.override {
+      java = jdk;
+    })
   ];
 
   home.sessionVariables = {
