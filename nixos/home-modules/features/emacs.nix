@@ -54,6 +54,8 @@ in {
     pkgs.astro-language-server
     pkgs.vue-language-server
   ] ++ lib.optionals langs.java.enable [
-    pkgs.jdt-language-server
+    (pkgs.jdt-language-server.override (final: final // {
+      jdk = pkgs.openjdk24;
+    }))
   ];
 }
