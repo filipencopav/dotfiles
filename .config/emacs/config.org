@@ -428,7 +428,22 @@ Automatically sync buffer context with what changed on disk.
     :config
     (define-key p/ctl-z-c-map (kbd "c") 'org-capture)
     (add-to-list 'org-modules 'org-tempo)
-    (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp")))
+    (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
+
+    (defun org-export-output-file-name-modified (orig-fun extension &optional subtreep pub-dir)
+      (unless pub-dir
+        (setq pub-dir "exported-org-files")
+        (unless (file-directory-p pub-dir)
+          (make-directory pub-dir)))
+      (apply orig-fun extension subtreep pub-dir nil))
+    (advice-add 'org-export-output-file-name :around #'org-export-output-file-name-modified)
+
+    )
+#+end_src
+
+** Org typst export
+#+begin_src emacs-lisp
+  (leaf ox-typst)
 #+end_src
 
 ** Org bullets
@@ -637,8 +652,8 @@ Hooks.
 *** Go
 #+begin_src emacs-lisp
   (leaf go-ts-mode
-    :after (eglot dape reformatter treesit-auto)
-    :elpaca nil t
+    :after (eglot reformatter)
+    :elpaca nil
     :require (t project reformatter)
     :hook
     (go-ts-mode-hook . eglot-ensure)
@@ -674,19 +689,19 @@ Hooks.
       (cdr project))
     (add-hook 'project-find-functions #'project-find-go-module)
 
-    (add-to-list 'dape-configs
-                 `(delve
-                   modes (go-mode go-ts-mode)
-                   command "dlv"
-                   command-args ("dap" "--listen" "127.0.0.1:55878")
-                   command-cwd dape-cwd-fn
-                   host "127.0.0.1"
-                   port 55878
-                   :type "debug"
-                   :request "launch"
-                   :cwd dape-cwd-fn
-                   :program dape-cwd-fn))
-
+    (with-eval-after-load 'dape
+      (add-to-list 'dape-configs
+                   `(delve
+                     modes (go-mode go-ts-mode)
+                     command "dlv"
+                     command-args ("dap" "--listen" "127.0.0.1:55878")
+                     command-cwd dape-cwd-fn
+                     host "127.0.0.1"
+                     port 55878
+                     :type "debug"
+                     :request "launch"
+                     :cwd dape-cwd-fn
+                     :program dape-cwd-fn)))
     )
 #+end_src
 
@@ -796,7 +811,8 @@ Vue syntax + server.
 #+begin_src emacs-lisp
   (leaf vue-ts-mode
     :after (eglot treesit-auto typescript-ts-mode)
-    :elpaca (vue-ts-mode :url "https://github.com/8uff3r/vue-ts-mode.git")
+    :require (t typescript-ts-mode)
+    :elpaca (vue-ts-mode :host github :repo "8uff3r/vue-ts-mode")
     :config
     (let ((vue-recipe (make-treesit-auto-recipe
                        :lang 'vue
@@ -995,7 +1011,7 @@ CIDER. Notice how clojure is different from all the other languages? Yes, it doe
 #+begin_src emacs-lisp
   (leaf treemacs
     :custom
-    (treemacs-width . 35)
+    (treemacs-width . 45)
     (treemacs-indentation . 1)
     (treemacs-expand-after-init . nil)
     (treemacs-file-follow-delay . 0)
