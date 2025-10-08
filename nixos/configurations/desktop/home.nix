@@ -96,7 +96,7 @@ in {
       htop
       (wrap-nixgl imv)
       (wrap-nixgl inkscape)
-      (wrap-nixgl lutris)
+      # (wrap-nixgl lutris)
       (wrap-nixgl mpv)
       (wrap-nixgl obs-studio)
       (wrap-nixgl openttd)

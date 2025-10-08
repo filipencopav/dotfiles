@@ -110,6 +110,14 @@ in {
         active.color = "#${colors.base08}";
       };
     };
+    settings.outputs."HDMI-A-1" = {
+      scale = 1.7;
+      mode = {
+        width = 1920;
+        height = 1080;
+        refresh = 60.000;
+      };
+    };
     settings.binds = {
       "Mod+Shift+Slash".action.show-hotkey-overlay = {};
 

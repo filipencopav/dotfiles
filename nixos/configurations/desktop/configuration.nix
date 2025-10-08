@@ -45,8 +45,24 @@
   };
 
 
-  hardware.graphics.enable = true;
-  hardware.graphics.enable32Bit = true;
+  environment.variables.RUSTICL_ENABLE = "radeonsi";
+  environment.variables.ROC_ENABLE_PRE_VEGA = "1";
+  hardware.graphics = {
+    enable = true;
+    enable32Bit = true;
+    extraPackages = with pkgs; [
+      mesa.opencl # Enables Rusticl (OpenCL) support
+      rocmPackages.clr.icd
+      rocmPackages.clr
+      rocmPackages.rocminfo
+      rocmPackages.rocm-runtime
+    ];
+  };
+  systemd.tmpfiles.rules = [
+    "L+    /opt/rocm/hip   -    -    -     -    ${pkgs.rocmPackages.clr}"
+  ];
+
+  
   programs.dconf.enable = true; # Needed for home-manager
   programs.niri.enable = true;
   services.fstrim.enable = true;
@@ -64,7 +80,7 @@
   users.users.pavel = {
     isNormalUser = true;
     extraGroups = [ "wheel" "networkmanager" ];
-    packages = with pkgs; [ ];
+    packages = [ ];
   };
 
   # Copy the NixOS configuration file and link it from the resulting system
