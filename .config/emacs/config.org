@@ -118,7 +118,7 @@ I use modus themes, particularly modus-vivendi. They are nice because they are m
 Fantasque Sans Mono Nerd font as the default and Twitter Color Emoji as the emoji font.
 
 #+begin_src emacs-lisp
-  (setq p/main-font "FantasqueSansM Nerd Font:pixelsize=16:antialias=true")
+  (setq p/main-font "FantasqueSansM Nerd Font:pixelsize=18:antialias=true")
   (add-to-list 'default-frame-alist
                `(font . ,p/main-font))
 
@@ -126,11 +126,11 @@ Fantasque Sans Mono Nerd font as the default and Twitter Color Emoji as the emoj
   (defun p/apply-emoji-font ()
     (set-fontset-font
      t nil
-     (font-spec :family "Fantasque SansM Nerd Font" :size 15)
+     (font-spec :family "Fantasque SansM Nerd Font" :size 17)
      nil 'prepend)
     (set-fontset-font
      t 'emoji
-     (font-spec :family "Twitter Color Emoji" :size 13)
+     (font-spec :family "Twitter Color Emoji" :size 15)
      nil 'prepend))
 
   (add-hook 'server-after-make-frame-hook #'p/apply-emoji-font)
@@ -860,7 +860,6 @@ Just the syntax.
 #+begin_src emacs-lisp
   (leaf clojure-ts-mode
     :after (eldoc-box)
-
     :setq
     (clojure-ts-indent-style . 'fixed)
 
