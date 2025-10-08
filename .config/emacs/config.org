@@ -549,13 +549,7 @@ Hooks.
 
 ** Tree sitter syntax highlighting
 #+begin_src emacs-lisp
-  (leaf tree-sitter
-    :config
-    (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode)
-    (global-tree-sitter-mode))
-  (leaf tree-sitter-langs)
   (leaf treesit-auto
-    :after (tree-sitter tree-sitter-langs)
     :custom
     '(treesit-auto-install . t)
     (treesit-auto-langs . '(awk bash bibtex c c-sharp clojure cmake commonlisp
@@ -733,6 +727,7 @@ Java ts mode.
            (:url "https://raw.githubusercontent.com/google/styleguide/gh-pages/eclipse-java-google-style.xml")
            :enabled t)))))
 
+    (add-to-list 'eglot-java-eclipse-jdt-args "--enable-preview")
     )
 
   (leaf java-ts-mode
