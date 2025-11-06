@@ -489,6 +489,11 @@ They look nice.
 
 * Programming
 
+** AI coding
+#+begin_src emacs-lisp
+  ;; (leaf )
+#+end_src
+
 ** Reasonable defaults
 Variables.
 #+begin_src emacs-lisp
