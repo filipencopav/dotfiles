@@ -2,13 +2,11 @@
 {
   programs.git = {
     enable = true;
-    userName = "Pavel Filipenco";
-	userEmail = "filipencop@mail.ru";
 
-    # See https://github.com/dandavison/delta
-    delta.enable = true;
+    settings = {
+      user.name = "Pavel Filipenco";
+      user.email = "filipencop@mail.ru";
 
-    extraConfig = {
       diff.algorithm = "histogram";
       init.defaultBranch = "main";
       pull.rebase = true;
@@ -17,5 +15,11 @@
     ignores = [
       "*~"
     ];
+  };
+
+  # See https://github.com/dandavison/delta
+  programs.delta = {
+    enable = true;
+    enableGitIntegration = true;
   };
 }
