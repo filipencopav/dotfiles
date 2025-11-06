@@ -29,7 +29,6 @@
   let
     util = import ./util inputs;
   in {
-    # NOTE: 'nixos' is the default hostname
     nixosConfigurations.desktop =
       util.mk-system
         "x86_64-linux"
