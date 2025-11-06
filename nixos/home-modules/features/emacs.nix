@@ -5,6 +5,7 @@ let pkg =
     withPgtk = true;
     withTreeSitter = true;
   });
+jdk = config.my.features.langs.java.jdk;
 langs = config.my.features.langs;
 in {
   options = {
@@ -54,8 +55,6 @@ in {
     pkgs.astro-language-server
     pkgs.vue-language-server
   ] ++ lib.optionals langs.java.enable [
-    (pkgs.jdt-language-server.override (final: final // {
-      jdk = pkgs.openjdk24;
-    }))
+    (pkgs.jdt-language-server.override (final: final // { inherit jdk; }))
   ];
 }
