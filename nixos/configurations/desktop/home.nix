@@ -111,6 +111,8 @@ in {
       wl-clipboard
       typst
 
+      code-cursor
+
       (wrap-nixgl zathura) # TODO: enable djvu and pdf-mupdf
     ];
   };

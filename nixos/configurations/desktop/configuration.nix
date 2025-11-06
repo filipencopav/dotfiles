@@ -65,6 +65,7 @@
   
   programs.dconf.enable = true; # Needed for home-manager
   programs.niri.enable = true;
+  programs.nix-ld.enable = true;
   services.fstrim.enable = true;
   services.locate.enable = true;
   environment.systemPackages = with pkgs; [
