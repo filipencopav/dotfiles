@@ -85,10 +85,8 @@ in {
     };
 
     packages = with pkgs; [
-      # TODO: regroup packages to appropriate bundles, if necessary
       tldr
-      android-tools
-      (wrap-nixgl ardour) # TODO: figure out audio
+      (wrap-nixgl ardour)
       # (wrap-nixgl audacity)
       clang
       (wrap-nixgl vesktop)
@@ -96,14 +94,11 @@ in {
       htop
       (wrap-nixgl imv)
       (wrap-nixgl inkscape)
-      # (wrap-nixgl lutris)
       (wrap-nixgl mpv)
       (wrap-nixgl obs-studio)
       (wrap-nixgl openttd)
       ripgrep
-      shellcheck
       (wrap-nixgl _64gram)
-      # (wrap-nixgl telegram-desktop)
       (wrap-nixgl thunderbird-bin)
       (wrap-nixgl transmission_4-gtk)
       yt-dlp
