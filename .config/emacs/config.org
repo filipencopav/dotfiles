@@ -881,6 +881,9 @@ CIDER. Notice how clojure is different from all the other languages? Yes, it doe
   (leaf cider
     :require (t cider-eval)
     :after (clojure-ts-mode)
+    :custom
+    (cider-lein-parameters
+     . "with-profile +dev repl :headless :host localhost")
     :config
     (define-key cider-mode-map [remap eval-last-sexp] 'cider-eval-last-sexp)
     (define-key cider-repl-mode-map (kbd "C-c M-o") 'cider-repl-clear-buffer)
