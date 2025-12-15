@@ -109,6 +109,8 @@ in {
       code-cursor
 
       (wrap-nixgl zathura) # TODO: enable djvu and pdf-mupdf
+
+      unzip
     ];
   };
 }
