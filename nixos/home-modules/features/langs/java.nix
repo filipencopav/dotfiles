@@ -3,7 +3,7 @@ let jdk = config.my.features.langs.java.jdk;
 in {
   options = {
     my.features.langs.java.jdk = lib.mkOption {
-      default = pkgs.openjdk25;
+      default = pkgs.openjdk21;
       type = lib.types.package;
     };
   };
@@ -11,9 +11,6 @@ in {
   home.packages = [
     jdk
     pkgs.maven
-    (pkgs.gradle.override {
-      java = jdk;
-    })
   ];
 
   home.sessionVariables = {
