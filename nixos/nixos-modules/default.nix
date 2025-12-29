@@ -19,6 +19,7 @@ in {
       pipewire.enable = lib.mkDefault true;
       sudo.enable = lib.mkDefault true;
       polkit.enable = lib.mkDefault true;
+      memory.enable = lib.mkDefault true;
     };
   };
 }

@@ -132,6 +132,7 @@ in {
     modules = [
       config
       inputs.niri.homeModules.niri
+      inputs.sops-nix.homeManagerModules.sops
       outputs.home-modules.default
       overlay-module
     ];

@@ -27,6 +27,7 @@ in {
       enable = true;
       setSocketVariable = true;
     };
+    autoPrune.enable = true;
   };
   systemd.user.sockets.docker.wantedBy =
     lib.mkIf cfg.enable-user-systemd-socket [ "default.target" ];

@@ -1,4 +1,4 @@
-{ config, util, lib, ... }:
+{ config, util, ... }:
 {
   imports = (util.gen-modules config [ "my" "features" "langs" ] [
     ./erlang.nix

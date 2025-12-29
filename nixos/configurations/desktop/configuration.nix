@@ -42,6 +42,8 @@
     keyd.enable = true;
     regreet.enable = true;
     stylix.enable = true;
+
+    keys-usb.enable = true;
   };
 
 

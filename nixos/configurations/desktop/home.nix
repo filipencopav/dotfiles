@@ -26,6 +26,7 @@ in {
     pass.enable = true;
     steam.enable = true;
     chromium.enable = true;
+    cursor.enable = true;
 
     langs = {
       clojure.enable = true;
@@ -41,6 +42,8 @@ in {
 
     # styles
     gtk.enable = true;
+
+    sops.enable = true;
   };
 
   # allow home-manager to install and manage itself
@@ -105,8 +108,6 @@ in {
       zip
       wl-clipboard
       typst
-
-      code-cursor
 
       (wrap-nixgl zathura) # TODO: enable djvu and pdf-mupdf
 

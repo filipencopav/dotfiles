@@ -23,6 +23,21 @@
       url = "github:nix-community/fenix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    sops-nix = {
+      url = "github:Mic92/sops-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    secrets-folder = {
+      url = "path:./secrets";
+      flake = false;
+    };
+
+    code-cursor-nix = {
+      url = "github:jacopone/code-cursor-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = inputs:
