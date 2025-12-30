@@ -44,11 +44,19 @@
   let
     util = import ./util inputs;
   in {
+    nixosConfigurations.laptop =
+      util.mk-system
+        "x86_64-linux"
+        ./configurations/laptop/configuration.nix;
+    homeConfigurations."pavel@laptop" =
+      util.mk-home
+        "x86_64-linux"
+        ./configurations/laptop/home.nix;
+
     nixosConfigurations.desktop =
       util.mk-system
         "x86_64-linux"
         ./configurations/desktop/configuration.nix;
-
     homeConfigurations."pavel@desktop" =
       util.mk-home
         "x86_64-linux"
