@@ -1,5 +1,8 @@
+;;; ...  -*- lexical-binding: t -*-
+
 ;;; Reducing clutter in ~/.emacs.d by redirecting files to ~/.emacs.d/var/
-(setq user-emacs-directory (expand-file-name "var/" minimal-emacs-user-directory))
+(setq user-emacs-directory
+      (expand-file-name "var/" minimal-emacs-user-directory))
 
 
 ;; Set emacs build date if on nixos for elpaca
@@ -47,16 +50,35 @@
     (require 'elpaca)
     (elpaca-generate-autoloads "elpaca" repo)
     (let ((load-source-file-function nil)) (load "./elpaca-autoloads"))))
+
+
 (add-hook 'after-init-hook #'elpaca-process-queues)
+
+(defun my-fix (orig-fn &rest args)
+  "Return an alist of MELPA package metadata."
+  (require 'json)
+  (message "Using MY version of metadata fetcher")
+  (let* ((json-object-type 'alist)
+         (metadata (json-read-file
+                    (expand-file-name "../melpa-archive.json"
+                                      user-emacs-directory))))
+    (message "Metadata FETCHED!")
+    metadata))
+
+(advice-add 'elpaca-menu-melpa--metadata :around #'my-fix)
+
 (elpaca `(,@elpaca-order))
+
+(elpaca-wait)
 ;;; END elpaca install code
 
 ;;; START leaf install code
 (unless (and (elpaca-installed-p 'leaf)
              (elpaca-installed-p 'leaf-keywords))
-  (elpaca leaf)
-  (elpaca leaf-keywords)
-  (elpaca-wait))
+  (elpaca leaf (require 'leaf))
+  (elpaca leaf-keywords (require 'leaf-keywords)))
+
+(elpaca-wait)
 
 (leaf-keywords-init)
 
