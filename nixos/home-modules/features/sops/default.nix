@@ -22,7 +22,8 @@ in {
     pkgs.sops
   ];
 
-  sops = let in {
+  sops = let HOME = config.home.homeDirectory;
+  in {
     age.keyFile = "/mnt/sops-secrets/age-key.txt";
 
     secrets = {
@@ -31,11 +32,11 @@ in {
         format = "yaml";
         sopsFile = "${secrets}/passwords.yaml";
       };
-    } // fillSecrets "ssh" "yaml" "${config.home.homeDirectory}/.ssh" [
-      "github_filipencopav"
+    } // fillSecrets "ssh" "yaml" "${HOME}/.ssh" [
       "id_ed25519"
-      "twc"
+      "id_ed25519.pub"
       "vision_server"
+      "vision_server.pub"
     ];
   };
 }
