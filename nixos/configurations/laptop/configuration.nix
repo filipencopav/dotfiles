@@ -31,7 +31,6 @@
     sudo.enable = true;
     polkit.enable = true;
 
-    network.enable = true;
     pipewire.enable = true;
     docker = {
       enable = true;
@@ -39,6 +38,7 @@
       enable-user-systemd-socket = true;
     };
 
+    wireguard.enable = true;
     keyd.enable = true;
     regreet.enable = true;
     stylix.enable = true;
@@ -79,6 +79,9 @@
 
 
   networking.hostName = "laptop";
+  networking.networkmanager.enable = true;
+  networking.networkmanager.wifi.powersave = true;
+  networking.firewall.enable = true;
   users.users.pavel = {
     isNormalUser = true;
     extraGroups = [ "wheel" "networkmanager" ];

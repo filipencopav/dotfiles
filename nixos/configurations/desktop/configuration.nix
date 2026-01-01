@@ -31,7 +31,6 @@
     sudo.enable = true;
     polkit.enable = true;
 
-    network.enable = true;
     pipewire.enable = true;
     docker = {
       enable = true;
@@ -43,7 +42,10 @@
     regreet.enable = true;
     stylix.enable = true;
 
+    wireguard.enable = true;
+
     keys-usb.enable = true;
+    sops.enable = true;
   };
 
 
@@ -78,8 +80,10 @@
     cachix
   ];
 
-
   networking.hostName = "desktop";
+  networking.networkmanager.enable = true;
+  networking.firewall.enable = true;
+
   users.users.pavel = {
     isNormalUser = true;
     extraGroups = [ "wheel" "networkmanager" ];
