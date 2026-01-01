@@ -2,7 +2,6 @@
 let
   user = "pavel";
   homedir = "/home/${user}";
-  wrap-nixgl = util.wrap-nixgl-if config.my.features.nixgl.enable config;
 in {
   imports = [
     inputs.stylix.homeModules.stylix
@@ -11,6 +10,7 @@ in {
   my.features = {
     # programs
     niri.enable = true;
+    niri.show-battery = true;
     kitty.enable = true;
     git.enable = true;
     nixgl.enable = false;

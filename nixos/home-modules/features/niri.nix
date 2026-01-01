@@ -1,11 +1,18 @@
-{ inputs, config, pkgs, util, lib, ... }:
+{ inputs, config, pkgs, lib, ... }:
 let
   colors = config.lib.stylix.colors;
-  wrap-nixgl = util.wrap-nixgl-if config.my.features.nixgl.enable config;
 in {
   imports = [
     inputs.niri.homeModules.niri
   ];
+
+  options = {
+    my.features.niri.show-battery = lib.mkOption {
+      type = lib.types.bool;
+      description = "Whether to display battery charge in status bar";
+      default = false;
+    };
+  };
   
   home.packages = [
     pkgs.gnome-keyring
@@ -45,7 +52,6 @@ in {
 
   services.wpaperd = {
     enable = true;
-    package = pkgs.wpaperd;
     settings = {
       any = {
         path = "${config.xdg.dataHome}/backgrounds/shuffle";
@@ -81,6 +87,7 @@ in {
   };
 
   my.features.waybar.enable = true;
+  my.features.waybar.show-battery = config.my.features.niri.show-battery;
 
   # TODO: window rules for borderless when single on workspace. how would that work? anyway
   programs.niri = {

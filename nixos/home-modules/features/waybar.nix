@@ -1,5 +1,13 @@
-{ pkgs, lib, ... }:
+{ pkgs, lib, config, ... }:
 {
+  options = {
+    my.features.waybar.show-battery = lib.mkOption {
+      type = lib.types.bool;
+      description = "Whether to display battery";
+      default = false;
+    };
+  };
+  
   stylix.targets.waybar.enable = true;
   programs.waybar = {
     enable = true;
@@ -10,6 +18,8 @@
       position = "bottom";
       modules-center = [
         "clock"
+      ] ++ lib.optionals config.my.features.waybar.show-battery [
+        "battery"
       ];
       modules-right = [
         "tray"
