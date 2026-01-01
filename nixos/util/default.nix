@@ -5,15 +5,15 @@ let
   lib = nixpkgs.lib;
 
 
-  assoc-in = coll: path: val: (
+  assoc-in = set: where: val: (
     lib.attrsets.updateManyAttrsByPath
-      [{path = path; update = _: val;}]
-      coll);
+      [{path = where; update = _: val;}]
+      set);
 
-  get-module-name = path: (
+  get-module-name = module-path: (
     builtins.unsafeDiscardStringContext
       (builtins.head
-        (builtins.split "\\." (baseNameOf path))));
+        (builtins.split "\\." (baseNameOf module-path))));
 
   get-files-in =
     dir-path: (map (filename: "${dir-path}/${filename}")
@@ -28,10 +28,10 @@ let
   wrap-modules =
     paths: wrapper: let
     in (
-      map (path: module-args: (
+      map (module-path: module-args: (
         wrapper {
-          moduleName = get-module-name path;
-          module = (import path) module-args;
+          moduleName = get-module-name module-path;
+          module = (import module-path) module-args;
         }))
         paths);
 
@@ -83,7 +83,7 @@ let
           module ? {},
           ...
         }: let
-          cfg     = module.config  or (builtins.removeAttrs module ["options" "imports"]);
+          cfg     = module.config  or (removeAttrs module ["options" "imports"]);
           options = module.options or {};
           imports = module.imports or [];
           enable-attr-path =  prefix ++ [moduleName "enable"];
@@ -132,7 +132,6 @@ in {
     modules = [
       config
       inputs.niri.homeModules.niri
-      inputs.sops-nix.homeManagerModules.sops
       outputs.home-modules.default
       overlay-module
     ];
