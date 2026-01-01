@@ -57,12 +57,10 @@
 (defun my-fix (orig-fn &rest args)
   "Return an alist of MELPA package metadata."
   (require 'json)
-  (message "Using MY version of metadata fetcher")
   (let* ((json-object-type 'alist)
          (metadata (json-read-file
                     (expand-file-name "../melpa-archive.json"
                                       user-emacs-directory))))
-    (message "Metadata FETCHED!")
     metadata))
 
 (advice-add 'elpaca-menu-melpa--metadata :around #'my-fix)
