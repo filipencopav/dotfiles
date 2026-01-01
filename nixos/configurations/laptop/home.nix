@@ -1,4 +1,4 @@
-{ inputs, config, pkgs, util, ... }:
+{ inputs, pkgs, ... }:
 let
   user = "pavel";
   homedir = "/home/${user}";
