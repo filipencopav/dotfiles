@@ -12,12 +12,16 @@ let
             path = "${dir}/${key}";
           };})
         keys);
-in
-{
+in {
+  imports = [
+    inputs.sops-nix.homeManagerModules.sops
+  ];
+
   home.packages = [
     pkgs.rage
     pkgs.sops
   ];
+
   sops = let in {
     age.keyFile = "/mnt/sops-secrets/age-key.txt";
 
