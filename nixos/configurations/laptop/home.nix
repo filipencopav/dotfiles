@@ -60,7 +60,6 @@ in {
     };
 
     shellAliases = {
-      e = "$EDITOR";
       dotconf = ''git --git-dir="$HOME/dotfiles/" --work-tree="$HOME"'';
 
       # youtube downloader alias
