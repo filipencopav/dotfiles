@@ -23,6 +23,7 @@ in {
     pass.enable = true;
     steam.enable = true;
     chromium.enable = true;
+    sops.enable = true;
 
     langs = {
       clojure.enable = true;
@@ -80,32 +81,28 @@ in {
     };
 
     packages = with pkgs; [
-      tldr
-      (wrap-nixgl ardour)
-      # (wrap-nixgl audacity)
-      clang
-      (wrap-nixgl vesktop)
+      ardour
+      audacity
+      vesktop
       gcolor3
       htop
-      (wrap-nixgl imv)
-      (wrap-nixgl inkscape)
-      (wrap-nixgl mpv)
-      (wrap-nixgl obs-studio)
-      (wrap-nixgl openttd)
+      imv
+      inkscape
+      mpv
+      obs-studio
+      openttd
       ripgrep
-      (wrap-nixgl _64gram)
-      (wrap-nixgl thunderbird-bin)
-      (wrap-nixgl transmission_4-gtk)
+      _64gram
+      transmission_4-gtk
       yt-dlp
+      unzip
       zip
       wl-clipboard
       typst
 
       code-cursor
 
-      (wrap-nixgl zathura) # TODO: enable djvu and pdf-mupdf
-
-      unzip
+      zathura
     ];
   };
 }
