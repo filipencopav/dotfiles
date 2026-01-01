@@ -131,7 +131,6 @@ in {
     extraSpecialArgs = { inherit inputs system pkgs util; };
     modules = [
       config
-      inputs.niri.homeModules.niri
       outputs.home-modules.default
       overlay-module
     ];

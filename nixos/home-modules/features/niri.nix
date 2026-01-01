@@ -1,8 +1,12 @@
-{ config, pkgs, util, lib, ... }:
+{ inputs, config, pkgs, util, lib, ... }:
 let
   colors = config.lib.stylix.colors;
   wrap-nixgl = util.wrap-nixgl-if config.my.features.nixgl.enable config;
 in {
+  imports = [
+    inputs.niri.homeModules.niri
+  ];
+  
   home.packages = [
     pkgs.gnome-keyring
     pkgs.xwayland-satellite
@@ -294,7 +298,7 @@ in {
       # Makes the column "fill the rest of the space".
       "Mod+F".action.expand-column-to-available-width = {};
 
-      "Mod+C".action.center-visible-columns = {};
+      "Mod+C".action.center-window = {};
 
       # Center all fully visible columns on screen.
       # Mod+Ctrl+C { center-visible-columns; }
