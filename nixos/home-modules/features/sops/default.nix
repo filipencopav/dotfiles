@@ -3,7 +3,7 @@ let
   secrets = inputs.secrets-folder;
   fillSecrets =
     file: format: dir: keys: lib.attrsets.mergeAttrsList (
-      builtins.map
+      map
         (key: {
           "${file}/${key}" = {
             inherit key;
