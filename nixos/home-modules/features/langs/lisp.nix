@@ -27,11 +27,20 @@ in
     ;;; My user configs.
     (setf *print-case* :downcase)
 
-    ;;; The following lines added by ql:add-to-init-file:
+    ;;; Quicklisp installation.
+    (require :asdf)
     #-quicklisp
-    (let ((quicklisp-init (merge-pathnames "devel/quicklisp/setup.lisp"
-                            (user-homedir-pathname))))
-      (when (probe-file quicklisp-init)
-        (load quicklisp-init)))
+    (let* ((ql-dir (uiop:ensure-pathname
+                     (merge-pathnames
+                       "devel/quicklisp/"
+                       (user-homedir-pathname))))
+           (ql-install (merge-pathnames "install.lisp" ql-dir))
+           (ql-setup (merge-pathnames "setup.lisp" ql-dir)))
+      (if (probe-file ql-setup)
+        (load ql-setup)
+        (when (probe-file ql-install)
+          (load ql-install)
+          (funcall (with-input-from-string (s "quicklisp-quickstart:install") (read s))
+            :path ql-dir))))
   '';
 }
