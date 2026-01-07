@@ -5,11 +5,6 @@ in {
   gtk = {
     enable = true;
 
-    cursorTheme = {
-      package = pkgs.capitaine-cursors;
-      name = "capitaine-cursors-white";
-      size = 24;
-    };
     iconTheme = {
       package = pkgs.kora-icon-theme.overrideAttrs (final: final // {
         dontWrapQtApps = true;

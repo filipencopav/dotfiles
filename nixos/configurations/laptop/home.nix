@@ -1,12 +1,8 @@
-{ inputs, pkgs, ... }:
+{ pkgs, ... }:
 let
   user = "pavel";
   homedir = "/home/${user}";
 in {
-  imports = [
-    inputs.stylix.homeModules.stylix
-  ];
-
   my.features = {
     # programs
     niri.enable = true;
