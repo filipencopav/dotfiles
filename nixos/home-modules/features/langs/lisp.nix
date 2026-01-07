@@ -8,7 +8,7 @@ in
   # ROSWELL_HOME=${XDG_DATA_HOME}/roswell
   # PATH=${PATH}:${ROSWELL_HOME}/bin
   home.packages = with pkgs; [
-    roswell
+    # roswell
     (sbcl.withPackages (sp: [
       sp.cffi-libffi
       sp.cffi
