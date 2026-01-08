@@ -471,7 +471,7 @@ They look nice.
     :config
     (setq org-roam-directory (thread-first
                                "org/roam/"
-                               (expand-file-name *emacs-config-location*)
+                               (expand-file-name (getenv "XDG_DOCUMENTS_DIR"))
                                (file-truename)))
     (define-prefix-command 'p/org-roam-commands)
     (define-key p/org-roam-commands (kbd "f") 'org-roam-node-find)
