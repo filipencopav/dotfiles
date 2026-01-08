@@ -1,13 +1,9 @@
-{ inputs, config, pkgs, util, ... }:
+{ config, pkgs, util, ... }:
 let
   user = "pavel";
   homedir = "/home/${user}";
   wrap-nixgl = util.wrap-nixgl-if config.my.features.nixgl.enable config;
 in {
-  imports = [
-    inputs.stylix.homeModules.stylix
-  ];
-
   # non-nixOS usage
   # targets.genericLinux.enable = true;
 

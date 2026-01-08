@@ -1,0 +1,4 @@
+{}:
+{
+  passfuzzel = import ./passfuzzel.nix;
+}

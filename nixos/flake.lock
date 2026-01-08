@@ -89,6 +89,18 @@
         "type": "github"
       }
     },
+    "derivs": {
+      "flake": false,
+      "locked": {
+        "path": "./derivations",
+        "type": "path"
+      },
+      "original": {
+        "path": "./derivations",
+        "type": "path"
+      },
+      "parent": []
+    },
     "fenix": {
       "inputs": {
         "nixpkgs": [
@@ -391,6 +403,7 @@
     "root": {
       "inputs": {
         "code-cursor-nix": "code-cursor-nix",
+        "derivs": "derivs",
         "fenix": "fenix",
         "home-manager": "home-manager",
         "niri": "niri",

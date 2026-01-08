@@ -1,6 +1,7 @@
 { inputs, config, pkgs, lib, ... }:
 let
   colors = config.lib.stylix.colors;
+  cfg = config.my.features;
 in {
   imports = [
     inputs.niri.homeModules.niri
@@ -87,12 +88,13 @@ in {
   };
 
   my.features.waybar.enable = true;
-  my.features.waybar.show-battery = config.my.features.niri.show-battery;
+  my.features.waybar.show-battery = cfg.niri.show-battery;
 
   # TODO: window rules for borderless when single on workspace. how would that work? anyway
   programs.niri = {
     enable = true;
     settings.prefer-no-csd = true;
+    settings.layout.empty-workspace-above-first = true;
     settings.input.keyboard = {
       xkb = {
         layout = "ro,ru";
@@ -121,7 +123,12 @@ in {
         active.color = "#${colors.base08}";
       };
     };
-    settings.binds = {
+    settings.binds = lib.attrsets.optionalAttrs cfg.passfuzzel.enable {
+      "Mod+P".action.spawn = [
+        "${cfg.passfuzzel.package}/bin/passfuzzel"
+      ];
+      "Mod+P".hotkey-overlay.title = "Passwords menu";
+    } // {
       "Mod+Shift+Slash".action.show-hotkey-overlay = {};
 
       # Suggested binds for running programs: terminal, app launcher, screen locker.
@@ -130,8 +137,6 @@ in {
       "Mod+Shift+E".action.spawn = ["emacsclient" "-c"];
       "Mod+D".action.spawn = ["fuzzel"];
       "Mod+D".hotkey-overlay.title = "Run an Application: fuzzel";
-      "Mod+P".action.spawn = ["passfuzzel"];
-      "Mod+P".hotkey-overlay.title = "Passwords menu";
       # Super+Alt+L hotkey-overlay-title="Lock the Screen: swaylock" { spawn "swaylock"; }
 
       # You can also use a shell. Do this if you need pipes, multiple commands, etc.

@@ -27,11 +27,6 @@ in {
     age.keyFile = "/mnt/sops-secrets/age-key.txt";
 
     secrets = {
-      passwords = {
-        key = "";
-        format = "yaml";
-        sopsFile = "${secrets}/passwords.yaml";
-      };
     } // fillSecrets "ssh" "yaml" "${HOME}/.ssh" [
       "id_ed25519"
       "id_ed25519.pub"

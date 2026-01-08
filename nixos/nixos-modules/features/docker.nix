@@ -23,11 +23,23 @@ in {
 
   virtualisation.docker = {
     enable = true;
-    rootless = lib.mkIf cfg.rootless {
-      enable = true;
-      setSocketVariable = true;
+
+    storageDriver = "btrfs";
+
+    daemon.settings = {
+      experimental = true;
+      userland-proxy = false;
     };
     autoPrune.enable = true;
+    
+    rootless = {
+      enable = cfg.rootless;
+      setSocketVariable = true;
+      daemon.settings = {
+        experimental = true;
+        userland-proxy = false;
+      };
+    };
   };
   systemd.user.sockets.docker.wantedBy =
     lib.mkIf cfg.enable-user-systemd-socket [ "default.target" ];

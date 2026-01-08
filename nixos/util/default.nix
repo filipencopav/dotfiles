@@ -112,14 +112,14 @@ in {
       else value);
 
   mk-system = system: config: let
-    in nixpkgs.lib.nixosSystem {
-      specialArgs = { inherit inputs outputs util; };
-      modules = [
-        config
-        outputs.nixosModules.default
-        overlay-module
-      ];
-    };
+  in nixpkgs.lib.nixosSystem {
+    specialArgs = { inherit inputs outputs util; };
+    modules = [
+      config
+      outputs.nixosModules.default
+      overlay-module
+    ];
+  };
 
   mk-home = system: config: let
     pkgs = import nixpkgs {

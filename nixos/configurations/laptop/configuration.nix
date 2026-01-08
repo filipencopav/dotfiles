@@ -87,6 +87,14 @@
 
 
   networking.hostName = "laptop";
+  networking.hosts = {
+    "127.0.0.1" = [
+      "rama-zk1"
+      "rama-conductor"
+      "rama-supervisor1"
+      "rama-supervisor2"
+    ];
+  };
   networking.networkmanager.enable = true;
   networking.networkmanager.wifi.powersave = true;
   networking.firewall.enable = true;
