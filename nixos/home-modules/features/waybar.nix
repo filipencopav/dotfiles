@@ -17,6 +17,7 @@
       layer = "bottom";
       position = "bottom";
       modules-center = [
+        "wireplumber"
         "clock"
       ] ++ lib.optionals config.my.features.waybar.show-battery [
         "battery"
@@ -25,7 +26,14 @@
         "tray"
       ];
       clock = {
-        format = "{:%A, %d-%m-%Y, %H:%M}";
+        format = "[TIME :: {:%A, %d-%m-%Y, %H:%M}]";
+      };
+      battery = {
+        format = "[BAT :: {capacity}%]";
+      };
+      wireplumber = {
+        "format" = "[VOL :: {volume}%]";
+        "max-volume" = 150;
       };
     };
     style = lib.mkAfter ''

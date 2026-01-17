@@ -168,6 +168,9 @@ in {
       "Mod+Ctrl+I".action.move-window-up-or-to-workspace-up = {};
       "Mod+Ctrl+L".action.move-column-right = {};
 
+      "Mod+bracketright".action.spawn = ["wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "0.1+"];
+      "Mod+bracketleft".action.spawn = ["wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "0.1-"];
+
       # Alternative commands that move across workspaces when reaching
       # the first or last window in a column.
       # Mod+J     { focus-window-or-workspace-down; }
