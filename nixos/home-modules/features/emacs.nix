@@ -6,8 +6,8 @@ let
     withTreeSitter = true;
   });
   emacs = (pkgs.emacsPackagesFor emacsPkg).emacsWithPackages (
-    epkgs: with epkgs; [
-      (treesit-grammars.with-grammars (p: with p; [
+    epkgs: [
+      (epkgs.treesit-grammars.with-grammars (p: with p; [
         tree-sitter-go
         tree-sitter-nix
         tree-sitter-java

@@ -19,12 +19,6 @@
   time.timeZone = "Europe/Moscow";
 
   i18n.defaultLocale = "en_US.UTF-8";
-  # console = {
-  #   font = "Lat2-Terminus16";
-  #   keyMap = "us";
-  #   useXkbConfig = true; # use xkb.options in tty.
-  # };
-
 
   my-nixos.features = {
     nix.enable = true;
@@ -43,6 +37,8 @@
     regreet.enable = true;
     stylix.enable = true;
     keys-usb.enable = true;
+    battery-notification.enable = true;
+    battery-notification.threshold = 20;
   };
 
 

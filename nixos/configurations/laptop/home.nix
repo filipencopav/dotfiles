@@ -16,7 +16,6 @@ in {
     emacs.enable = true;
     emacs.defaultEditor = true;
     gpg.enable = true;
-    pass.enable = true;
     passage.enable = true;
     passfuzzel.enable = true;
     steam.enable = true;

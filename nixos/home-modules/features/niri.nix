@@ -309,9 +309,8 @@ in {
       "Mod+Ctrl+Space".action.maximize-column = {};
       "Mod+Ctrl+F".action.fullscreen-window = {};
 
-      # Expand the focused column to space not taken up by other fully visible columns.
-      # Makes the column "fill the rest of the space".
-      "Mod+F".action.expand-column-to-available-width = {};
+      # Toggles maximized column state
+      "Mod+F".action.maximize-column = {};
 
       "Mod+C".action.center-window = {};
 
