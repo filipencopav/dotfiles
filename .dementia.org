@@ -152,3 +152,11 @@ This will ensure that when you connect with your db user, you will automatically
 #+begin_src shell
 pdftk file1.pdf file2.pdf cat output outputfile.pdf
 #+end_src
+
+* Sync to backups
+First, open drive with =cryptsetup open=.
+Second, =export BACKUPDIR=/path/to/drive=
+Third:
+#+begin_src bash
+  rsync --info=skip0 --exclude-from="$XDG_CONFIG_HOME/rsync-homedir-local.txt" -aP build devel dox dskt dwn mus pix proj tmpl vids "$BACKUPDIR"
+#+end_src
