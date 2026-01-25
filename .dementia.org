@@ -154,7 +154,7 @@ pdftk file1.pdf file2.pdf cat output outputfile.pdf
 #+end_src
 
 * Sync to backups
-First, open drive with =cryptsetup open=.
+First, open drive with =cryptsetup open=. Mount to =/path/to/drive=
 Second, =export BACKUPDIR=/path/to/drive=
 Third:
 #+begin_src bash
