@@ -47,6 +47,8 @@
 
   outputs = inputs:
   let
+    lib = inputs.nixpkgs.lib;
+    forAllSystems = lib.genAttrs lib.systems.flakeExposed;
     util = import ./util inputs;
   in {
     nixosConfigurations.laptop =
@@ -69,5 +71,20 @@
 
     nixosModules.default = ./nixos-modules;
     home-modules.default = ./home-modules;
+
+    devShells = forAllSystems (
+      system:
+      let
+        pkgs = import inputs.nixpkgs {
+          inherit system;
+          config.allowUnfree = true;
+        };
+      in
+        {
+          default = pkgs.mkShell {
+            packages = [ pkgs.just ];
+          };
+        }
+    );
   };
 }

@@ -48,6 +48,12 @@ in {
     package = emacs;
   };
 
+  programs.direnv = {
+    enable = true;
+    nix-direnv.enable = true;
+    enableBashIntegration = config.my.features.bash.enable;
+  };
+
   home.packages = [
     pkgs.nixd
     pkgs.clang
