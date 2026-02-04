@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<keys
+   name="User Shortcuts">
+  <bind
+     gaction="win.snap-global-toggle"
+     keys="&lt;Primary&gt;grave" />
+</keys>
