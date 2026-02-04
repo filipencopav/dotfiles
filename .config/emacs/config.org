@@ -1,12 +1,5 @@
 This file is my emacs configuration.
 
-* Pre-configuration requires
-These are required to ensure smooth configuration.
-
-#+begin_src emacs-lisp
-
-#+end_src
-
 * Keybindings
 ** Helper functions.
 #+begin_src emacs-lisp
@@ -374,6 +367,12 @@ Automatically sync buffer context with what changed on disk.
   (global-auto-revert-mode t)
 #+end_src
 
+** Envrc
+#+begin_src emacs-lisp
+  (leaf envrc
+    :hook (after-init . envrc-global-mode))
+#+end_src
+
 * Org mode
 - Add org-tempo and add =<el= template to insert emacs-lisp.
 - Set load languages for org-babel.
@@ -652,6 +651,26 @@ Hooks.
 #+end_src
 
 ** Language modes
+
+*** Markdown
+#+begin_src emacs-lisp
+  (leaf markdown-ts-mode
+    :mode ("\\.md\\'" . markdown-ts-mode)
+    :config
+    (add-to-list
+     'treesit-language-source-alist
+     '(markdown
+       "https://github.com/tree-sitter-grammars/tree-sitter-markdown"
+       "split_parser"
+       "tree-sitter-markdown/src"))
+    (add-to-list
+     'treesit-language-source-alist
+     '(markdown-inline
+       "https://github.com/tree-sitter-grammars/tree-sitter-markdown"
+       "split_parser"
+       "tree-sitter-markdown-inline/src")))
+#+end_src
+
 *** Go
 #+begin_src emacs-lisp
   (leaf go-ts-mode
