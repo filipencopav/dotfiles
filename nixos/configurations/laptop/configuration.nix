@@ -26,11 +26,7 @@
     polkit.enable = true;
 
     pipewire.enable = true;
-    docker = {
-      enable = true;
-      rootless = true;
-      enable-user-systemd-socket = true;
-    };
+    podman.enable = true;
 
     wireguard.enable = true;
     keyd.enable = true;
@@ -41,23 +37,13 @@
     battery-notification.threshold = 20;
   };
 
-
   environment.variables.RUSTICL_ENABLE = "radeonsi";
-  environment.variables.ROC_ENABLE_PRE_VEGA = "1";
   hardware.graphics = {
     enable = true;
-    enable32Bit = true;
     extraPackages = with pkgs; [
       mesa.opencl # Enables Rusticl (OpenCL) support
-      rocmPackages.clr.icd
-      rocmPackages.clr
-      rocmPackages.rocminfo
-      rocmPackages.rocm-runtime
     ];
   };
-  systemd.tmpfiles.rules = [
-    "L+    /opt/rocm/hip   -    -    -     -    ${pkgs.rocmPackages.clr}"
-  ];
 
   services.logind.settings.Login = {
     HandleLidSwitch = "ignore";
@@ -66,7 +52,6 @@
     HandlePowerKey = "suspend";
     HandlePowerKeyLongPress = "poweroff";
   };
-
   
   programs.dconf.enable = true; # Needed for home-manager
   programs.niri.enable = true;
