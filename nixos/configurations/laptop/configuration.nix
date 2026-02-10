@@ -35,6 +35,7 @@
     keys-usb.enable = true;
     battery-notification.enable = true;
     battery-notification.threshold = 20;
+    xray-client.enable = true;
   };
 
   environment.variables.RUSTICL_ENABLE = "radeonsi";
