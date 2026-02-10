@@ -43,6 +43,11 @@
       url = "github:jacopone/code-cursor-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    disko = {
+      url = "github:nix-community/disko";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = inputs:
@@ -68,6 +73,11 @@
       util.mk-home
         "x86_64-linux"
         ./configurations/desktop/home.nix;
+
+    nixosConfigurations.xray =
+      util.mk-system
+        "x86_64-linux"
+        ./configurations/xray/configuration.nix;
 
     nixosModules.default = ./nixos-modules;
     home-modules.default = ./home-modules;
