@@ -17,13 +17,6 @@ in {
   networking.firewall = {
     enable = true;
     allowedTCPPorts = [ 22 443 ];
-    allowedUDPPorts = [ 23 ];
-    extraCommands = ''
-      iptables -A INPUT -i eth0 -p tcp --dport 23 -j ACCEPT
-        iptables -A INPUT -i eth0 -p udp --dport 23 -j ACCEPT
-        iptables -A INPUT -i eth0 -p tcp --dport 443 -j ACCEPT
-        iptables -A INPUT -i eth0 -p tcp --dport 9100 -j ACCEPT
-    '';
   };
 
   sops.templates."xray.json" = {
