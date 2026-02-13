@@ -1,151 +1,139 @@
 { pkgs, config, inputs, ... }:
 let
   secrets = inputs.secrets-folder;
+  xray-fw-mark = 255;
+  xray-interface-name = "tun0";
 in {
   environment.systemPackages = [ pkgs.xray ];
 
   my-nixos.features.sops.enable = true;
 
+  sops.templates."post_start.env".content = ''
+    XRAY_VPS_ADDRESS=${config.sops.placeholder."xray_server_address"}
+  '';
+  systemd.services.xray = {
+    serviceConfig.EnvironmentFile = config.sops.templates."post_start.env".path;
+    after = [ "network-online.target" ];
+    wants = [ "network-online.target" ];
+    postStart = let
+      ip = "${pkgs.iproute2}/bin/ip";
+      awk = "${pkgs.gawk}/bin/awk";
+      head = "${pkgs.coreutils}/bin/head";
+    in ''
+      while ! ${ip} link show ${xray-interface-name} >/dev/null 2>&1; do sleep 0.1; done
+  
+      # (e.g., "default via 192.168.1.1 dev eth0...")
+      default_route_line=$(${ip} route show default | head -n1)
+      gateway=$(echo "$default_route_line" | ${awk} '{print $3}')
+      interface=$(echo "$default_route_line" | ${awk} '{print $5}')
+      local_cidr=$(${ip} route show dev "$interface" scope link | ${head} -n1 | ${awk} '{print $1}')
+  
+      ${ip} route add default dev ${xray-interface-name} || true
+      ${ip} route del default via "$gateway" || true
+      ${ip} route add $XRAY_VPS_ADDRESS via "$gateway" dev "$interface" || true
+      ${ip} route add "$local_cidr" via "$gateway" dev "$interface" || true
+    '';
+  };
+
+
+  networking.firewall = {
+    checkReversePath = false;
+    trustedInterfaces = [ xray-interface-name ];
+  };
+
   services.xray = {
     enable = true;
     settingsFile = config.sops.templates."xray-client.json".path;
   };
+  sops.templates."xray-client.json".content = builtins.toJSON {
+    log = {
+      loglevel = "warning";
+    };
 
-  # Grant CAP_NET_ADMIN to xray for creating TUN interface
-  systemd.services.xray.serviceConfig = {
-    CapabilityBoundingSet = [ "CAP_NET_ADMIN" ];
-    AmbientCapabilities = [ "CAP_NET_ADMIN" ];
-  };
-
-  # Configure routing for Transparent Proxy
-  systemd.services.xray.postStart = let
-    p = pkgs.iproute2;
-  in ''
-    # Wait for tun0 to be created by Xray
-    # (Xray creates it immediately on start if configured)
-    ${p}/bin/ip addr add 198.18.0.1/15 dev tun0 || true
-    ${p}/bin/ip link set dev tun0 up || true
-
-    # Routing Rules
-    # 1. Route Xray's own traffic (marked 255) to main table to bypass proxy
-    ${p}/bin/ip rule add fwmark 255 lookup main priority 9000 || true
-    
-    # 2. Route SSH traffic (port 22) to main table to prevent lockout
-    ${p}/bin/ip rule add sport 22 lookup main priority 9001 || true
-    ${p}/bin/ip rule add dport 22 lookup main priority 9002 || true
-
-    # 3. Route all other traffic to table 100
-    ${p}/bin/ip rule add from all lookup 100 priority 9003 || true
-
-    # 4. Configure table 100 to route via tun0
-    ${p}/bin/ip route add default dev tun0 table 100 || true
-  '';
-
-  systemd.services.xray.preStop = let
-    p = pkgs.iproute2;
-  in ''
-    ${p}/bin/ip rule del fwmark 255 lookup main 2>/dev/null || true
-    ${p}/bin/ip rule del sport 22 lookup main 2>/dev/null || true
-    ${p}/bin/ip rule del dport 22 lookup main 2>/dev/null || true
-    ${p}/bin/ip rule del from all lookup 100 2>/dev/null || true
-    ${p}/bin/ip route flush table 100 2>/dev/null || true
-  '';
-
-  sops.templates."xray-client.json" = {
-    content = builtins.toJSON {
-      log = {
-        loglevel = "warning";
-      };
-
-      routing = {
-        domainStrategy = "IPOnDemand";
-        rules = [
-          {
-            type = "field";
-            outboundTag = "direct";
-            domain = ["geosite:ru"];
-          }
-          {
-            type = "field";
-            outboundTag = "direct";
-            ip = ["geoip:ru" "geoip:private"];
-          }
-          {
-            type = "field";
-            outboundTag = "block";
-            domain = ["geosite:category-ads-all"];
-          }
-        ];
-      };
-      
-      inbounds = [
+    routing = {
+      domainStrategy = "IPOnDemand";
+      rules = [
         {
-          tag = "socks-in";
-          protocol = "socks";
-          listen = "127.0.0.1";
-          port = 10808;
-          settings = {
-            upd = true;
-          };
-        }
-        # 4.2 A few APPs are incompatible with socks protocol and need http protocol for forwarding, use the port below
-        {
-          "tag" = "http-in";
-          "protocol" = "http";
-          "listen" = "127.0.0.1"; # This is the address for local forwarding via http
-          "port" = 10801; # This is the port for local forwarding via http
-        }
-      ];
-      outbounds = [
-        {
-          protocol = "vless";
-          tag = "proxy";
-          settings = {
-            vnext = [
-              {
-                address = config.sops.placeholder."xray_server_address";
-                port = 443;
-                users = [
-                  {
-                    id = config.sops.placeholder."xray_user1_uuid";
-                    flow = "xtls-rprx-vision";
-                    encryption = "none";
-                    level = 0;
-                  }
-                ];
-              }
-            ];
-          };
-          streamSettings = {
-            network = "tcp";
-            security = "reality";
-            realitySettings = {
-              serverName = config.sops.placeholder."xray_vless_domain";
-              publicKey = config.sops.placeholder."xray_public_key";
-              fingerprint = "chrome";
-              shortId = "aa00";
-              spiderX = "/";
-            };
-            sockopt = {
-              mark = 255; # Mark outbound traffic to bypass proxy
-            };
-          };
+          type = "field";
+          inboundTag = [ "tun-in" ];
+          outboundTag = "proxy";
         }
         {
-          protocol = "freedom";
-          tag = "direct";
-          streamSettings = {
-            sockopt = {
-              mark = 255; # Mark direct traffic too, just in case
-            };
-          };
+          type = "field";
+          outboundTag = "direct";
+          domain = ["geosite:ru"];
         }
         {
-          protocol = "blackhole";
-          tag = "block";
+          type = "field";
+          outboundTag = "direct";
+          ip = ["geoip:ru" "geoip:private"];
+        }
+        {
+          type = "field";
+          outboundTag = "block";
+          domain = ["geosite:category-ads-all"];
         }
       ];
     };
+      
+    inbounds = [
+      {
+        tag = "tun-in";
+        protocol = "tun";
+        settings = {
+          name = "${xray-interface-name}";
+          mtu = 1500;
+        };
+        sniffing = {
+          enabled = true;
+          destOverride = ["http" "tls"];
+          routeOnly = true;
+        };
+      }
+    ];
+    outbounds = [
+      {
+        protocol = "vless";
+        tag = "proxy";
+        settings = {
+          vnext = [
+            {
+              address = config.sops.placeholder."xray_server_address";
+              port = 443;
+              users = [
+                {
+                  id = config.sops.placeholder."xray_user1_uuid";
+                  flow = "xtls-rprx-vision";
+                  encryption = "none";
+                  level = 0;
+                }
+              ];
+            }
+          ];
+        };
+        streamSettings = {
+          network = "tcp";
+          security = "reality";
+          realitySettings = {
+            show = true;
+            serverName = config.sops.placeholder."xray_vless_domain";
+            publicKey = config.sops.placeholder."xray_public_key";
+            fingerprint = "chrome";
+            shortId = "aa00";
+          };
+          sockopt.mark = xray-fw-mark;
+        };
+      }
+      {
+        protocol = "freedom";
+        tag = "direct";
+        streamSettings.sockopt.mark = xray-fw-mark;
+      }
+      {
+        protocol = "blackhole";
+        tag = "block";
+      }
+    ];
   };
 
   sops.secrets."xray_user1_uuid" = {
