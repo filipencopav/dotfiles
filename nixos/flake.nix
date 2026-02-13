@@ -34,11 +34,6 @@
       flake = false;
     };
 
-    derivs = {
-      url = "path:./derivations";
-      flake = false;
-    };
-
     code-cursor-nix = {
       url = "github:jacopone/code-cursor-nix";
       inputs.nixpkgs.follows = "nixpkgs";
