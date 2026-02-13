@@ -28,13 +28,14 @@
     pipewire.enable = true;
     podman.enable = true;
 
-    wireguard.enable = true;
     keyd.enable = true;
     regreet.enable = true;
     stylix.enable = true;
     keys-usb.enable = true;
     battery-notification.enable = true;
     battery-notification.threshold = 20;
+    # firewall.enable = true;
+    networkmanager.enable = true;
     xray-client.enable = true;
   };
 
@@ -79,7 +80,6 @@
   };
   networking.networkmanager.enable = true;
   networking.networkmanager.wifi.powersave = true;
-  networking.firewall.enable = true;
   users.users.pavel = {
     isNormalUser = true;
     extraGroups = [ "wheel" "networkmanager" ];
