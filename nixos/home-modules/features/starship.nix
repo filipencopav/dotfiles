@@ -80,7 +80,6 @@
       nix_shell = {
         style = "bold fg:blue";
         symbol = "[❄️]($style)";
-        heuristic = true;
         format = "[$symbol ]($style)";
       };
     };
