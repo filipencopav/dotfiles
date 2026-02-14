@@ -5,10 +5,10 @@
     enable = true;
     settings = {
       format = lib.concatStrings [
+        "$nix_shell"
         "$directory"
         "$git_branch"
         "$git_status"
-        "$nix_shell"
         "$line_break$status; "
       ];
       command_timeout = 1000;
@@ -79,8 +79,9 @@
 
       nix_shell = {
         style = "bold fg:blue";
-        symbol = "[ ❄️]($style)";
-        format = "[$symbol $state( «$name»)]($style)";
+        symbol = "[❄️]($style)";
+        heuristic = true;
+        format = "[$symbol ]($style)";
       };
     };
   };
