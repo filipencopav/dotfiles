@@ -55,18 +55,19 @@ in {
       rules = [
         {
           type = "field";
-          inboundTag = [ "tun-in" ];
-          outboundTag = "proxy";
+          outboundTag = "direct";
+          domain = [
+            "geosite:ru"
+            "geosite:steam"
+          ];
         }
         {
           type = "field";
           outboundTag = "direct";
-          domain = ["geosite:ru"];
-        }
-        {
-          type = "field";
-          outboundTag = "direct";
-          ip = ["geoip:ru" "geoip:private"];
+          ip = [
+            "geoip:ru"
+            "geoip:private"
+          ];
         }
         {
           type = "field";
