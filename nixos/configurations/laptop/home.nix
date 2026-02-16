@@ -18,7 +18,6 @@ in {
     gpg.enable = true;
     passage.enable = true;
     passfuzzel.enable = true;
-    steam.enable = true;
     chromium.enable = true;
     sops.enable = true;
 

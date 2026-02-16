@@ -54,7 +54,8 @@
     HandlePowerKey = "suspend";
     HandlePowerKeyLongPress = "poweroff";
   };
-  
+
+  programs.steam.enable = true;
   programs.dconf.enable = true; # Needed for home-manager
   programs.niri.enable = true;
   programs.nix-ld.enable = true;
@@ -70,14 +71,6 @@
 
 
   networking.hostName = "laptop";
-  networking.hosts = {
-    "127.0.0.1" = [
-      "rama-zk1"
-      "rama-conductor"
-      "rama-supervisor1"
-      "rama-supervisor2"
-    ];
-  };
   networking.networkmanager.enable = true;
   networking.networkmanager.wifi.powersave = true;
   users.users.pavel = {
