@@ -1,0 +1,13 @@
+/devel/work
+/devel/nixpkgs
+/devel/**/.git
+/devel/**/node_modules
+/devel/**/.cpcache
+/devel/**/target
+/dox/**/.git
+
+/build/**/local-rama-data
+/build/**/logs
+/build/**/local-zk
+
+/dwn/64Gram Desktop

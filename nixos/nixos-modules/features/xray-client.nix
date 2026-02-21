@@ -58,7 +58,6 @@ in {
           outboundTag = "direct";
           domain = [
             "geosite:ru"
-            "geosite:steam"
           ];
         }
         {
