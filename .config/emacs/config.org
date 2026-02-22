@@ -101,10 +101,10 @@ This file is my emacs configuration.
 
 * Look & feel
 ** Theme
-I use modus themes, particularly modus-vivendi. They are nice because they are made for accessibility and minimal eye strain in mind.
+I use modus themes, particularly modus-operandi. They are nice because they are made for accessibility and minimal eye strain in mind.
 
 #+begin_src emacs-lisp
-  (add-hook 'after-init-hook (lambda () (load-theme 'modus-vivendi t)))
+  (add-hook 'after-init-hook (lambda () (load-theme 'modus-operandi t)))
 #+end_src
 
 ** Font
