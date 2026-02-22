@@ -1,8 +1,8 @@
 { config, ... }:
 let
     homedir = config.home.homeDirectory;
-in
-{
+in {
+  home.preferXdgDirectories = true;
   xdg = {
     enable = true;
     userDirs = {
