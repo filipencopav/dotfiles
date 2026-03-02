@@ -62,14 +62,6 @@ in {
         }
         {
           type = "field";
-          outboundTag = "direct";
-          ip = [
-            "geoip:ru"
-            "geoip:private"
-          ];
-        }
-        {
-          type = "field";
           outboundTag = "block";
           domain = ["geosite:category-ads-all"];
         }
