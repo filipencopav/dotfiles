@@ -2,7 +2,7 @@
 {
   services.earlyoom = {
     enable = true;
-    freeMemThreshold = 2;
+    freeMemThreshold = 4;
     freeSwapThreshold = 1;
   };
 }
