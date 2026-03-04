@@ -55,13 +55,6 @@ in {
       rules = [
         {
           type = "field";
-          outboundTag = "direct";
-          domain = [
-            "geosite:ru"
-          ];
-        }
-        {
-          type = "field";
           outboundTag = "block";
           domain = ["geosite:category-ads-all"];
         }
