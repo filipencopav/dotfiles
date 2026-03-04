@@ -391,7 +391,7 @@ Automatically sync buffer context with what changed on disk.
 ** Envrc
 #+begin_src emacs-lisp
   (leaf envrc
-    :hook (after-init . envrc-global-mode))
+    :hook (after-init-hook . envrc-global-mode))
 #+end_src
 
 * Org mode
@@ -574,26 +574,6 @@ Hooks.
 
 ** Tree sitter syntax highlighting
 #+begin_src emacs-lisp
-  ;; (leaf treesit-auto
-  ;;   :custom
-  ;;   '(treesit-auto-install . t)
-  ;;   (treesit-auto-langs . '(awk bash bibtex c c-sharp clojure cmake commonlisp
-  ;;                               cpp css dart dockerfile elixir glsl go gomod
-  ;;                               heex html java javascript
-  ;;                               json julia kotlin lua make markdown nix org perl
-  ;;                               proto python r ruby rust scala sql surface
-  ;;                               toml tsx typescript typst
-  ;;                               vhdl vue wast wat wgsl yaml))
-  ;;
-  ;;   :config
-  ;;   (global-treesit-auto-mode)
-  ;;   (add-to-list
-  ;;    'treesit-language-source-alist
-  ;;    '(markdown . ("https://github.com/tree-sitter-grammars/tree-sitter-markdown"
-  ;;                  "update" "tree-sitter-markdown/src")))
-  ;;   (add-to-list 'treesit-language-source-alist
-  ;;                '(astro "https://github.com/virchau13/tree-sitter-astro")))
-
   (add-to-list
    'treesit-extra-load-path
    (expand-file-name "tree-sitter" user-emacs-directory))
@@ -672,6 +652,34 @@ Hooks.
 #+end_src
 
 ** Language modes
+
+*** Rust
+#+begin_src emacs-lisp
+  (leaf rust-mode
+    :after (eglot)
+    :pre-setq (rust-mode-treesitter-derive . t)
+    :config
+    (add-to-list
+     'treesit-language-source-alist
+     '(rust
+       "https://github.com/tree-sitter/tree-sitter-rust"))
+
+    (add-to-list 'eglot-server-programs
+                 `(rust-mode . ("rust-analyzer" :initializationOptions
+                                ( :procMacro (:enable t)
+                                  :cargo ( :buildScripts (:enable t)
+                                           :features "all")))))
+    (defun setup-rust ()
+      (setq-local eglot-workspace-configuration
+                  '(:rust-analyzer
+                    ( :procMacro ( :attributes (:enable t)
+                                   :enable t)
+                      :cargo (:buildScripts (:enable t))
+                      :diagnostics (:disabled ["unresolved-proc-macro"
+                                               "unresolved-macro-call"]))))
+      (eglot-ensure))
+    (add-hook 'rust-ts-mode-hook #'setup-rust))
+#+end_src
 
 *** Markdown
 #+begin_src emacs-lisp
