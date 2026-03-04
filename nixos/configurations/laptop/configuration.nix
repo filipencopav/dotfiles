@@ -71,6 +71,12 @@
   ];
 
 
+  networking.hosts = {
+    "10.0.0.7" = [ "coral-01" ];
+    "10.0.0.9" = [ "hailo-01" ];
+    "10.0.0.6" = [ "jetson-01" ];
+    "10.0.0.3" = [ "minik" ];
+  };
   networking.hostName = "laptop";
   networking.networkmanager.enable = true;
   networking.networkmanager.wifi.powersave = true;
