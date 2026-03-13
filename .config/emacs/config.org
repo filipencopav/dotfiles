@@ -1,26 +1,5 @@
 This file is my emacs configuration.
 
-* Elpaca custom menus
-#+begin_src emacs-lisp
-  (defvar p/*curated-elpaca-package-list*
-    ()
-    "Alist of the shape ((ID . PLIST) ...) for elpaca")
-
-  (defun p/custom-elpaca-menu (request &optional item)
-    (when (eq request 'index)
-      (if item
-          (alist-get item p/*curated-elpaca-package-list*)
-        p/*curated-elpaca-package-list*)))
-
-  (defun p/add-recipe (recipe)
-    (let* ((id (car recipe))
-           (recipe (cdr recipe))
-           (source "PAVEL'S CUSTOM MENU")
-           (val `(:source ,source :recipe ,recipe)))
-      (setf (alist-get id p/*curated-elpaca-package-list*)
-            val)))
-#+end_src
-
 * Keybindings
 ** Helper functions.
 #+begin_src emacs-lisp
@@ -95,8 +74,7 @@ This file is my emacs configuration.
   (define-key esc-map (kbd "j") 'other-window)
   (define-key esc-map (kbd "c") 'p/copy-region-or-line)
 
-  ;; remap C-x to something else, map C-k to `ctl-x-map'
-  (define-key global-map (kbd "C-x") 'p/kill-region-or-line)
+  ;; map C-k to `ctl-x-map'
   (define-key global-map (kbd "C-k") ctl-x-map)
   (customize-set-variable
    'gud-key-prefix
@@ -104,10 +82,6 @@ This file is my emacs configuration.
      (where-is-internal ctl-x-map)
      (car)
      (concat (kbd "C-a"))))
-
-
-  (define-key org-mode-map (kbd "C-x") nil)
-  (define-key org-src-mode-map (kbd "C-x") nil)
 
   (defvar p/ctl-z-map (make-keymap))
   (defvar p/ctl-z-c-map (make-keymap))
@@ -349,11 +323,12 @@ Adaptive wrap for pretty wrapping.
 
 ** Combobulate
 #+begin_src emacs-lisp
+  (elpaca (combobulate :host github :repo "mickeynp/combobulate")
+    (provide 'elpaca-combobulate))
   (leaf combobulate
-    :elpaca (combobulate :url "https://github.com/mickeynp/combobulate.git")
-    :after (go-ts-mode)
-    :hook ((go-ts-mode-hook) . combobulate-mode)
-    )
+    :elpaca nil
+    :after (go-ts-mode elpaca-combobulate)
+    :hook ((go-ts-mode-hook) . combobulate-mode))
 #+end_src
 
 ** Orderless completion
@@ -391,7 +366,7 @@ Automatically sync buffer context with what changed on disk.
 ** Envrc
 #+begin_src emacs-lisp
   (leaf envrc
-    :hook (after-init-hook . envrc-global-mode))
+    :hook (elpaca-after-init-hook . envrc-global-mode))
 #+end_src
 
 * Org mode
@@ -586,7 +561,7 @@ Hooks.
     :config
     (defun p/eglot-hooks ()
       (when (eglot-managed-p)
-        (add-hook 'before-save-hook 'eglot-format nil t)))
+        (add-hook 'before-save-hook 'eglot-format-buffer nil t)))
     (add-hook 'eglot-managed-mode-hook 'p/eglot-hooks))
 #+end_src
 
@@ -758,22 +733,13 @@ Hooks.
 
 *** Nix
 #+begin_src emacs-lisp
-  ;; (p/add-recipe '(nix-ts-mode :fetcher github
-  ;;                             :repo "nix-community/nix-ts-mode"
-  ;;                             :ref "319831712125e8c9e4f14b66def518d7a633685c"
-  ;;                             :package "nix-ts-mode"
-  ;;                             :source "github"
-  ;;                             :files ("*.el" "*.el.in" "dir" "*.info"
-  ;;                                     "*.texi" "*.texinfo" "doc/dir"
-  ;;                                     "doc/*.info" "doc/*.texi"
-  ;;                                     "doc/*.texinfo" "lisp/*.el" "docs/dir"
-  ;;                                     "docs/*.info" "docs/*.texi"
-  ;;                                     "docs/*.texinfo" (:exclude
-  ;;                                                       ".dir-locals.el" "test.el" "tests.el"
-  ;;                                                       "*-test.el" "*-tests.el" "LICENSE"
-  ;;                                                       "README*" "*-pkg.el"))))
+  (elpaca (nix-ts-mode :host github
+                       :repo "nix-community/nix-ts-mode"
+                       :ref "319831712125e8c9e4f14b66def518d7a633685c")
+    (provide 'elpaca-nix))
   (leaf nix-ts-mode
-    :after (eglot)
+    :after (eglot elpaca-nix)
+    :elpaca nil
     :mode "\\.nix\\'"
     :config
     (add-to-list 'eglot-server-programs '(nix-ts-mode "nixd"))
@@ -875,10 +841,12 @@ Astro syntax + server.
 
 Vue syntax + server.
 #+begin_src emacs-lisp
+  (elpaca (vue-ts-mode :host github :repo "8uff3r/vue-ts-mode")
+    (provide 'elpaca-vue))
   (leaf vue-ts-mode
-    :after (eglot typescript-ts-mode)
+    :after (eglot typescript-ts-mode elpaca-vue)
     :require (t typescript-ts-mode)
-    :elpaca (vue-ts-mode :host github :repo "8uff3r/vue-ts-mode")
+    :elpaca nil
     :config
     ;; (let ((vue-recipe (make-treesit-auto-recipe
     ;;                    :lang 'vue
@@ -898,8 +866,11 @@ Vue syntax + server.
 
 *** Erlang
 #+begin_src emacs-lisp
+  (elpaca (erlang :version (lambda (_) "28.0"))
+    (provide 'elpaca-erlang))
   (leaf erlang
-    :elpaca (erlang :version (lambda (_) "28.0")))
+    :after (elpaca-erlang)
+    :elpaca nil)
 
   (leaf erlang-ts
     :require '(t erlang-start)
@@ -1004,8 +975,6 @@ CIDER. Notice how clojure is different from all the other languages? Yes, it doe
 
   (leaf sly
     :after (org)
-    :elpaca (sly :repo "filipencopav/sly"
-                 :branch "fix-ctl-x-keymap")
     :custom
     (org-babel-lisp-eval-fn . #'sly-eval)
     (inferior-lisp-program . "sbcl")
@@ -1038,8 +1007,6 @@ CIDER. Notice how clojure is different from all the other languages? Yes, it doe
                   'sly-eval-last-expression))
     (define-key sly-mode-map [remap eval-last-sexp]
                 'sly-eval-last-expression)
-    (define-key sly-mode-map (kbd "C-x") 'p/kill-region-or-line)
-
     (add-to-list 'auto-mode-alist '("\\.cl\\'" . lisp-mode))
 
     )
