@@ -2,7 +2,8 @@
 let
   user = "pavel";
   homedir = "/home/${user}";
-in {
+in
+{
   my.features = {
     # programs
     niri.enable = true;
@@ -20,6 +21,9 @@ in {
     passfuzzel.enable = true;
     chromium.enable = true;
     sops.enable = true;
+
+    cursor.enable = true;
+    zed.enable = true;
 
     langs = {
       clojure.enable = true;
@@ -45,7 +49,6 @@ in {
     username = user;
     homeDirectory = homedir;
 
-
     sessionPath = [
       "${homedir}/.local/bin"
     ];
@@ -63,7 +66,6 @@ in {
       audio-dl = "yt-dlp -ic -x -f bestaudio/best";
 
       # QOL basic system navigation commands
-      rm = "rm -Iv";
       mkdir = "mkdir -pv";
       grep = "grep --color=auto";
       ls = "ls -hN --color=auto --group-directories-first";
@@ -94,8 +96,6 @@ in {
       zip
       wl-clipboard
       typst
-
-      code-cursor
 
       zathura
     ];

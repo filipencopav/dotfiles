@@ -1,17 +1,27 @@
-{ lib, pkgs, config, inputs, ... }:
+{
+  lib,
+  pkgs,
+  config,
+  inputs,
+  ...
+}:
 let
-  emacsPkg = (pkgs.emacs30.override {
-    withNativeCompilation = true;
-    withPgtk = true;
-    withTreeSitter = true;
-  });
-  emacs = (pkgs.emacsPackagesFor emacsPkg).emacsWithPackages (
-    epkgs: [
-      (epkgs.treesit-grammars.with-grammars (p: with p; [
+  emacsPkg = (
+    pkgs.emacs30.override {
+      withNativeCompilation = true;
+      withPgtk = true;
+      withTreeSitter = true;
+    }
+  );
+  emacs = (pkgs.emacsPackagesFor emacsPkg).emacsWithPackages (epkgs: [
+    (epkgs.treesit-grammars.with-grammars (
+      p: with p; [
+        tree-sitter-astro
         tree-sitter-go
         tree-sitter-nix
         tree-sitter-java
         tree-sitter-typescript
+        tree-sitter-tsx
         tree-sitter-vue
         tree-sitter-erlang
         tree-sitter-clojure
@@ -19,12 +29,13 @@ let
         tree-sitter-yaml
         tree-sitter-proto
         tree-sitter-typst
-      ]))
-    ]
-  );
+      ]
+    ))
+  ]);
   jdk = config.my.features.langs.java.jdk;
   langs = config.my.features.langs;
-in {
+in
+{
   options = {
     my.features.emacs.defaultEditor = lib.mkOption {
       type = lib.types.bool;
@@ -56,8 +67,10 @@ in {
 
   home.packages = [
     pkgs.nixd
+    pkgs.nixfmt
     pkgs.clang
-  ] ++ lib.optionals langs.rust.enable [
+  ]
+  ++ lib.optionals langs.rust.enable [
     (inputs.fenix.complete.withComponents [
       "cargo"
       "clippy"
@@ -66,14 +79,18 @@ in {
       "rustfmt"
     ])
     pkgs.rust-analyzer
-  ] ++ lib.optionals langs.go.enable [
+  ]
+  ++ lib.optionals langs.go.enable [
     pkgs.gopls
-  ] ++ lib.optionals langs.erlang.enable [
+  ]
+  ++ lib.optionals langs.erlang.enable [
     pkgs.erlang-language-platform
-  ] ++ lib.optionals langs.js.enable [
+  ]
+  ++ lib.optionals langs.js.enable [
     pkgs.astro-language-server
     pkgs.vue-language-server
-  ] ++ lib.optionals langs.java.enable [
+  ]
+  ++ lib.optionals langs.java.enable [
     (pkgs.jdt-language-server.override (final: final // { inherit jdk; }))
   ];
 }
