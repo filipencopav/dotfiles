@@ -643,7 +643,8 @@ Hooks.
                  `(rust-mode . ("rust-analyzer" :initializationOptions
                                 ( :procMacro (:enable t)
                                   :cargo ( :buildScripts (:enable t)
-                                           :features "all")))))
+                                           :features "")))))
+
     (defun setup-rust ()
       (setq-local eglot-workspace-configuration
                   '(:rust-analyzer
