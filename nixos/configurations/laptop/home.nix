@@ -19,7 +19,7 @@ in
     gpg.enable = true;
     passage.enable = true;
     passfuzzel.enable = true;
-    chromium.enable = true;
+    helium.enable = true;
     sops.enable = true;
 
     cursor.enable = true;
