@@ -1,9 +1,15 @@
-{ pkgs, config, inputs, ... }:
+{
+  pkgs,
+  config,
+  inputs,
+  ...
+}:
 let
   secrets = inputs.secrets-folder;
   xray-fw-mark = 255;
   xray-interface-name = "tun0";
-in {
+in
+{
   environment.systemPackages = [ pkgs.xray ];
 
   my-nixos.features.sops.enable = true;
@@ -15,26 +21,27 @@ in {
     serviceConfig.EnvironmentFile = config.sops.templates."post_start.env".path;
     after = [ "network-online.target" ];
     wants = [ "network-online.target" ];
-    postStart = let
-      ip = "${pkgs.iproute2}/bin/ip";
-      awk = "${pkgs.gawk}/bin/awk";
-      head = "${pkgs.coreutils}/bin/head";
-    in ''
-      while ! ${ip} link show ${xray-interface-name} >/dev/null 2>&1; do sleep 0.1; done
-  
-      # (e.g., "default via 192.168.1.1 dev eth0...")
-      default_route_line=$(${ip} route show default | head -n1)
-      gateway=$(echo "$default_route_line" | ${awk} '{print $3}')
-      interface=$(echo "$default_route_line" | ${awk} '{print $5}')
-      local_cidr=$(${ip} route show dev "$interface" scope link | ${head} -n1 | ${awk} '{print $1}')
-  
-      ${ip} route add default dev ${xray-interface-name} || true
-      ${ip} route del default via "$gateway" || true
-      ${ip} route add $XRAY_VPS_ADDRESS via "$gateway" dev "$interface" || true
-      ${ip} route add "$local_cidr" via "$gateway" dev "$interface" || true
-    '';
-  };
+    postStart =
+      let
+        ip = "${pkgs.iproute2}/bin/ip";
+        awk = "${pkgs.gawk}/bin/awk";
+        head = "${pkgs.coreutils}/bin/head";
+      in
+      ''
+        while ! ${ip} link show ${xray-interface-name} >/dev/null 2>&1; do sleep 0.1; done
 
+        # (e.g., "default via 192.168.1.1 dev eth0...")
+        default_route_line=$(${ip} route show default | head -n1)
+        gateway=$(echo "$default_route_line" | ${awk} '{print $3}')
+        interface=$(echo "$default_route_line" | ${awk} '{print $5}')
+        local_cidr=$(${ip} route show dev "$interface" scope link | ${head} -n1 | ${awk} '{print $1}')
+
+        ${ip} route add default dev ${xray-interface-name} || true
+        ${ip} route del default via "$gateway" || true
+        ${ip} route add $XRAY_VPS_ADDRESS via "$gateway" dev "$interface" || true
+        ${ip} route add "$local_cidr" via "$gateway" dev "$interface" || true
+      '';
+  };
 
   networking.firewall = {
     checkReversePath = false;
@@ -54,13 +61,19 @@ in {
       domainStrategy = "IPOnDemand";
       rules = [
         {
-          type = "field";
           outboundTag = "block";
-          domain = ["geosite:category-ads-all"];
+          domain = [ "geosite:category-ads-all" ];
         }
+        # {
+        #   outboundTag = "direct";
+        #   domain = [
+        #     "cache.nixos.org"
+        #     "cachix.org"
+        #   ];
+        # }
       ];
     };
-      
+
     inbounds = [
       {
         tag = "tun-in";
@@ -71,7 +84,10 @@ in {
         };
         sniffing = {
           enabled = true;
-          destOverride = ["http" "tls"];
+          destOverride = [
+            "http"
+            "tls"
+          ];
           routeOnly = true;
         };
       }
