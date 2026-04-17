@@ -24,6 +24,7 @@ in
 
     cursor.enable = true;
     zed.enable = true;
+    obs.enable = true;
 
     langs = {
       clojure.enable = true;
@@ -86,7 +87,6 @@ in
       imv
       inkscape
       mpv
-      obs-studio
       openttd
       ripgrep
       _64gram
