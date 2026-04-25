@@ -120,7 +120,7 @@ in
             serverName = config.sops.placeholder."xray_vless_domain";
             publicKey = config.sops.placeholder."xray_public_key";
             fingerprint = "chrome";
-            shortId = "aa00";
+            shortId = config.sops.placeholder."xray_user1_shortid";
           };
           sockopt.mark = xray-fw-mark;
         };
@@ -135,6 +135,10 @@ in
         tag = "block";
       }
     ];
+  };
+
+  sops.secrets."xray_user1_shortid" = {
+    sopsFile = "${secrets}/xray.yaml";
   };
 
   sops.secrets."xray_user1_uuid" = {
