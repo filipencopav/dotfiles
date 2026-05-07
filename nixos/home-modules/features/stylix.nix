@@ -1,9 +1,17 @@
-{ inputs, config, pkgs, ... }:
+{
+  inputs,
+  config,
+  pkgs,
+  ...
+}:
 {
   imports = [
     inputs.stylix.homeModules.stylix
   ];
-  home.packages = config.stylix.fonts.packages;
+  home.packages = config.stylix.fonts.packages ++ [
+    pkgs.noto-fonts-cjk-sans
+    pkgs.noto-fonts-cjk-serif
+  ];
   stylix = with pkgs; {
     autoEnable = false;
 
@@ -36,6 +44,8 @@
         popups = 13;
       };
     };
+    targets.font-packages.enable = true;
+    targets.fontconfig.enable = true;
 
     targets.vesktop.enable = true;
     targets.vencord.enable = true;
