@@ -5,8 +5,10 @@
   ...
 }:
 let
-  lib = pkgs.lib;
   secrets = inputs.secrets-folder;
+  lib = pkgs.lib;
+  HAPROXY_PORT = 8081;
+  NGINX_PORT = 8003;
 in
 {
   sops.secrets.nextcloud_pass = {
@@ -16,188 +18,121 @@ in
 
   services.nextcloud = {
     enable = true;
-    # specify either a domain you own or localhost
     hostName = "localhost";
+    database.createLocally = true;
     autoUpdateApps.enable = true;
-    https = true;
     config = {
       # only specify dbtype if using postgresql db
-      dbtype = "pgsql";
-      dbname = "nextcloud";
-      dbuser = "nextcloud";
-      # default directory for postgresql, ensures automatic setup of db
-      dbhost = "/run/postgresql";
+      dbtype = "sqlite";
       adminuser = "admin";
-      # specified using agenix, provide path to file as alternative
       adminpassFile = config.sops.secrets.nextcloud_pass.path;
-      # error thrown unless specified
-      defaultPhoneRegion = "AU";
     };
     settings.trusted_proxies = [ "127.0.0.1" ];
   };
 
-  services = {
-    postgresql = {
-      enable = true;
-      ensureDatabases = [ "nextcloud" ];
-      ensureUsers = [
-        {
-          name = "nextcloud";
-          ensureDBOwnership = true;
-        }
-      ];
-    };
-  };
-
-  # ensure postgresql db is started with nextcloud
-  systemd = {
-    services."nextcloud-setup" = {
-      requires = [ "postgresql.service" ];
-      after = [ "postgresql.service" ];
-    };
-  };
-
-  sops.secrets.domainCert = {
-    key = "";
-    format = "binary";
-    sopsFile = "${secrets}/xray-domain.crt.enc";
-  };
-  sops.secrets.domainCertKey = {
-    key = "";
-    format = "binary";
-    sopsFile = "${secrets}/xray-domain.key.enc";
-  };
-
-  sops.templates."nginx.conf" = {
-    owner = "nginx";
+  sops.templates."trusted_domains.config.php" = {
+    owner = "nextcloud";
     content = ''
-      user nginx;
-      worker_processes auto;
-
-      error_log /var/log/nginx/error.log notice;
-      pid /var/run/nginx.pid;
-
-      events {
-          worker_connections 1024;
-      }
-
-      http {
-          log_format main '[$time_local] $proxy_protocol_addr "$http_referer" "$http_user_agent"';
-          access_log /var/log/nginx/access.log main;
-
-          map $http_upgrade $connection_upgrade {
-             default upgrade;
-             ""      close;
-          }
-
-          map $proxy_protocol_addr $proxy_forwarded_elem {
-              ~^[0-9.]+$        "for=$proxy_protocol_addr";
-              ~^[0-9A-Fa-f:.]+$ "for=\"[$proxy_protocol_addr]\"";
-              default           "for=unknown";
-          }
-
-          map $http_forwarded $proxy_add_forwarded {
-              "~^(,[ \\t]*)*([!#$%&'*+.^_`|~0-9A-Za-z-]+=([!#$%&'*+.^_`|~0-9A-Za-z-]+|\"([\\t \\x21\\x23-\\x5B\\x5D-\\x7E\\x80-\\xFF]|\\\\[\\t \\x21-\\x7E\\x80-\\xFF])*\"))?(;([!#$%&'*+.^_`|~0-9A-Za-z-]+=([!#$%&'*+.^_`|~0-9A-Za-z-]+|\"([\\t \\x21\\x23-\\x5B\\x5D-\\x7E\\x80-\\xFF]|\\\\[\\t \\x21-\\x7E\\x80-\\xFF])*\"))?)*([ \\t]*,([ \\t]*([!#$%&'*+.^_`|~0-9A-Za-z-]+=([!#$%&'*+.^_`|~0-9A-Za-z-]+|\"([\\t \\x21\\x23-\\x5B\\x5D-\\x7E\\x80-\\xFF]|\\\\[\\t \\x21-\\x7E\\x80-\\xFF])*\"))?(;([!#$%&'*+.^_`|~0-9A-Za-z-]+=([!#$%&'*+.^_`|~0-9A-Za-z-]+|\"([\\t \\x21\\x23-\\x5B\\x5D-\\x7E\\x80-\\xFF]|\\\\[\\t \\x21-\\x7E\\x80-\\xFF])*\"))?)*)?)*$" "$http_forwarded, $proxy_forwarded_elem";
-              default "$proxy_forwarded_elem";
-          }
-
-          server {
-              listen 80;
-              listen [::]:80;
-              return 301 https://$host$request_uri;
-          }
-
-          server {
-              listen                  127.0.0.1:8001 ssl default_server;
-
-              ssl_reject_handshake    on;
-
-              ssl_protocols           TLSv1.2 TLSv1.3;
-
-              ssl_session_timeout     1h;
-              ssl_session_cache       shared:SSL:10m;
-          }
-
-          server {
-              listen                     127.0.0.1:8001 ssl proxy_protocol;
-              http2                      on; # This directive appeared in version 1.25.1. Otherwise use it like this. "listen 127.0.0.1:8001 ssl http2 proxy_protocol;"
-
-              set_real_ip_from           127.0.0.1;
-              real_ip_header             proxy_protocol;
-
-              server_name                ${config.sops.placeholder."xray_vless_domain"};
-
-              ssl_certificate            ${config.sops.placeholder.domainCert};
-              ssl_certificate_key        ${config.sops.placeholder.domainCertKey};
-
-              ssl_protocols              TLSv1.2 TLSv1.3;
-              ssl_ciphers                TLS13_AES_128_GCM_SHA256:TLS13_AES_256_GCM_SHA384:TLS13_CHACHA20_POLY1305_SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305;
-              ssl_prefer_server_ciphers  on;
-
-              ssl_stapling               on;
-              ssl_stapling_verify        on;
-              resolver                   1.1.1.1 valid=60s;
-              resolver_timeout           2s;
-
-              location / {
-                  set $website ${config.sops.placeholder."xray_vless_domain"};
-                  proxy_pass                            http://127.0.0.1:8080;
-
-                  proxy_set_header Host                 $proxy_host;
-
-                  proxy_http_version                    1.1;
-                  proxy_cache_bypass                    $http_upgrade;
-
-                  proxy_ssl_server_name                 on;
-
-                  proxy_set_header Upgrade              $http_upgrade;
-                  proxy_set_header Connection           $connection_upgrade;
-                  proxy_set_header X-Real-IP            $proxy_protocol_addr;
-                  proxy_set_header Forwarded            $proxy_add_forwarded;
-                  proxy_set_header X-Forwarded-For      $proxy_add_x_forwarded_for;
-                  proxy_set_header X-Forwarded-Proto    $scheme;
-                  proxy_set_header X-Forwarded-Host     $host;
-                  proxy_set_header X-Forwarded-Port     $server_port;
-
-                  proxy_connect_timeout                 60s;
-                  proxy_send_timeout                    60s;
-                  proxy_read_timeout                    60s;
-              }
-          }
-      }
+      <?php
+      $CONFIG = [
+        'trusted_domains' => [
+          'localhost', '${config.sops.placeholder."xray_vless_domain"}' ]];
     '';
   };
-
-  systemd.services.nginx =
+  systemd.tmpfiles.rules =
     let
-      nginxCfg = config.services.nginx;
-      nginxConfigPath = config.sops.templates."nginx.conf".path;
-      execCommand = "${nginxCfg.package}/bin/nginx -c '${nginxConfigPath}'";
+      datadir = config.services.nextcloud.home;
     in
-    {
-      preStart = lib.mkForce ''
-        ${nginxCfg.preStart}
-        ${execCommand} -t
-      '';
-      wants = lib.mkForce [
-        "xray.service"
-        "network.target"
-      ];
-      serviceConfig = {
-        ExecStart = lib.mkForce execCommand;
-        ExecReload = lib.mkForce [
-          "${execCommand} -t"
-        ];
-      };
-    };
+    [
+      "L+ ${datadir}/config/trusted_domains.config.php - - - - ${
+        config.sops.templates."trusted_domains.config.php".path
+      }"
+    ];
 
   services.nginx = {
     enable = true;
-    # to have it load the file from /etc/nginx/nginx.conf
-    enableReload = true;
     recommendedGzipSettings = true;
     recommendedOptimisation = true;
     recommendedProxySettings = true;
     recommendedTlsSettings = true;
+    virtualHosts."${config.services.nextcloud.hostName}".listen = [
+      {
+        addr = "127.0.0.1";
+        port = NGINX_PORT;
+        ssl = lib.mkForce false;
+      }
+    ];
+  };
+
+  sops.templates."haproxy_cert.pem" = {
+    owner = "haproxy";
+    content = lib.concatStrings (
+      lib.map lib.strings.trim [
+        config.sops.placeholder.domain-cert
+        config.sops.placeholder.intermediate-cert
+        config.sops.placeholder.domain-cert-key
+      ]
+    );
+  };
+
+  systemd.services.haproxy.after = [ "nginx.service" ];
+  services.haproxy = {
+    enable = true;
+    config = ''
+      global
+          log /dev/log local0
+          ssl-default-bind-options ssl-min-ver TLSv1.2
+          maxconn 4096
+
+      defaults
+          mode http
+          log global
+          option httplog
+          option dontlognull
+          timeout connect 5s
+          timeout client 30s
+          timeout server 30s
+
+      frontend http_in
+          bind *:80
+          http-request redirect scheme https code 301
+          option httplog
+
+      # HTTPS listener with TLS termination
+      frontend https_in
+          bind *:${toString HAPROXY_PORT} ssl crt ${
+            config.sops.templates."haproxy_cert.pem".path
+          } alpn h2,http/1.1 accept-proxy
+          http-request set-header X-Forwarded-Proto https
+          http-request set-header X-Forwarded-Host %[req.hdr(Host)]
+          http-request set-header X-Forwarded-Port 443
+          http-request set-header X-Real-IP %[src]
+          default_backend app_server
+
+      # Forward to backend HTTP service
+      backend app_server
+          http-request set-header Host localhost
+          server backend1 127.0.0.1:${toString NGINX_PORT} check
+      #
+    '';
+  };
+
+  sops.secrets.domain-cert = {
+    owner = "haproxy";
+    key = "";
+    format = "binary";
+    sopsFile = "${secrets}/xray-domain.crt.enc";
+  };
+  sops.secrets.intermediate-cert = {
+    owner = "haproxy";
+    key = "";
+    format = "binary";
+    sopsFile = "${secrets}/xray-intermediate.crt.enc";
+  };
+  sops.secrets.domain-cert-key = {
+    owner = "haproxy";
+    key = "";
+    format = "binary";
+    sopsFile = "${secrets}/xray-domain.key.enc";
   };
 }

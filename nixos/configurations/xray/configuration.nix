@@ -5,7 +5,8 @@
   ...
 }:
 let
-  SSH_PORT = 1022;
+  SSH_PORT = 22;
+  FALLBACK_PORT = 8081;
   secrets = inputs.secrets-folder;
   users = [
     "user1"
@@ -61,6 +62,7 @@ in
     enable = true;
     allowedTCPPorts = [
       SSH_PORT
+      80
       443
     ];
   };
@@ -96,7 +98,7 @@ in
             decryption = "none";
             fallbacks = [
               {
-                dest = 80;
+                dest = "127.0.0.1:${toString FALLBACK_PORT}";
               }
             ];
           };
@@ -105,8 +107,8 @@ in
             security = "reality";
             realitySettings = {
               show = true;
-              dest = "8000";
-              xver = 0;
+              dest = "127.0.0.1:${toString FALLBACK_PORT}";
+              xver = 1;
               serverNames = [ config.sops.placeholder."xray_vless_domain" ];
               privateKey = config.sops.placeholder."xray_private_key";
               minClientVer = "";
@@ -173,6 +175,19 @@ in
 
   security.sudo.wheelNeedsPassword = false;
 
+  # systemd.network = {
+  #   enable = true;
+  #   networks."99-default.link" = {
+  #     enable = true;
+  #     matchConfig.OriginalName = "*";
+  #     linkConfig = {
+  #       NamePolicy = "keep kernel database onboard slot path";
+  #       AlternativeNamesPolicy = "database onboard slot path";
+  #       MACAddressPolicy = "persistent";
+  #     };
+  #   };
+  # };
+
   networking.hostName = "xray";
   networking.networkmanager.enable = true;
 
@@ -185,6 +200,7 @@ in
 
   users.users = {
     root = {
+      hashedPassword = "$y$j9T$9xQDr/jHe05PJqVQbfNVv/$MRz6D//hK3FaU/jkn3m0TlCWnChNi1/cqQg8ieEUCGD";
       openssh.authorizedKeys.keys = [
         "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMQNrhBwMxwuM56z43LNcLVogFD7dlNA7H7H1Tt2HXe6 pavel"
       ];
@@ -194,11 +210,7 @@ in
       shell = pkgs.bash;
       description = "nixos-xray user";
       extraGroups = [
-        "networkmanager"
         "wheel"
-      ];
-      openssh.authorizedKeys.keys = [
-        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMQNrhBwMxwuM56z43LNcLVogFD7dlNA7H7H1Tt2HXe6 pavel"
       ];
     };
   };
