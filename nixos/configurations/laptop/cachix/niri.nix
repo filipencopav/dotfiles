@@ -1,7 +1,7 @@
 {
   nix = {
     settings = {
-      substituters = [
+      trusted-substituters = [
         "https://niri.cachix.org"
       ];
       trusted-public-keys = [
