@@ -1,4 +1,9 @@
-{ pkgs, ... }:
+{
+  pkgs,
+  inputs,
+  system,
+  ...
+}:
 let
   user = "pavel";
   homedir = "/home/${user}";
@@ -96,6 +101,8 @@ in
       zip
       wl-clipboard
       typst
+
+      inputs.blender-bin.packages.${system}.default
 
       zathura
     ];
