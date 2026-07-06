@@ -2,12 +2,9 @@
 /devel/nixpkgs
 /devel/**/.git
 /devel/**/node_modules
+/devel/**/.cache
 /devel/**/.cpcache
 /devel/**/target
+/devel/**/.clj-kondo
+/devel/**/.lsp
 /dox/**/.git
-
-/build/**/local-rama-data
-/build/**/logs
-/build/**/local-zk
-
-/dwn/64Gram Desktop

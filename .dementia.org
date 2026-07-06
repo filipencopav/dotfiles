@@ -2,20 +2,13 @@
 #+TITLE: dementia.org
 #+SUBTITLE: can't rember what I configured
 
-* Little reminders
-To merge multiple tracks with ffmpeg:
+* Merge multiple tracks with ffmpeg
 ~ffmpeg -i INPUT1 -i INPUT2 -i INPUT3 -i INPUTN -filter_complex amix=inputs=N:duration=longest OUTPUT~
 
-Camera utilities: =guvcview=, =xawtv=
+* Org element parse document
+~M-x pp-eval-expression RET (org-element-parse-buffer)~.
 
-To find out what package a given file belongs to: =pacman -Qo FILEPATH=
-
-Emacs lisp eval s-exp with ~pp-eval-expression~.
-
-Org element parse document: ~M-x pp-eval-expression RET (org-element-parse-buffer)~.
-
-* Tutorials
-** Camera configuration on linux
+* Camera configuration on linux
 To configure the camera I used =guvcview= (for viewing/testing parameters),
 =v4l2-ctl= (Video4Linux) to set values through a command and udev for
 persistance. To find out the right video settings (brightness, contrast,
@@ -51,55 +44,6 @@ udev config:
         ATTR{index}=="0", ATTRS{idVendor}=="0c45", ATTRS{idProduct}=="6366", \
         RUN+="<insert v4l2-ctl command here>"
 #+end_src
-
-* Wordpress
-1. Install Apache, php, mariadb
-2. Configure Apache: ~/etc/httpd/conf/extra/httpd-wordpress.conf~ and ~/etc/httpd/conf/httpd.conf~ (Include conf/extra/...)
-3. Uncomment ~LoadModule rewrite_module modules/mod_rewrite.so~ ?
-4. Add ~DirectoryIndex index.php~ into IfModule dir_module entry.
-
-** Mariadb setup
-#+begin_src bash
-  root$ mariadb-install-db --user=mysql --basedir=/usr --datadir=/var/lib/mysql
-#+end_src
-
-2 users by default: root and mysql. Both without a password but you have to be root and mysql user respectively to connect.
-
-If mariadb is already installed, ~# rm -rf /var/lib/mysql~.
-
-Create a user and database.
-
-#+NOTE: wordpress is your Database Name and wp-user is your User Name. You can change them if you wish. Also replace choose_db_password with your new Password for this database. You will be asked for these values along with localhost in the next section. (https://wiki.archlinux.org/title/Wordpress)
-
-#+begin_src sql
-  MariaDB> CREATE DATABASE wordpress;
-  MariaDB> GRANT ALL PRIVILEGES ON wordpress.* TO "wp-user"@"localhost" IDENTIFIED BY "choose_db_password";
-  MariaDB> FLUSH PRIVILEGES;
-  MariaDB> EXIT
-#+end_src
-
-** PHP setup
-This is the setup of PHP to work with Apache. <https://wiki.archlinux.org/title/Apache_HTTP_Server>
-
-1. Install ~php-apache~.
-2. Comment this line in ~/etc/httpd/conf/httpd.conf~: ~#LoadModule mpm_event_module modules/mod_mpm_event.so~
-3. Uncomment this line in the file above: ~LoadModule mpm_prefork_module modules/mod_mpm_prefork.so~
-4. Place this at the end of the LoadModule list: ~LoadModule php_module modules/libphp.so~,  ~AddHandler php-script .php~
-5. Insert ~PHPIniDir "/etc/php"~ into php_module.conf, inside ~<IfModule php_module>~ tag.
-6. Place this at the end of the Include list: ~Include conf/extra/php_module.conf~
-
-In order for PHP to work with MySql, add (or uncomment) these lines to ~/etc/php/php.ini~:
-#+begin_verbatim
-extension=pdo_mysql
-extension=mysqli
-#+end_verbatim
-
-Retart httpd.service and mariadb.service
-
-** Wp setup steps
-I don't know if these change anything, but I get a stupid error so I did:
-1. Rename php-config-sample.php into php-config.php
-2. Edit php-config.php, change db name to ~wordpress~, change user name to ~wp-user~, change password to ~choose_db_password~.
 
 * Migrate ~pass~ to another device
 Put ~.password-store/~ into the other device's user directory.
@@ -158,5 +102,5 @@ First, open drive with =cryptsetup open=. Mount to =/path/to/drive=
 Second, =export BACKUPDIR=/path/to/drive=
 Third:
 #+begin_src bash
-  rsync --info=skip0 --exclude-from="$XDG_CONFIG_HOME/rsync-homedir-local.txt" -aP build devel dox dskt dwn mus pix proj tmpl vids "$BACKUPDIR"
+  rsync --info=skip0 --exclude-from="$XDG_CONFIG_HOME/rsync-homedir-local.txt" -aP devel dox dskt mus pix proj tmpl vids "$BACKUPDIR"
 #+end_src
