@@ -1,152 +1,124 @@
 {
-  pkgs,
   config,
   inputs,
   ...
 }:
 let
-  secrets = inputs.secrets-folder;
-  xray-fw-mark = 255;
+  secrets-dir = inputs.secrets-folder;
   xray-interface-name = "tun0";
+  sing-interface-name = "sing-tun";
 in
 {
-  environment.systemPackages = [ pkgs.xray ];
-
   my-nixos.features.sops.enable = true;
-
-  sops.templates."post_start.env".content = ''
-    XRAY_VPS_ADDRESS=${config.sops.placeholder."xray_server_address"}
-  '';
-  systemd.services.xray = {
-    serviceConfig.EnvironmentFile = config.sops.templates."post_start.env".path;
-    after = [ "network-online.target" ];
-    wants = [ "network-online.target" ];
-    postStart =
-      let
-        ip = "${pkgs.iproute2}/bin/ip";
-        awk = "${pkgs.gawk}/bin/awk";
-        head = "${pkgs.coreutils}/bin/head";
-      in
-      ''
-        while ! ${ip} link show ${xray-interface-name} >/dev/null 2>&1; do sleep 0.1; done
-
-        # (e.g., "default via 192.168.1.1 dev eth0...")
-        default_route_line=$(${ip} route show default | head -n1)
-        gateway=$(echo "$default_route_line" | ${awk} '{print $3}')
-        interface=$(echo "$default_route_line" | ${awk} '{print $5}')
-        local_cidr=$(${ip} route show dev "$interface" scope link | ${head} -n1 | ${awk} '{print $1}')
-
-        ${ip} route add default dev ${xray-interface-name} || true
-        ${ip} route del default via "$gateway" || true
-        ${ip} route add $XRAY_VPS_ADDRESS via "$gateway" dev "$interface" || true
-        ${ip} route add "$local_cidr" via "$gateway" dev "$interface" || true
-      '';
-  };
 
   networking.firewall = {
     checkReversePath = false;
-    trustedInterfaces = [ xray-interface-name ];
+    trustedInterfaces = [
+      xray-interface-name
+      sing-interface-name
+    ];
   };
 
-  services.xray = {
+  services.sing-box = {
     enable = true;
-    settingsFile = config.sops.templates."xray-client.json".path;
-  };
-  sops.templates."xray-client.json".content = builtins.toJSON {
-    log = {
-      loglevel = "warning";
-    };
-
-    routing = {
-      domainStrategy = "IPOnDemand";
-      rules = [
+    settings = {
+      log.level = "warning";
+      dns.servers = [
         {
-          outboundTag = "block";
-          domain = [ "geosite:category-ads-all" ];
+          tag = "google";
+          type = "tls";
+          server = "8.8.8.8";
         }
-        # {
-        #   outboundTag = "direct";
-        #   domain = [
-        #     "cache.nixos.org"
-        #     "cachix.org"
-        #   ];
-        # }
       ];
-    };
-
-    inbounds = [
-      {
-        tag = "tun-in";
-        protocol = "tun";
-        settings = {
-          name = "${xray-interface-name}";
-          mtu = 1500;
-        };
-        sniffing = {
-          enabled = true;
-          destOverride = [
-            "http"
-            "tls"
+      inbounds = [
+        {
+          type = "tun";
+          tag = "tun-in";
+          interface_name = sing-interface-name;
+          auto_route = true;
+          auto_redirect = true;
+          address = [
+            "172.19.0.1/30"
+            "fdfe:dcba:9876::1/126"
           ];
-          routeOnly = true;
-        };
-      }
-    ];
-    outbounds = [
-      {
-        protocol = "vless";
-        tag = "proxy";
-        settings = {
-          vnext = [
-            {
-              address = config.sops.placeholder."xray_server_address";
-              port = 443;
-              users = [
-                {
-                  id = config.sops.placeholder."xray_user1_uuid";
-                  flow = "xtls-rprx-vision";
-                  encryption = "none";
-                  level = 0;
-                }
-              ];
-            }
-          ];
-        };
-        streamSettings = {
-          network = "tcp";
-          security = "reality";
-          realitySettings = {
-            show = true;
-            serverName = config.sops.placeholder."xray_vless_domain";
-            publicKey = config.sops.placeholder."xray_public_key";
-            fingerprint = "chrome";
-            shortId = "aa00";
+        }
+      ];
+      outbounds = [
+        {
+          type = "vless";
+          tag = "proxy";
+          server._secret = config.sops.secrets."xray_server_address".path;
+          server_port = 443;
+          uuid._secret = config.sops.secrets."xray_user1_uuid".path;
+          flow = "xtls-rprx-vision";
+          tls = {
+            enabled = true;
+            server_name._secret = config.sops.secrets."xray_vless_domain".path;
+            utls = {
+              enabled = true;
+              fingerprint = "chrome";
+            };
+            reality = {
+              enabled = true;
+              public_key._secret = config.sops.secrets."xray_public_key".path;
+              short_id = "aa00";
+            };
           };
-          sockopt.mark = xray-fw-mark;
-        };
-      }
-      {
-        protocol = "freedom";
-        tag = "direct";
-        streamSettings.sockopt.mark = xray-fw-mark;
-      }
-      {
-        protocol = "blackhole";
-        tag = "block";
-      }
-    ];
+          packet_encoding = "xudp";
+        }
+        {
+          type = "direct";
+          tag = "direct";
+        }
+      ];
+      route.auto_detect_interface = true;
+      route.rules = [
+        {
+          type = "logical";
+          mode = "or";
+          action = "hijack-dns";
+          rules = [
+            { protocol = "dns"; }
+            { port = 53; }
+          ];
+        }
+        {
+          action = "sniff";
+        }
+        {
+          ip_is_private = true;
+          action = "bypass";
+        }
+        {
+          rule_set = [ "geoip-ru" ];
+          outbound = "reject";
+        }
+      ];
+      route.rule_set = [
+        {
+          type = "remote";
+          tag = "geoip-ru";
+          format = "binary";
+          url = "https://github.com/SagerNet/sing-geoip/raw/rule-set/geoip-ru.srs";
+          download_detour = "proxy";
+          # Use this when sing-box version gets to 1.14
+          # http_client.dial.detour = "proxy";
+        }
+      ];
+      experimental.cache_file.enabled = true;
+    };
   };
 
   sops.secrets."xray_user1_uuid" = {
-    sopsFile = "${secrets}/xray.yaml";
+    sopsFile = "${secrets-dir}/xray.yaml";
   };
   sops.secrets."xray_server_address" = {
-    sopsFile = "${secrets}/xray.yaml";
+    sopsFile = "${secrets-dir}/xray.yaml";
   };
   sops.secrets."xray_vless_domain" = {
-    sopsFile = "${secrets}/xray.yaml";
+    sopsFile = "${secrets-dir}/xray.yaml";
   };
   sops.secrets."xray_public_key" = {
-    sopsFile = "${secrets}/xray.yaml";
+    sopsFile = "${secrets-dir}/xray.yaml";
   };
 }

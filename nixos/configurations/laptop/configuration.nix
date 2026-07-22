@@ -35,7 +35,7 @@
     keys-usb.enable = true;
     battery-notification.enable = true;
     battery-notification.threshold = 20;
-    # firewall.enable = true;
+    firewall.enable = true;
     networkmanager.enable = true;
     xray-client.enable = true;
   };
