@@ -28,18 +28,32 @@ in
           tag = "google";
           type = "tls";
           server = "8.8.8.8";
+          server_port = 853;
+          tls = {
+            server_name = "dns.google";
+            enabled = true;
+          };
+        }
+        {
+          tag = "system";
+          type = "local";
         }
       ];
+      dns.final = "system";
       inbounds = [
         {
           type = "tun";
           tag = "tun-in";
           interface_name = sing-interface-name;
+          stack = "gvisor";
           auto_route = true;
           auto_redirect = true;
+          strict_route = true;
           address = [
             "172.19.0.1/30"
-            "fdfe:dcba:9876::1/126"
+            # If my network ever supports IPv6, I have to add this as well.
+            # Otherwise, it tries to connect through IPv6 with a network that doesn't support IPv6 and fails (if it's going through direct).
+            # "fdfe:dcba:9876::1/126"
           ];
         }
       ];
@@ -65,6 +79,10 @@ in
             };
           };
           packet_encoding = "xudp";
+          domain_resolver = {
+            server = "google";
+            strategy = "prefer_ipv4";
+          };
         }
         {
           type = "direct";
@@ -72,26 +90,28 @@ in
         }
       ];
       route.auto_detect_interface = true;
+      route.default_domain_resolver = "google";
+      route.final = "proxy";
       route.rules = [
         {
-          type = "logical";
-          mode = "or";
-          action = "hijack-dns";
-          rules = [
-            { protocol = "dns"; }
-            { port = 53; }
-          ];
+          action = "sniff";
         }
         {
-          action = "sniff";
+          protocol = "dns";
+          action = "hijack-dns";
         }
         {
           ip_is_private = true;
           action = "bypass";
         }
         {
-          rule_set = [ "geoip-ru" ];
-          outbound = "reject";
+          type = "logical";
+          mode = "or";
+          rules = [
+            { rule_set = "geosite-ru"; }
+            { rule_set = "geoip-ru"; }
+          ];
+          outbound = "direct";
         }
       ];
       route.rule_set = [
@@ -100,6 +120,15 @@ in
           tag = "geoip-ru";
           format = "binary";
           url = "https://github.com/SagerNet/sing-geoip/raw/rule-set/geoip-ru.srs";
+          download_detour = "proxy";
+          # Use this when sing-box version gets to 1.14
+          # http_client.dial.detour = "proxy";
+        }
+        {
+          type = "remote";
+          tag = "geosite-ru";
+          format = "binary";
+          url = "https://github.com/SagerNet/sing-geosite/raw/rule-set/geosite-category-ru.srs";
           download_detour = "proxy";
           # Use this when sing-box version gets to 1.14
           # http_client.dial.detour = "proxy";
