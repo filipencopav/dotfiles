@@ -471,6 +471,8 @@ They look nice.
     (define-prefix-command 'p/org-roam-commands)
     (define-key p/org-roam-commands (kbd "f") 'org-roam-node-find)
     (define-key p/org-roam-commands (kbd "i") 'org-roam-node-insert)
+    (define-key p/org-roam-commands (kbd "o") 'org-id-get-create)
+    (define-key p/org-roam-commands (kbd "t") 'org-roam-tag-add)
     (define-key p/ctl-z-map (kbd "n") p/org-roam-commands)
     (org-roam-setup))
 #+end_src
