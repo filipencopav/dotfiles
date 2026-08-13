@@ -68,6 +68,7 @@
       withPgtk = true;
     })
     cachix
+    cryptsetup
   ];
 
   networking.hosts = {
