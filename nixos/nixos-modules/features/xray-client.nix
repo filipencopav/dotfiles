@@ -5,7 +5,6 @@
 }:
 let
   secrets-dir = inputs.secrets-folder;
-  xray-interface-name = "tun0";
   sing-interface-name = "sing-tun";
 in
 {
@@ -14,10 +13,13 @@ in
   networking.firewall = {
     checkReversePath = false;
     trustedInterfaces = [
-      xray-interface-name
       sing-interface-name
     ];
   };
+
+  networking.networkmanager.unmanaged = [
+    sing-interface-name
+  ];
 
   services.sing-box = {
     enable = true;
