@@ -7,7 +7,7 @@
 }:
 let
   emacsPkg = (
-    pkgs.emacs30.override {
+    pkgs.emacs.override {
       withNativeCompilation = true;
       withPgtk = true;
       withTreeSitter = true;

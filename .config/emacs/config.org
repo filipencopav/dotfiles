@@ -181,7 +181,7 @@ By installing vertico, I can have nice-looking vertical minibuffer completions.
 
   (leaf marginalia
     :config
-    (marginalia-mode 1))
+    (marginalia-mode -1))
 #+end_src
 
 ** Smooth scrolling
@@ -661,21 +661,10 @@ Hooks.
 
 *** Markdown
 #+begin_src emacs-lisp
-  (leaf markdown-ts-mode
-    :mode ("\\.md\\'" . markdown-ts-mode)
-    :config
-    (add-to-list
-     'treesit-language-source-alist
-     '(markdown
-       "https://github.com/tree-sitter-grammars/tree-sitter-markdown"
-       "split_parser"
-       "tree-sitter-markdown/src"))
-    (add-to-list
-     'treesit-language-source-alist
-     '(markdown-inline
-       "https://github.com/tree-sitter-grammars/tree-sitter-markdown"
-       "split_parser"
-       "tree-sitter-markdown-inline/src")))
+  (require 'markdown-ts-mode)
+  (eval-after-load 'markdown-ts-mode
+    '(progn
+       (add-to-list 'auto-mode-alist '("\\.md\\'" . markdown-ts-mode))))
 #+end_src
 
 *** Go
@@ -737,8 +726,7 @@ Hooks.
 *** Nix
 #+begin_src emacs-lisp
   (elpaca (nix-ts-mode :host github
-                       :repo "nix-community/nix-ts-mode"
-                       :ref "319831712125e8c9e4f14b66def518d7a633685c")
+                       :repo "nix-community/nix-ts-mode")
     (provide 'elpaca-nix))
   (leaf nix-ts-mode
     :after (eglot elpaca-nix)
@@ -767,8 +755,7 @@ Java ts mode.
            (:url "https://raw.githubusercontent.com/google/styleguide/gh-pages/eclipse-java-google-style.xml")
            :enabled t)))))
 
-    (add-to-list 'eglot-java-eclipse-jdt-args "--enable-preview")
-    )
+    (add-to-list 'eglot-java-eclipse-jdt-args "--enable-preview"))
 
   (leaf java-ts-mode
     :elpaca nil

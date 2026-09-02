@@ -10,4 +10,5 @@
     (require 'org-tempo)
     (require 'org))
 
-(org-babel-load-file *config.org-location*)
+(let ((lexical-binding t))
+  (org-babel-load-file *config.org-location*))
