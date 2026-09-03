@@ -1,3 +1,7 @@
+#+begin_src emacs-lisp
+  ;; -*- lexical-binding: t; -*-
+#+end_src
+
 This file is my emacs configuration.
 
 * Keybindings
@@ -1016,7 +1020,7 @@ CIDER. Notice how clojure is different from all the other languages? Yes, it doe
     :mode ("\\.ya?ml\\'" . yaml-ts-mode)
     :config
     (p/add-hooks
-     (yaml-ts-mode
+     (yaml-ts-mode-hook
       (setq-local tab-width 2))))
 #+end_src
 
