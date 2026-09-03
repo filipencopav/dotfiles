@@ -63,7 +63,7 @@
   services.fstrim.enable = true;
   services.locate.enable = true;
   environment.systemPackages = with pkgs; [
-    (emacs30.override {
+    (emacs.override {
       withNativeCompilation = true;
       withPgtk = true;
     })
