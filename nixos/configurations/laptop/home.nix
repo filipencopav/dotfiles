@@ -25,6 +25,7 @@ in
     passage.enable = true;
     passfuzzel.enable = true;
     helium.enable = true;
+    firefox.enable = true;
     sops.enable = true;
 
     cursor.enable = true;
