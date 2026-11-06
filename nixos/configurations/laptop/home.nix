@@ -27,6 +27,7 @@ in
     helium.enable = true;
     firefox.enable = true;
     sops.enable = true;
+    telegram.enable = true;
 
     cursor.enable = true;
     zed.enable = true;
@@ -41,6 +42,8 @@ in
     stylix.enable = true;
 
     user-dirs.enable = true;
+
+    office.enable = true;
 
     # styles
     gtk.enable = true;
@@ -95,7 +98,6 @@ in
       mpv
       openttd
       ripgrep
-      _64gram
       transmission_4-gtk
       yt-dlp
       unzip
@@ -107,5 +109,14 @@ in
 
       zathura
     ];
+  };
+
+  # TODO: move to modules
+  xdg.mimeApps = {
+    enable = true;
+    defaultApplications = {
+      "x-scheme-handler/magnet" = "userapp-transmission-gtk-YCXPK3.desktop";
+      "x-scheme-handler/discord" = "vesktop.desktop";
+    };
   };
 }
