@@ -91,6 +91,6 @@ in
     pkgs.vue-language-server
   ]
   ++ lib.optionals langs.java.enable [
-    (pkgs.jdt-language-server.override (final: final // { inherit jdk; }))
+    pkgs.jdt-language-server
   ];
 }
