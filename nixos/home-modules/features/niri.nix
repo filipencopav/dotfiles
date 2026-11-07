@@ -121,6 +121,7 @@ in
     settings.spawn-at-startup = [
     ];
     settings.environment = {
+      QT_QPA_PLATFORM = "wayland";
       # For XWayland
       DISPLAY = ":0";
     };
