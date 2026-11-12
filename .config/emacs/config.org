@@ -992,7 +992,7 @@ CIDER. Notice how clojure is different from all the other languages? Yes, it doe
                                     sb-cltl2 asdf))\" \\
           --eval '(load \"%s\")' \\
           --eval '(slynk-loader:dump-image \"%s\")'"
-        (expand-file-name "elpaca/repos/sly/slynk/slynk-loader.lisp"
+        (expand-file-name "elpaca/sources/sly/slynk/slynk-loader.lisp"
                           user-emacs-directory)
          ,*sly-image-location*)))
 
