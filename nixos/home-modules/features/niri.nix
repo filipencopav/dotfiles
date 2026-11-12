@@ -127,6 +127,7 @@ in
     };
 
     settings.layout = {
+      default-column-width.proportion = 0.33333;
       gaps = 8;
       focus-ring = {
         width = 3;
