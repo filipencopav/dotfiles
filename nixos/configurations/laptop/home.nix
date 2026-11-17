@@ -30,7 +30,6 @@ in
     telegram.enable = true;
 
     cursor.enable = true;
-    zed.enable = true;
     obs.enable = true;
 
     langs = {
