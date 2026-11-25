@@ -150,8 +150,12 @@ Dashboard as the initial buffer.
     (dashboard-items . '((recents . 5)
                          (agenda . 5)))
     :config
+    (defun p/dashboard-initialize ()
+      (let ((default-directory "~/"))
+        (dashboard-initialize)))
+
     (add-hook 'elpaca-after-init-hook #'dashboard-insert-startupify-lists)
-    (add-hook 'elpaca-after-init-hook #'dashboard-initialize)
+    (add-hook 'elpaca-after-init-hook #'p/dashboard-initialize)
 
     (defun p/choose-initial-buffer ()
       (if (get-buffer-window dashboard-buffer-name 'visible)
